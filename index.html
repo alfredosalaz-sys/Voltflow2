@@ -622,6 +622,9 @@
 <script data-purpose="auth-logic">
 var _pin = "";
 var _correct = "1234";
+// Limpiar sesión anterior al llegar a la landing
+localStorage.removeItem("gordi_pin");
+localStorage.removeItem("gordi_custom_pin");
 
 function voltOpenModal() {
   var m = document.getElementById("loginModal");
