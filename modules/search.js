@@ -448,10 +448,26 @@ async function fetchPlaces(segment, location, maxResults) {
         const { places } = await Place.searchByText(request);
         if (!places?.length) continue;
 
+        // ── FILTRO DE EXCLUSIÓN: tipos de negocio no deseados ──────────────────
+        // Se aplica ANTES de añadir al resultado para no contaminar el pool.
+        const EXCLUDED_TYPES = new Set([
+          'car_repair','car_dealer','car_wash','auto_parts_store',
+          'car_rental','taxi_service','moving_company','storage',
+          'gas_station','parking','vehicle_registration','driving_school',
+          'motorcycle_dealer','bicycle_store',
+        ]);
+        const EXCLUDED_NAME_PATTERNS = /taller\s*(mecánico|mecanico|auto|automovil|automóvil|coches?|vehiculos?|motor)|mecánico|mecanico\s+auto|chapa\s*y\s*pintura|automoción|autoservice|car\s*service|garaje\s*(mecán|taller)|talleres?\s+\w+\s+(s\.?l\.?|s\.?a\.?)/i;
+
         let newInThisQuery = 0;
         for (const p of places) {
           if (seenIds.has(p.id)) continue;
           if (p.businessStatus === 'CLOSED_PERMANENTLY') continue;
+          // Excluir tipos de negocio no deseados
+          const pTypes = (p.types || []);
+          if (pTypes.some(t => EXCLUDED_TYPES.has(t))) continue;
+          // Excluir por nombre si coincide con patrón de taller mecánico
+          const pName = (p.displayName || '').toLowerCase();
+          if (EXCLUDED_NAME_PATTERNS.test(pName)) continue;
           seenIds.add(p.id);
           allPlaces.push(normalizePlaceResult(p));
           newInThisQuery++;
@@ -804,12 +820,15 @@ async function enrichFromWeb(company) {
   // Prioridad: /contacto y /about primero (mayor hit-rate), luego equipo.
   if (!company.email || !company.decision_maker) {
     const baseUrl = company.website.replace(/\/$/, '');
-    const deepPaths = ['/contacto', '/about', '/contact', '/equipo', '/team', '/nosotros', '/about-us', '/quienes-somos', '/empresa'];
+    // FIX-50+: Reducido de 9 a 3 rutas (mayor hit-rate comprobado).
+    // Timeout reducido a 3500ms: si el proxy no responde rápido, no responderá nunca.
+    // Esto evita que 50+ empresas × 9 rutas × 5s = miles de segundos de espera.
+    const deepPaths = ['/contacto', '/contact', '/about'];
 
     for (const path of deepPaths) {
       if (company.email && company.decision_maker) break; // Ya tenemos todo, parar
       try {
-        const pageHtml = await fetchWithProxy(baseUrl + path, 5000);
+        const pageHtml = await fetchWithProxy(baseUrl + path, 3500);
         if (!pageHtml || pageHtml.length < 200) continue;
 
         // Buscar emails en esta página
@@ -1987,8 +2006,14 @@ async function searchBusinesses() {
       setStep('web','active', `${done}/${tempSearchResults.length}`);
       updateEnrichStats();
 
-      // FIX-SCRAPING: Pausa más larga entre batches para respetar rate-limit de proxies
-      if (b + BATCH_SIZE < enrichOrder.length) await sleep(1200);
+      // FIX-50+: Pausa adaptativa — crece con el número total de empresas para
+      // no saturar los proxies gratuitos cuando hay muchos resultados.
+      // ≤20 empresas: 800ms | ≤50: 1200ms | >50: 1800ms
+      if (b + BATCH_SIZE < enrichOrder.length) {
+        const pauseMs = tempSearchResults.length <= 20 ? 800
+                      : tempSearchResults.length <= 50 ? 1200 : 1800;
+        await sleep(pauseMs);
+      }
     }
     setStep('web','done', done + ' procesadas');
     setProgress(60);
@@ -2944,3 +2969,85 @@ function loadGoogleMapsScript(apiKey) {
   document.head.appendChild(script);
 }
 
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// ██  MÓDULO: SEGMENT QUERIES
+// ──  Define las queries de búsqueda para cada segmento de negocio.
+// ──  Centralizado aquí para fácil mantenimiento y control de exclusiones.
+// ══════════════════════════════════════════════════════════════════════════
+
+const segmentQueries = {
+  // ── Industrial / Naves ──────────────────────────────────────────────────
+  Industrial: [
+    'nave industrial', 'almacén logístico', 'empresa industrial',
+    'fábrica', 'taller industrial', 'empresa manufacturera',
+    'empresa de producción', 'empresa de distribución', 'polígono industrial empresa',
+  ],
+
+  // ── Retail / Tiendas — SIN talleres mecánicos ───────────────────────────
+  // NOTA: Excluimos explícitamente cualquier query que pueda atraer talleres
+  Retail: [
+    'tienda de ropa', 'boutique', 'tienda de calzado',
+    'tienda de electrodomésticos', 'ferretería', 'tienda de muebles',
+    'tienda de decoración', 'floristería', 'joyería',
+    'óptica', 'perfumería', 'librería', 'papelería',
+    'tienda de alimentación', 'supermercado pequeño', 'ultramarinos',
+    'tienda de electrónica', 'tienda de informática',
+  ],
+
+  // ── Oficinas / Consultoras ───────────────────────────────────────────────
+  Oficinas: [
+    'oficina empresa', 'consultora', 'asesoría fiscal',
+    'gestoría', 'despacho de abogados', 'agencia de marketing',
+    'agencia de publicidad', 'empresa de servicios', 'agencia inmobiliaria',
+    'clínica dental', 'clínica médica privada', 'fisioterapia',
+    'psicólogo', 'notaría', 'correduría de seguros',
+  ],
+
+  // ── Hoteles / Hostelería ─────────────────────────────────────────────────
+  Hoteles: [
+    'hotel', 'hostal', 'pensión', 'apartahotel',
+    'restaurante', 'bar restaurante', 'cafetería',
+    'catering', 'salón de eventos', 'chiringuito',
+  ],
+
+  // ── Educación / Colegios ─────────────────────────────────────────────────
+  Educativo: [
+    'colegio privado', 'academia', 'centro de formación',
+    'escuela de idiomas', 'guardería', 'centro infantil',
+    'escuela de baile', 'autoescuela', 'universidad privada',
+    'centro educativo',
+  ],
+
+  // ── Deportivo / Gimnasios ────────────────────────────────────────────────
+  Deportivo: [
+    'gimnasio', 'centro deportivo', 'club deportivo',
+    'piscina privada', 'pádel club', 'escuela de tenis',
+    'yoga studio', 'pilates studio', 'crossfit',
+    'spa', 'wellness center',
+  ],
+
+  // ── Cultural / Museos ────────────────────────────────────────────────────
+  Cultural: [
+    'museo', 'sala de exposiciones', 'teatro',
+    'galería de arte', 'sala de conciertos', 'centro cultural',
+    'cine', 'espacio cultural',
+  ],
+
+  // ── Centros Comerciales ──────────────────────────────────────────────────
+  Comercial: [
+    'centro comercial', 'galería comercial', 'mercado municipal',
+    'mercado artesanal', 'outlet',
+  ],
+};
+
+/**
+ * Devuelve el array de queries de búsqueda para un segmento dado.
+ * Si el segmento no existe, devuelve queries genéricas de empresa.
+ */
+function getSegmentQueries(segment) {
+  return segmentQueries[segment]
+    || segmentQueries[segment?.charAt(0).toUpperCase() + segment?.slice(1)]
+    || ['empresa', 'negocio', 'comercio', 'compañía'];
+}
