@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Voltium CRM | Efficient Data Infrastructure</title>
+<meta content="Encuentra leads. Enriquécelos. Cierra. La infraestructura de datos más eficiente para tu equipo de ventas." name="description"/>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Serif+Display:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script>
+  // Suppress Tailwind CDN production warning (intentional CDN use for static page)
+  const _warn = console.warn.bind(console);
+  console.warn = (...args) => {
+    if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+    _warn(...args);
+  };
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0a0a0f',
+              blue: '#0a84ff',
+              green: '#10d978',
+              surface: '#16161e',
+            }
+          },
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            serif: ['DM Serif Display', 'serif'],
+          },
+          animation: {
+            'glow-pulse': 'glow-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+          },
+          keyframes: {
+            'glow-pulse': {
+              '0%, 100%': { opacity: 0.3 },
+              '50%': { opacity: 0.6 },
+            },
+            'shake': {
+              '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+              '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+              '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+              '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-layout">
+    body {
+      background-color: #0a0a0f;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(22, 22, 30, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .grid-lines {
+      background-image: linear-gradient(rgba(10, 132, 255, 0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(10, 132, 255, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    .glow-bg {
+      background: radial-gradient(circle at center, rgba(10, 132, 255, 0.15) 0%, transparent 70%);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .cursor-glow {
+      pointer-events: none;
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(10, 132, 255, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .cursor-glow { display: block; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+<div class="cursor-glow" id="cursor"></div>
+<!-- BEGIN: MainHeader -->
+<header class="fixed top-0 w-full z-50 px-4 py-3 lg:px-8">
+<nav class="max-w-7xl mx-auto glass rounded-2xl flex items-center justify-between px-6 py-3 shadow-2xl">
+<div class="flex items-center gap-2">
+<img alt="Voltflow Logo" class="h-8 w-auto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 32'%3E%3Ccircle cx='12' cy='16' r='10' fill='%230a84ff' opacity='0.2'/%3E%3Cpath d='M6 16 L10 11 L14 16 L18 11' stroke='%230a84ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M6 21 L10 16 L14 21 L18 16' stroke='%2310d978' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"/>
+<span class="font-bold text-xl tracking-tighter hidden sm:inline">VOLTIUM</span>
+</div>
+<div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+<a class="hover:text-brand-blue transition-colors" href="#features">Funciones</a>
+<a class="hover:text-brand-blue transition-colors" href="#dashboard">Plataforma</a>
+<a class="hover:text-brand-blue transition-colors" href="#pricing">Precios</a>
+</div>
+<button class="bg-brand-blue hover:bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(10,132,255,0.3)]" data-purpose="login-trigger" onclick="voltOpenModal()">
+        Acceder
+      </button>
+</nav>
+</header>
+<!-- END: MainHeader -->
+<main>
+<!-- BEGIN: HeroSection -->
+<section class="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-4 overflow-hidden">
+<div class="absolute inset-0 grid-lines -z-10"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full glow-bg -z-10 animate-glow-pulse"></div>
+<div class="max-w-4xl text-center reveal">
+<span class="inline-block px-4 py-1.5 rounded-full bg-brand-blue/10 text-brand-blue text-xs font-bold uppercase tracking-widest mb-6 border border-brand-blue/20">
+          Nueva Versión 4.0
+        </span>
+<h1 class="font-serif text-5xl md:text-7xl lg:text-8xl mb-6 leading-tight">
+          Encuentra leads. <br/>
+<span class="text-brand-blue italic">Enriquécelos.</span> Cierra.
+        </h1>
+<p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
+          La infraestructura de datos definitiva para equipos de ventas que buscan precisión milimétrica y automatización sin límites.
+        </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors">
+            Empezar gratis
+          </button>
+<button class="w-full sm:w-auto px-8 py-4 glass text-white font-bold rounded-xl hover:border-brand-blue/50 transition-colors">
+            Ver Demo
+          </button>
+</div>
+</div>
+<!-- Dashboard Visual Mockup — Pure CSS/SVG, no canvas -->
+<style>
+@keyframes dash-bar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes dash-pulse { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+@keyframes dash-slide { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+@keyframes dash-fade-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes dash-count { from { opacity:0; } to { opacity:1; } }
+.db-bar { transform-origin: bottom; animation: dash-bar .8s ease both; }
+.db-bar:nth-child(1){animation-delay:.0s} .db-bar:nth-child(2){animation-delay:.05s}
+.db-bar:nth-child(3){animation-delay:.1s} .db-bar:nth-child(4){animation-delay:.15s}
+.db-bar:nth-child(5){animation-delay:.2s} .db-bar:nth-child(6){animation-delay:.25s}
+.db-bar:nth-child(7){animation-delay:.3s} .db-bar:nth-child(8){animation-delay:.35s}
+.db-bar:nth-child(9){animation-delay:.4s} .db-bar:nth-child(10){animation-delay:.45s}
+.db-bar:nth-child(11){animation-delay:.5s} .db-bar:nth-child(12){animation-delay:.55s}
+.db-line-track { animation: dash-slide 12s linear infinite; }
+.db-feed-item { animation: dash-fade-in .4s ease both; }
+</style>
+
+<div class="mt-20 max-w-5xl w-full mx-auto reveal" style="transition-delay:200ms;">
+<div class="glass p-2 rounded-2xl border-white/5 bg-black/40" style="box-shadow:0 0 60px rgba(10,132,255,0.15);">
+<div style="background:#0c0c14;border-radius:11px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
+
+  <!-- Top bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#0e0e18;border-bottom:1px solid rgba(255,255,255,0.06);">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="width:9px;height:9px;border-radius:50%;background:#ff5f57;display:inline-block;"></span>
+      <span style="width:9px;height:9px;border-radius:50%;background:#febc2e;display:inline-block;"></span>
+      <span style="width:9px;height:9px;border-radius:50%;background:#28c840;display:inline-block;"></span>
+      <span style="margin-left:10px;font-size:10px;color:#3a3a4a;font-family:monospace;letter-spacing:1px;">VOLTIUM CRM — DATOS_V4</span>
+    </div>
+    <span id="live-clock" style="font-size:10px;color:#0a84ff;font-family:monospace;animation:dash-pulse 2s ease infinite;"></span>
+  </div>
+
+  <!-- Main grid -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:8px;padding:10px;">
+
+    <!-- KPI 1 -->
+    <div style="background:rgba(10,132,255,0.07);border:1px solid rgba(10,132,255,0.2);border-radius:9px;padding:10px 12px;">
+      <div style="font-size:9px;color:#444;font-family:monospace;letter-spacing:1px;margin-bottom:3px;">LEADS HOY</div>
+      <div style="font-size:20px;font-weight:700;color:#fff;" id="kpi-leads-val">1,847</div>
+      <div style="font-size:10px;color:#10d978;margin-top:2px;">▲ +12.4%</div>
+    </div>
+    <!-- KPI 2 -->
+    <div style="background:rgba(16,217,120,0.06);border:1px solid rgba(16,217,120,0.18);border-radius:9px;padding:10px 12px;">
+      <div style="font-size:9px;color:#444;font-family:monospace;letter-spacing:1px;margin-bottom:3px;">ENRIQUECIDOS</div>
+      <div style="font-size:20px;font-weight:700;color:#fff;" id="kpi-enrich-val">1,203</div>
+      <div style="font-size:10px;color:#10d978;margin-top:2px;">▲ +8.7%</div>
+    </div>
+    <!-- KPI 3 -->
+    <div style="background:rgba(255,184,0,0.06);border:1px solid rgba(255,184,0,0.18);border-radius:9px;padding:10px 12px;">
+      <div style="font-size:9px;color:#444;font-family:monospace;letter-spacing:1px;margin-bottom:3px;">CIERRES / MES</div>
+      <div style="font-size:20px;font-weight:700;color:#fff;">94</div>
+      <div style="font-size:10px;color:#ffb800;margin-top:2px;">▲ +21.3%</div>
+    </div>
+
+    <!-- Bar chart — pure SVG, no JS sizing -->
+    <div style="grid-column:1/3;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:10px;overflow:hidden;">
+      <div style="font-size:9px;color:#3a3a4a;font-family:monospace;letter-spacing:1px;margin-bottom:8px;">PIPELINE DE LEADS — ÚLTIMAS 24H</div>
+      <svg viewBox="0 0 400 80" preserveAspectRatio="none" style="width:100%;height:70px;display:block;">
+        <!-- Grid lines -->
+        <line x1="0" y1="20" x2="400" y2="20" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line x1="0" y1="40" x2="400" y2="40" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line x1="0" y1="60" x2="400" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <!-- Blue area -->
+        <defs>
+          <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#0a84ff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10d978" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#10d978" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,55 L33,45 L66,30 L99,40 L132,20 L165,35 L198,15 L231,28 L264,38 L297,22 L330,32 L363,18 L400,25 L400,80 L0,80 Z" fill="url(#gBlue)"/>
+        <path d="M0,55 L33,45 L66,30 L99,40 L132,20 L165,35 L198,15 L231,28 L264,38 L297,22 L330,32 L363,18 L400,25" fill="none" stroke="#0a84ff" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M0,65 L33,58 L66,48 L99,55 L132,42 L165,50 L198,38 L231,45 L264,55 L297,40 L330,50 L363,35 L400,44 L400,80 L0,80 Z" fill="url(#gGreen)"/>
+        <path d="M0,65 L33,58 L66,48 L99,55 L132,42 L165,50 L198,38 L231,45 L264,55 L297,40 L330,50 L363,35 L400,44" fill="none" stroke="#10d978" stroke-width="1.5" stroke-linejoin="round"/>
+        <!-- Animated dot on blue line -->
+        <circle r="3" fill="#0a84ff">
+          <animateMotion dur="8s" repeatCount="indefinite" path="M0,55 L33,45 L66,30 L99,40 L132,20 L165,35 L198,15 L231,28 L264,38 L297,22 L330,32 L363,18 L400,25"/>
+        </circle>
+        <circle r="5" fill="#0a84ff" fill-opacity="0.2">
+          <animateMotion dur="8s" repeatCount="indefinite" path="M0,55 L33,45 L66,30 L99,40 L132,20 L165,35 L198,15 L231,28 L264,38 L297,22 L330,32 L363,18 L400,25"/>
+        </circle>
+        <!-- Legend -->
+        <rect x="4" y="4" width="10" height="3" rx="1" fill="#0a84ff"/>
+        <text x="17" y="9" fill="#555" font-size="7" font-family="monospace">Leads</text>
+        <rect x="55" y="4" width="10" height="3" rx="1" fill="#10d978"/>
+        <text x="68" y="9" fill="#555" font-size="7" font-family="monospace">Enriquecidos</text>
+      </svg>
+    </div>
+
+    <!-- Activity feed — pure HTML, no JS needed for display -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:10px;overflow:hidden;" id="dash-feed-container">
+      <div style="font-size:9px;color:#3a3a4a;font-family:monospace;letter-spacing:1px;margin-bottom:8px;">ACTIVIDAD EN VIVO</div>
+      <div id="activity-feed">
+        <div class="db-feed-item" style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;">
+          <span style="font-size:11px;flex-shrink:0;">✅</span>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:10px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Lead enriquecido</div>
+            <div style="font-size:9px;color:#3a3a4a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f09391829c9f83b09e9f869194918491de999f">[email&#160;protected]</a></div>
+          </div>
+          <span style="width:5px;height:5px;border-radius:50%;background:#10d978;flex-shrink:0;margin-top:3px;"></span>
+        </div>
+        <div class="db-feed-item" style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;animation-delay:.1s;">
+          <span style="font-size:11px;flex-shrink:0;">🔍</span>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:10px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Scraping completado</div>
+            <div style="font-size:9px;color:#3a3a4a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">techcorp.es · 847 contactos</div>
+          </div>
+          <span style="width:5px;height:5px;border-radius:50%;background:#0a84ff;flex-shrink:0;margin-top:3px;"></span>
+        </div>
+        <div class="db-feed-item" style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;animation-delay:.2s;">
+          <span style="font-size:11px;flex-shrink:0;">🎯</span>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:10px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Cierre detectado</div>
+            <div style="font-size:9px;color:#3a3a4a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Innova Solutions · 4.200 EUR</div>
+          </div>
+          <span style="width:5px;height:5px;border-radius:50%;background:#10d978;flex-shrink:0;margin-top:3px;"></span>
+        </div>
+        <div class="db-feed-item" style="display:flex;align-items:flex-start;gap:6px;animation-delay:.3s;">
+          <span style="font-size:11px;flex-shrink:0;">📧</span>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:10px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Secuencia activada</div>
+            <div style="font-size:9px;color:#3a3a4a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Campaña SaaS Q1 · 312 dest.</div>
+          </div>
+          <span style="width:5px;height:5px;border-radius:50%;background:#ffb800;flex-shrink:0;margin-top:3px;"></span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+</div>
+</div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-purpose="dashboard-clock">
+(function() {
+  function tick() {
+    var el = document.getElementById('live-clock');
+    if (el) el.textContent = new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: FeaturesSection -->
+<section class="py-24 px-4 bg-brand-dark/50" id="features">
+<div class="max-w-7xl mx-auto">
+<div class="mb-16 reveal">
+<h2 class="font-serif text-4xl md:text-5xl mb-4">Todo lo que tu CRM <br/>debería tener.</h2>
+<p class="text-gray-400">Precisión alemana aplicada a la prospección digital.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="glass p-8 rounded-2xl hover:border-brand-blue/50 transition-all group reveal">
+<div class="w-12 h-12 bg-brand-blue/10 rounded-lg flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold mb-3">Scraping IA</h3>
+<p class="text-gray-400 text-sm leading-relaxed">Extrae datos de cualquier plataforma social con modelos de IA entrenados para detectar cargos y empresas reales.</p>
+</div>
+<!-- Card 2 -->
+<div class="glass p-8 rounded-2xl hover:border-brand-green/50 transition-all group reveal" style="transition-delay: 100ms;">
+<div class="w-12 h-12 bg-brand-green/10 rounded-lg flex items-center justify-center mb-6 text-brand-green group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold mb-3">Enriquecimiento</h3>
+<p class="text-gray-400 text-sm leading-relaxed">Completa perfiles con correos corporativos verificados, números de teléfono y tecnologías utilizadas.</p>
+</div>
+<!-- Card 3 -->
+<div class="glass p-8 rounded-2xl hover:border-brand-blue/50 transition-all group reveal" style="transition-delay: 200ms;">
+<div class="w-12 h-12 bg-brand-blue/10 rounded-lg flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold mb-3">Pipeline Visual</h3>
+<p class="text-gray-400 text-sm leading-relaxed">Gestiona tus tratos en un flujo tipo Kanban optimizado para equipos de alta velocidad.</p>
+</div>
+<!-- Card 4 -->
+<div class="glass p-8 rounded-2xl hover:border-brand-blue/50 transition-all group reveal">
+<div class="w-12 h-12 bg-brand-blue/10 rounded-lg flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold mb-3">Agenda Inteligente</h3>
+<p class="text-gray-400 text-sm leading-relaxed">Sincronización bidireccional con Google y Outlook para no perder ninguna reunión de venta.</p>
+</div>
+<!-- Card 5 -->
+<div class="glass p-8 rounded-2xl hover:border-brand-blue/50 transition-all group reveal" style="transition-delay: 100ms;">
+<div class="w-12 h-12 bg-brand-blue/10 rounded-lg flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold mb-3">Seguridad GDPR</h3>
+<p class="text-gray-400 text-sm leading-relaxed">Cumplimiento total con las normativas de protección de datos de la Unión Europea.</p>
+</div>
+<!-- Card 6 -->
+<div class="glass p-8 rounded-2xl hover:border-brand-blue/50 transition-all group reveal" style="transition-delay: 200ms;">
+<div class="w-12 h-12 bg-brand-blue/10 rounded-lg flex items-center justify-center mb-6 text-brand-blue group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold mb-3">API Robusta</h3>
+<p class="text-gray-400 text-sm leading-relaxed">Conecta Voltium con tus herramientas actuales a través de webhooks o Zapier.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: FeaturesSection -->
+<!-- BEGIN: DashboardPreview -->
+<section class="py-24 px-4 overflow-hidden" id="dashboard">
+<div class="max-w-7xl mx-auto">
+<div class="grid lg:grid-cols-2 gap-16 items-center">
+<div class="reveal">
+<h2 class="font-serif text-4xl md:text-5xl mb-6">Tu centro de mando <br/>de ingresos.</h2>
+<p class="text-gray-400 mb-8">Visualiza cada oportunidad, mide el rendimiento de tus SDRs y escala tu facturación con datos reales, no con suposiciones.</p>
+<ul class="space-y-4">
+<li class="flex items-center gap-3 text-sm">
+<div class="w-5 h-5 rounded-full bg-brand-green/20 flex items-center justify-center text-brand-green">✓</div>
+<span>Actualización en tiempo real</span>
+</li>
+<li class="flex items-center gap-3 text-sm">
+<div class="w-5 h-5 rounded-full bg-brand-green/20 flex items-center justify-center text-brand-green">✓</div>
+<span>Exportación a CSV/JSON en un click</span>
+</li>
+<li class="flex items-center gap-3 text-sm">
+<div class="w-5 h-5 rounded-full bg-brand-green/20 flex items-center justify-center text-brand-green">✓</div>
+<span>Integración con LinkedIn Sales Navigator</span>
+</li>
+</ul>
+</div>
+<div class="relative reveal" style="transition-delay: 200ms;">
+<div class="glass rounded-xl overflow-hidden shadow-[0_0_50px_rgba(10,132,255,0.15)]">
+<!-- Browser Header -->
+<div class="bg-brand-surface/80 px-4 py-3 flex items-center gap-2 border-b border-white/5">
+<div class="flex gap-1.5">
+<div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+</div>
+<div class="mx-auto bg-black/40 px-3 py-1 rounded-md text-[10px] text-gray-500 font-mono">voltium.io/app/dashboard</div>
+</div>
+<!-- App Content -->
+<div class="p-6 bg-[#0c0c12]">
+<div class="grid grid-cols-3 gap-4 mb-8">
+<div class="bg-brand-surface p-4 rounded-lg border border-white/5">
+<span class="text-[10px] text-gray-500 block mb-1">LEADS HOY</span>
+<span class="text-xl font-bold">+124</span>
+</div>
+<div class="bg-brand-surface p-4 rounded-lg border border-white/5">
+<span class="text-[10px] text-gray-500 block mb-1">CONVERSIÓN</span>
+<span class="text-xl font-bold text-brand-green">14.2%</span>
+</div>
+<div class="bg-brand-surface p-4 rounded-lg border border-white/5">
+<span class="text-[10px] text-gray-500 block mb-1">REUNIONES</span>
+<span class="text-xl font-bold">18</span>
+</div>
+</div>
+<div class="space-y-3">
+<div class="h-10 bg-brand-surface rounded-md border border-white/5 flex items-center px-4 gap-4">
+<div class="w-4 h-4 bg-blue-500/20 rounded"></div>
+<div class="h-2 w-32 bg-gray-700 rounded"></div>
+<div class="h-2 w-16 bg-gray-800 rounded ml-auto"></div>
+</div>
+<div class="h-10 bg-brand-surface rounded-md border border-white/5 flex items-center px-4 gap-4">
+<div class="w-4 h-4 bg-green-500/20 rounded"></div>
+<div class="h-2 w-24 bg-gray-700 rounded"></div>
+<div class="h-2 w-20 bg-gray-800 rounded ml-auto"></div>
+</div>
+<div class="h-10 bg-brand-surface rounded-md border border-white/5 flex items-center px-4 gap-4 opacity-50">
+<div class="w-4 h-4 bg-yellow-500/20 rounded"></div>
+<div class="h-2 w-40 bg-gray-700 rounded"></div>
+<div class="h-2 w-12 bg-gray-800 rounded ml-auto"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: DashboardPreview -->
+<!-- BEGIN: PricingSection -->
+<section class="py-24 px-4" id="pricing">
+<div class="max-w-7xl mx-auto text-center mb-16 reveal">
+<h2 class="font-serif text-4xl md:text-5xl mb-4">Planes para cada etapa.</h2>
+<p class="text-gray-400">Sin contratos ocultos, cancela cuando quieras.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+<!-- Solo Plan -->
+<div class="glass p-8 rounded-3xl border-brand-blue/30 relative flex flex-col reveal shadow-[0_0_30px_rgba(10,132,255,0.1)]">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-blue text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-widest">Recomendado</div>
+<h3 class="text-2xl font-bold mb-2">Solo</h3>
+<div class="mb-6">
+<span class="text-4xl font-bold">49€</span>
+<span class="text-gray-500 text-sm">/mes</span>
+</div>
+<ul class="space-y-4 mb-8 flex-grow text-sm text-gray-400">
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> 500 créditos de enriquecimiento</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> 1 Usuario</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Pipeline ilimitado</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Soporte por email</li>
+</ul>
+<button class="w-full py-4 bg-brand-blue hover:bg-blue-600 rounded-xl font-bold transition-colors">Empezar ahora</button>
+</div>
+<!-- Equipo Plan -->
+<div class="glass p-8 rounded-3xl border-white/5 flex flex-col reveal" style="transition-delay: 100ms;">
+<h3 class="text-2xl font-bold mb-2">Equipo</h3>
+<div class="mb-6">
+<span class="text-4xl font-bold">149€</span>
+<span class="text-gray-500 text-sm">/mes</span>
+</div>
+<ul class="space-y-4 mb-8 flex-grow text-sm text-gray-400">
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> 2.500 créditos de enriquecimiento</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Hasta 5 Usuarios</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> API Access</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Soporte Prioritario</li>
+</ul>
+<button class="w-full py-4 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-colors">Contratar Equipo</button>
+</div>
+<!-- Enterprise Plan -->
+<div class="glass p-8 rounded-3xl border-white/5 flex flex-col reveal" style="transition-delay: 200ms;">
+<h3 class="text-2xl font-bold mb-2">Enterprise</h3>
+<div class="mb-6">
+<span class="text-4xl font-bold">Consultar</span>
+</div>
+<ul class="space-y-4 mb-8 flex-grow text-sm text-gray-400">
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Créditos ilimitados</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Usuarios ilimitados</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Account Manager dedicado</li>
+<li class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Custom Onboarding</li>
+</ul>
+<button class="w-full py-4 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-colors">Hablar con Ventas</button>
+</div>
+</div>
+</section>
+<!-- END: PricingSection -->
+<!-- BEGIN: TestimonialsSection -->
+<section class="py-24 px-4 bg-brand-dark">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16 reveal">
+<h2 class="font-serif text-3xl md:text-4xl">Líderes en Madrid ya confían en nosotros.</h2>
+</div>
+<div class="grid md:grid-cols-3 gap-8">
+<div class="glass p-6 rounded-2xl reveal">
+<p class="text-gray-300 italic mb-6">"Desde que implementamos Voltium, nuestro equipo de ventas ha duplicado el número de reuniones semanales. El scraping es increíblemente preciso."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gray-700"></div>
+<div>
+<p class="font-bold text-sm">Carlos Ruiz</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-wide">CEO @ TechFlow Madrid</p>
+</div>
+</div>
+</div>
+<div class="glass p-6 rounded-2xl reveal" style="transition-delay: 100ms;">
+<p class="text-gray-300 italic mb-6">"La mejor herramienta para SDRs que he probado en mis 10 años de carrera. La integración con LinkedIn nos ahorra horas de trabajo manual."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gray-700"></div>
+<div>
+<p class="font-bold text-sm">Elena Martínez</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-wide">Sales Director @ Growify</p>
+</div>
+</div>
+</div>
+<div class="glass p-6 rounded-2xl reveal" style="transition-delay: 200ms;">
+<p class="text-gray-300 italic mb-6">"El soporte es de primer nivel. Nos ayudaron a configurar toda la API en una tarde. Totalmente recomendable para startups en fase de escala."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gray-700"></div>
+<div>
+<p class="font-bold text-sm">Jorge Sanz</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-wide">Growth Lead @ FinOps ES</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: TestimonialsSection -->
+<!-- BEGIN: FinalCTA -->
+<section class="py-32 px-4 relative overflow-hidden">
+<div class="absolute inset-0 glow-bg opacity-40"></div>
+<div class="max-w-4xl mx-auto text-center relative z-10 reveal">
+<h2 class="font-serif text-5xl md:text-7xl mb-8">¿Listo para prospectar <br/>en serio?</h2>
+<button class="px-12 py-6 bg-brand-blue hover:bg-blue-600 text-white font-bold rounded-2xl text-xl transition-all transform hover:scale-105 shadow-[0_0_40px_rgba(10,132,255,0.4)]" data-purpose="login-trigger" onclick="voltOpenModal()">
+          Acceder a Voltium
+        </button>
+<p class="mt-8 text-gray-500 text-sm">Prueba gratuita de 14 días. No requiere tarjeta.</p>
+</div>
+</section>
+<!-- END: FinalCTA -->
+</main>
+<!-- BEGIN: Footer -->
+<footer class="py-12 border-t border-white/5 px-4">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2">
+<img alt="Logo" class="h-6 opacity-50" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 32'%3E%3Ccircle cx='12' cy='16' r='10' fill='%230a84ff' opacity='0.2'/%3E%3Cpath d='M6 16 L10 11 L14 16 L18 11' stroke='%230a84ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M6 21 L10 16 L14 21 L18 16' stroke='%2310d978' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"/>
+<span class="font-bold opacity-50 tracking-tighter">VOLTIUM</span>
+</div>
+<div class="flex gap-8 text-xs text-gray-500 uppercase tracking-widest font-bold">
+<a class="hover:text-white transition-colors" href="#">Privacidad</a>
+<a class="hover:text-white transition-colors" href="#">Términos</a>
+<a class="hover:text-white transition-colors" href="#">Seguridad</a>
+</div>
+<p class="text-xs text-gray-600">© 2024 Voltium Data Infrastructure. Fabricado en Madrid.</p>
+</div>
+</footer>
+<!-- END: Footer -->
+<!-- BEGIN: LoginModal -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-brand-dark/90 backdrop-blur-xl" id="loginModal">
+<div class="glass w-full max-w-sm rounded-3xl p-8 transform scale-95 opacity-0 transition-all duration-300" id="modalContent">
+<div class="text-center mb-8">
+<div class="w-12 h-12 bg-brand-blue/20 rounded-xl flex items-center justify-center mx-auto mb-4 border border-brand-blue/30">
+<svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-xl font-bold">Acceso de Seguridad</h3>
+<p class="text-gray-400 text-sm mt-2">Introduce tu PIN de 4 dígitos</p>
+</div>
+<!-- PIN Display -->
+<div class="flex justify-center gap-4 mb-10" id="pinDisplay">
+<div class="w-12 h-16 rounded-xl border-2 border-white/10 flex items-center justify-center text-2xl font-bold bg-white/5"></div>
+<div class="w-12 h-16 rounded-xl border-2 border-white/10 flex items-center justify-center text-2xl font-bold bg-white/5"></div>
+<div class="w-12 h-16 rounded-xl border-2 border-white/10 flex items-center justify-center text-2xl font-bold bg-white/5"></div>
+<div class="w-12 h-16 rounded-xl border-2 border-white/10 flex items-center justify-center text-2xl font-bold bg-white/5"></div>
+</div>
+<!-- Keypad -->
+<div class="grid grid-cols-3 gap-3 mb-8">
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="1" onclick="voltKey('1')">1</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="2" onclick="voltKey('2')">2</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="3" onclick="voltKey('3')">3</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="4" onclick="voltKey('4')">4</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="5" onclick="voltKey('5')">5</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="6" onclick="voltKey('6')">6</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="7" onclick="voltKey('7')">7</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="8" onclick="voltKey('8')">8</button>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="9" onclick="voltKey('9')">9</button>
+<div></div>
+<button class="keypad-btn h-14 rounded-xl bg-white/5 hover:bg-white/10 text-xl font-bold transition-colors" data-key="0" onclick="voltKey('0')">0</button>
+<button class="h-14 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center transition-colors" data-key="delete" onclick="voltKey('delete')">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<button class="w-full text-gray-500 text-xs hover:text-white transition-colors" id="closeModal" onclick="voltCloseModal()">Cancelar</button>
+</div>
+</div>
+<!-- END: LoginModal -->
+<script data-purpose="scroll-reveal">
+    const observerOptions = {
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+<script data-purpose="cursor-effect">
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+  </script>
+<script data-purpose="auth-logic">
+var _pin = "";
+var _correct = localStorage.getItem("gordi_custom_pin") || "1234";
+
+function voltOpenModal() {
+  var m = document.getElementById("loginModal");
+  var mc = document.getElementById("modalContent");
+  if (!m) return;
+  m.style.display = "flex";
+  m.classList.remove("hidden");
+  m.classList.add("flex");
+  setTimeout(function(){ mc.classList.remove("scale-95","opacity-0"); mc.classList.add("scale-100","opacity-100"); }, 10);
+}
+
+function voltCloseModal() {
+  var m = document.getElementById("loginModal");
+  var mc = document.getElementById("modalContent");
+  mc.classList.add("scale-95","opacity-0");
+  mc.classList.remove("scale-100","opacity-100");
+  setTimeout(function(){
+    m.style.display = "";
+    m.classList.add("hidden");
+    m.classList.remove("flex");
+    _pin = "";
+    voltUpdateDisplay();
+  }, 300);
+}
+
+function voltKey(k) {
+  if (k === "delete") {
+    _pin = _pin.slice(0,-1);
+  } else if (_pin.length < 4) {
+    _pin += k;
+  }
+  voltUpdateDisplay();
+}
+
+function voltUpdateDisplay() {
+  var slots = document.querySelectorAll("#pinDisplay div");
+  for (var i=0; i<slots.length; i++) {
+    if (_pin[i]) { slots[i].textContent = "•"; slots[i].style.borderColor = "#0a84ff"; slots[i].style.color = "#0a84ff"; }
+    else { slots[i].textContent = ""; slots[i].style.borderColor = ""; slots[i].style.color = ""; }
+  }
+  if (_pin.length === 4) voltVerify();
+}
+
+function voltVerify() {
+  var correct = localStorage.getItem("gordi_custom_pin") || "1234";
+  if (_pin === correct) {
+    localStorage.setItem("gordi_pin", "authenticated");
+    document.getElementById("modalContent").innerHTML = '<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:16px;">✅</div><h3 style="font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Acceso Concedido</h3><p style="color:#888;">Redirigiendo...</p></div>';
+    setTimeout(function(){ window.location.href = "app.html"; }, 1200);
+  } else {
+    var mc = document.getElementById("modalContent");
+    mc.style.animation = "shake 0.5s ease";
+    setTimeout(function(){ mc.style.animation = ""; _pin = ""; voltUpdateDisplay(); }, 500);
+  }
+}
+
+// Auto-redirect if already authenticated
+if (localStorage.getItem("gordi_pin") === "authenticated") {
+  window.location.href = "app.html";
+}
+
+// Keyboard support
+document.addEventListener("keydown", function(e) {
+  var m = document.getElementById("loginModal");
+  if (!m || m.classList.contains("hidden")) return;
+  if (e.key >= "0" && e.key <= "9") voltKey(e.key);
+  else if (e.key === "Backspace") voltKey("delete");
+  else if (e.key === "Escape") voltCloseModal();
+});
+</script>
+</body></html>
