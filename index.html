@@ -625,76 +625,17 @@
     const STORAGE_KEY = "gordi_pin";
     const CUSTOM_PIN_KEY = "gordi_custom_pin";
 
-    // Load saved PIN (user may have changed it)
     function getCorrectPin() {
       return localStorage.getItem(CUSTOM_PIN_KEY) || DEFAULT_PIN;
     }
 
-    // If already authenticated, show dashboard immediately
+    function launchDashboard() {
+      window.location.href = DASHBOARD_URL;
+    }
+
+    // If already authenticated, go straight to dashboard
     if (localStorage.getItem(STORAGE_KEY) === 'authenticated') {
       launchDashboard();
-    }
-
-    function launchDashboard() {
-      document.body.innerHTML = `
-        <div id="crm-shell" style="position:fixed;inset:0;z-index:9999;background:#0a0a0f;display:flex;flex-direction:column;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#16161e;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#0a84ff" opacity="0.15"/><path d="M8 16 L14 10 L20 16 L26 10" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 22 L14 16 L20 22 L26 16" stroke="#10d978" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span style="color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;">Voltium CRM</span>
-            </div>
-            <div style="display:flex;gap:8px;">
-              <button onclick="showChangePinModal()" style="background:rgba(255,255,255,0.06);border:none;color:#aaa;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;">🔑 Cambiar PIN</button>
-              <button onclick="logout()" style="background:rgba(255,60,60,0.1);border:none;color:#ff6b6b;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;">Cerrar sesión</button>
-            </div>
-          </div>
-          <iframe src="${DASHBOARD_URL}" style="flex:1;width:100%;border:none;" allowfullscreen></iframe>
-        </div>
-
-        <!-- Change PIN Modal -->
-        <div id="changePinModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
-          <div style="background:#16161e;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:320px;font-family:'DM Sans',sans-serif;color:#fff;">
-            <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;">Cambiar PIN</h3>
-            <p style="margin:0 0 20px;color:#888;font-size:13px;">Introduce tu PIN actual y el nuevo PIN de 4 dígitos.</p>
-            <input id="oldPin" type="password" maxlength="4" inputmode="numeric" placeholder="PIN actual" style="width:100%;box-sizing:border-box;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:15px;margin-bottom:10px;outline:none;"/>
-            <input id="newPin" type="password" maxlength="4" inputmode="numeric" placeholder="Nuevo PIN (4 dígitos)" style="width:100%;box-sizing:border-box;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:15px;margin-bottom:10px;outline:none;"/>
-            <input id="newPin2" type="password" maxlength="4" inputmode="numeric" placeholder="Confirmar nuevo PIN" style="width:100%;box-sizing:border-box;background:#0a0a0f;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:15px;margin-bottom:16px;outline:none;"/>
-            <p id="pinMsg" style="color:#ff6b6b;font-size:12px;min-height:16px;margin:0 0 12px;"></p>
-            <div style="display:flex;gap:10px;">
-              <button onclick="saveNewPin()" style="flex:1;background:#0a84ff;border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">Guardar</button>
-              <button onclick="document.getElementById('changePinModal').style.display='none'" style="flex:1;background:rgba(255,255,255,0.06);border:none;color:#aaa;padding:10px;border-radius:8px;cursor:pointer;font-size:14px;">Cancelar</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    function showChangePinModal() {
-      const m = document.getElementById('changePinModal');
-      m.style.display = 'flex';
-      document.getElementById('oldPin').value = '';
-      document.getElementById('newPin').value = '';
-      document.getElementById('newPin2').value = '';
-      document.getElementById('pinMsg').textContent = '';
-    }
-
-    function saveNewPin() {
-      const old = document.getElementById('oldPin').value.trim();
-      const n1 = document.getElementById('newPin').value.trim();
-      const n2 = document.getElementById('newPin2').value.trim();
-      const msg = document.getElementById('pinMsg');
-      if (old !== getCorrectPin()) { msg.textContent = 'PIN actual incorrecto.'; return; }
-      if (!/^\d{4}$/.test(n1)) { msg.textContent = 'El nuevo PIN debe tener exactamente 4 dígitos.'; return; }
-      if (n1 !== n2) { msg.textContent = 'Los PINs nuevos no coinciden.'; return; }
-      localStorage.setItem(CUSTOM_PIN_KEY, n1);
-      msg.style.color = '#10d978';
-      msg.textContent = '✓ PIN actualizado correctamente.';
-      setTimeout(() => { document.getElementById('changePinModal').style.display = 'none'; }, 1200);
-    }
-
-    function logout() {
-      localStorage.removeItem(STORAGE_KEY);
-      window.location.reload();
     }
 
     // --- Landing page modal logic (only runs if NOT authenticated) ---
