@@ -138,3 +138,24 @@ function recalculateLeadScore(lead) {
   );
 }
 
+
+// ── Lookalike Similarity — similitud con clientes convertidos ─────────────────
+function getLookalikeSimilarity(extraData) {
+  try {
+    const converted = (leads || []).filter(l => l.status === 'Convertido' || l.status === 'Cliente');
+    if (!converted.length) return 0;
+    const ex = extraData || {};
+    let totalScore = 0;
+    for (const client of converted) {
+      let sim = 0;
+      if (ex.segment && client.segment && ex.segment.toLowerCase() === client.segment.toLowerCase()) sim += 40;
+      if (ex.size    && client.size    && ex.size    === client.size)    sim += 20;
+      if (ex.role    && client.role    && ex.role    === client.role)    sim += 20;
+      const rDiff = Math.abs((ex.rating || 0) - (client.rating || 0));
+      if (rDiff < 0.5) sim += 20;
+      else if (rDiff < 1) sim += 10;
+      totalScore = Math.max(totalScore, sim);
+    }
+    return Math.min(totalScore, 100);
+  } catch { return 0; }
+}
