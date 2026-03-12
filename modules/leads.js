@@ -716,3 +716,39 @@ function generateEmail(id) {
   confirmStatusChange(lead, 'Visita', _applyVisita);
 }
 
+
+
+// ── Restaurar backup completo (JSON) ─────────────────────────────────────────
+function restoreBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.leads) { alert('Archivo de backup inválido.'); return; }
+      if (!confirm(`Restaurar backup del ${new Date(data.date).toLocaleDateString('es-ES')}?\nSe cargarán ${data.leads.length} leads.`)) return;
+      leads        = data.leads        || [];
+      emailHistory = data.emailHistory || [];
+      campaigns    = data.campaigns    || [];
+      objectives   = data.objectives   || objectives;
+      if (data.templates) {
+        try { emailTemplates = { ...(typeof defaultTemplates !== 'undefined' ? defaultTemplates : {}), ...data.templates }; } catch {}
+      }
+      saveLeads();
+      localStorage.setItem('gordi_email_history', JSON.stringify(emailHistory));
+      localStorage.setItem('gordi_campaigns',     JSON.stringify(campaigns));
+      localStorage.setItem('gordi_objectives',    JSON.stringify(objectives));
+      if (data.templates) localStorage.setItem('gordi_templates', JSON.stringify(emailTemplates));
+      if (typeof renderAll            === 'function') renderAll();
+      if (typeof renderDashboardCharts=== 'function') renderDashboardCharts();
+      if (typeof renderTracking       === 'function') renderTracking();
+      if (typeof renderCampaigns      === 'function') renderCampaigns();
+      if (typeof renderTemplateList   === 'function') renderTemplateList();
+      showToast(`✅ Backup restaurado: ${leads.length} leads`);
+    } catch(err) {
+      alert('Error al leer el archivo. Asegúrate de que es un backup válido de Voltflow.');
+    }
+  };
+  reader.readAsText(file);
+}
