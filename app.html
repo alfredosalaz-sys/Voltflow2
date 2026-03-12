@@ -1169,7 +1169,7 @@
         rows="10"
         placeholder="Pega aquí el contenido de los emails recibidos de Outlook...
 
-Puedes pegar uno o varios emails a la vez. Voltflow detectará automáticamente:
+Puedes pegar uno o varios emails a la vez. Voltflow2 detectará automáticamente:
 • El remitente (email + nombre)
 • La fecha
 • El asunto
@@ -1657,7 +1657,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
         <button class="btn-outline" onclick="exportFullBackup()">💾 Backup completo (JSON)</button>
         <button class="btn-outline" onclick="exportPortableData()" title="Genera un archivo que puedes importar en cualquier versión de Voltflow">📦 Exportar datos portátiles</button>
         <input type="file" id="import-portable-file" accept=".json" style="display:none" onchange="restoreBackup(event)">
-        <button class="btn-primary" onclick="openImportFromLocalStorage()" title="Lee los datos de Voltflow guardados en este navegador" style="display:flex;align-items:center;gap:.4rem">📥 Importar desde versión anterior</button>
+        <button class="btn-primary" onclick="openImportFromLocalStorage()" title="Lee los datos de Voltflow2 guardados en este navegador" style="display:flex;align-items:center;gap:.4rem">📥 Importar desde versión anterior</button>
         <button class="btn-outline" onclick="document.getElementById('restore-file').click()">📂 Restaurar backup</button>
         <button class="btn-outline" onclick="cleanObsoleteLeads()">🧹 Limpiar leads obsoletos</button>
         <button class="btn-danger" onclick="clearAllLeads()">Borrar TODOS los leads</button>
@@ -1890,7 +1890,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
   </div>
 </div>
 
-<!-- ══ CHAT DE AYUDA — VOLTFLOW ASSISTANT ══ -->
+<!-- ══ CHAT DE AYUDA — Voltflow2 ASSISTANT ══ -->
 <button id="chat-bubble" onclick="toggleChat()" title="Ayuda con Voltflow">
   🤖
   <div class="chat-notif" id="chat-notif"></div>
@@ -1900,7 +1900,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
   <div class="chat-header">
     <div class="chat-avatar">🤖</div>
     <div class="chat-header-info">
-      <strong>Voltflow Assistant</strong>
+      <strong>Voltflow2 Assistant</strong>
       <span id="chat-status-label">● Online — Listo para ayudarte</span>
     </div>
     <button onclick="toggleAgentMode()" id="agent-mode-btn" title="Modo Agente — trabaja por ti"
@@ -2192,7 +2192,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
   </div>
 </div>
 
-<!-- ══ CHAT DE AYUDA — VOLTFLOW ASSISTANT ══ -->
+<!-- ══ CHAT DE AYUDA — Voltflow2 ASSISTANT ══ -->
 <button id="chat-bubble" onclick="toggleChat()" title="Ayuda con Voltflow">
   🤖
   <div class="chat-notif" id="chat-notif"></div>
@@ -2202,7 +2202,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
   <div class="chat-header">
     <div class="chat-avatar">🤖</div>
     <div class="chat-header-info">
-      <strong>Voltflow Assistant</strong>
+      <strong>Voltflow2 Assistant</strong>
       <span>● Online — Listo para ayudarte</span>
     </div>
     <button onclick="toggleChat()">✕</button>
@@ -2414,7 +2414,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
   <div class="integrity-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
       <div>
-        <h3 style="font-size:.95rem;margin:0">🛡️ Voltflow Guardian</h3>
+        <h3 style="font-size:.95rem;margin:0">🛡️ Voltflow2 Guardian</h3>
         <div style="font-size:.72rem;color:var(--text-muted);margin-top:.2rem">Integridad del código verificada en cada carga</div>
       </div>
       <button onclick="closeIntegrityModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem">✕</button>
