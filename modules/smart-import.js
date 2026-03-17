@@ -27,6 +27,7 @@ function _detectColumnMap(headers) {
   const map = {
     company: -1, name: -1, email: -1, phone: -1,
     signal: -1, segment: -1, website: -1, address: -1, opportunity: -1,
+    etapa: -1, comercial: -1,
   };
 
   const PATTERNS = {
@@ -39,6 +40,8 @@ function _detectColumnMap(headers) {
     segment:     /segment|sector|industria|tipo.empresa|categoria|categoría/i,
     website:     /web|url|site|página|pagina/i,
     address:     /direcci[oó]n|address|calle|ciudad|localidad|cp|postal/i,
+    etapa:       /^etapa$|^stage$|^fase$|^estado.oportunidad|^pipeline/i,
+    comercial:   /^comercial$|^vendedor|^assigned|^asignado|^owner|^responsable.comercial/i,
   };
 
   headers.forEach((h, i) => {
@@ -127,6 +130,31 @@ function _looksLikeCompany(val) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
+// MAPEO DE ETAPA CRM → ESTADO VOLTFLOW
+// Traduce los valores de etapa que exportan los CRMs (HubSpot, Salesforce,
+// exportaciones manuales...) a los estados internos de Voltflow.
+// ══════════════════════════════════════════════════════════════════════════
+function _etapaToStatus(etapaRaw) {
+  if (!etapaRaw) return 'Pendiente';
+  const e = String(etapaRaw).trim().toUpperCase();
+
+  // Etapas del Excel LeadOportunidad (Voltium Madrid)
+  if (e === 'PROSPECTO'         || e === 'OPORTUNIDAD')   return 'Pendiente';
+  if (e === 'ACCION COMERCIAL'  || e === 'ACCIÓN COMERCIAL') return 'Contactado';
+  if (e === 'OFERTA'            || e === 'PRESUPUESTO')    return 'Entrega de presupuesto';
+  if (e === 'CONTRATO'          || e === 'CERRADO'  || e === 'GANADO' || e === 'WON') return 'Cerrado';
+  if (e === 'PERDIDO'           || e === 'LOST'     || e === 'DESCARTADO')            return 'Pendiente';
+
+  // Nombres genéricos de pipelines
+  if (/CONTACT|LLAMAD|VISIT|REUNI/.test(e))  return 'Contactado';
+  if (/PROPUES|OFERT|PRESUPU/.test(e))        return 'Entrega de presupuesto';
+  if (/NEGOCI|CIERRE|CLOSING/.test(e))        return 'Visita';
+  if (/CERRAD|GANADO|CLOSED|WON/.test(e))     return 'Cerrado';
+
+  return 'Pendiente';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
 // MAPEO DE UNA FILA A LEAD
 // ══════════════════════════════════════════════════════════════════════════
 function _mapRowToLead(row, colMap, sourceFileName) {
@@ -181,7 +209,20 @@ function _mapRowToLead(row, colMap, sourceFileName) {
   // ── Dirección ────────────────────────────────────────────────────────────
   const address = colMap.address >= 0 ? get(colMap.address) : '';
 
-  return { company, name: contactName, email, phone, segment, signal, website, address };
+  // ── Etapa → Status ────────────────────────────────────────────────────────
+  const etapaRaw = colMap.etapa >= 0 ? get(colMap.etapa) : '';
+  const status   = _etapaToStatus(etapaRaw);
+
+  // ── Comercial ─────────────────────────────────────────────────────────────
+  const comercial = colMap.comercial >= 0 ? get(colMap.comercial) : '';
+  // Añadir comercial a las notas si existe
+  const notes = comercial ? `Comercial asignado: ${comercial}` : '';
+
+  // ── Señal: enriquecer con etapa si la señal estaba vacía ──────────────────
+  if (!signal && etapaRaw) signal = `Etapa: ${etapaRaw}`;
+  if (!signal) signal = `Importado desde ${sourceFileName || 'base de datos externa'}`;
+
+  return { company, name: contactName, email, phone, segment, signal, website, address, status, notes };
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -328,6 +369,21 @@ function _renderSmartImportPreview(mappedWithDups) {
     const dupStyle = lead._isDup ? 'opacity:.55' : '';
     const dupMark  = lead._isDup ? '<span title="Posible duplicado" style="color:var(--warning);font-size:.8rem">⚠️</span>' : '';
 
+    const statusColor = {
+      'Pendiente':              'rgba(245,158,11,.15)',
+      'Contactado':             'rgba(10,132,255,.15)',
+      'Visita':                 'rgba(94,92,230,.15)',
+      'Entrega de presupuesto': 'rgba(255,149,0,.15)',
+      'Cerrado':                'rgba(16,217,124,.15)',
+    }[lead.status] || 'rgba(100,100,100,.1)';
+    const statusTextColor = {
+      'Pendiente':              'var(--warning)',
+      'Contactado':             'var(--primary)',
+      'Visita':                 'var(--secondary)',
+      'Entrega de presupuesto': '#ff9500',
+      'Cerrado':                'var(--success)',
+    }[lead.status] || 'var(--text-muted)';
+
     return `<tr style="${dupStyle}" id="imp-row-${i}">
       <td><input type="checkbox" class="import-check" data-idx="${i}" ${lead._isDup ? '' : 'checked'}></td>
       <td>
@@ -345,6 +401,11 @@ function _renderSmartImportPreview(mappedWithDups) {
             ${['Industrial','Retail','Oficinas','Hoteles','Deportivo','Educativo','Cultural','Comercial']
               .map(s => `<option value="${s}"${s===lead.segment?' selected':''}>${s}</option>`).join('')}
           </select>
+        </span>
+      </td>
+      <td>
+        <span style="font-size:.68rem;background:${statusColor};color:${statusTextColor};padding:2px 7px;border-radius:8px;font-weight:600">
+          ${lead.status || 'Pendiente'}
         </span>
       </td>
       <td>
@@ -478,15 +539,15 @@ function importSelectedLeads() {
       address:  lead.address || '',
       signal:   lead.signal,
       score,
-      status:   'Pendiente',
+      status:   lead.status || 'Pendiente',
       date:     now,
       status_date: now,
-      notes:    '',
+      notes:    lead.notes || '',
       tags:     [],
       budget:   0,
       next_contact: '',
-      source:   'import',
-      activity: [{ action: `Lead importado desde "${_importFile || 'base de datos'}"`, date: now }],
+      source:   'propio',
+      activity: [{ action: `Lead importado desde "${_importFile || 'base de datos'}"${lead.status && lead.status !== 'Pendiente' ? ` — Etapa: ${lead.status}` : ''}`, date: now }],
     });
     imported++;
   });
