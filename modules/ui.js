@@ -519,6 +519,34 @@ function removePin() {
 
 // ============ BACKUP / RESTORE ============
 
+// ─── SNAPSHOT DEL localStorage (todas las claves gordi_) ─────────────────────
+// Necesario para exportPortableData. En el monolito index.html esta función
+// estaba definida ahí; en la versión modular hay que tenerla en ui.js.
+function exportDataSnapshot() {
+  const snapshot = {
+    _voltflow_version: (typeof VOLTFLOW_VERSION !== 'undefined' ? VOLTFLOW_VERSION : '2.0'),
+    _exported: new Date().toISOString()
+  };
+  const DATA_KEYS = [
+    'gordi_leads','gordi_email_history','gordi_campaigns','gordi_objectives','gordi_templates',
+    'gordi_api_key','gordi_gemini_key','gordi_hunter_key','gordi_apollo_key','gordi_claude_key',
+    'gordi_user_name','gordi_user_email','gordi_user_company','gordi_user_phone','gordi_user_web',
+    'gordi_user_logo','gordi_pin','gordi_light_mode','gordi_font_scale','gordi_search_history',
+    'gordi_streak','gordi_custom_proxy','gordi_sheets_token','gordi_sheets_client_id',
+    'gordi_github_token','gordi_github_user','gordi_github_repo'
+  ];
+  for (const key of DATA_KEYS) {
+    const val = localStorage.getItem(key);
+    if (val !== null) snapshot[key] = val;
+  }
+  // Caché de enriquecimiento
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('gordi_ecache_')) snapshot[k] = localStorage.getItem(k);
+  }
+  return snapshot;
+}
+
 // ─── EXPORTAR / IMPORTAR DATOS PORTÁTILES ENTRE VERSIONES ────────────────────
 function exportPortableData() {
   const snapshot = exportDataSnapshot();
@@ -813,22 +841,80 @@ function restoreBackup(event) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (!data.leads) { alert('Archivo de backup inválido.'); return; }
-      if (!confirm(`Restaurar backup del ${new Date(data.date).toLocaleDateString('es-ES')}? Se reemplazarán ${data.leads.length} leads.`)) return;
-      leads = data.leads || [];
-      emailHistory = data.emailHistory || [];
-      campaigns = data.campaigns || [];
-      objectives = data.objectives || objectives;
-      if (data.templates) emailTemplates = { ...defaultTemplates, ...data.templates };
-      saveLeads();
-      localStorage.setItem('gordi_email_history', JSON.stringify(emailHistory));
-      localStorage.setItem('gordi_campaigns', JSON.stringify(campaigns));
-      localStorage.setItem('gordi_objectives', JSON.stringify(objectives));
-      localStorage.setItem('gordi_templates', JSON.stringify(emailTemplates));
-      renderAll(); renderDashboardCharts();
-      renderTracking(); renderCampaigns(); renderTemplateList();
-      showToast(`Backup restaurado: ${leads.length} leads ✓`);
-    } catch { alert('Error al leer el archivo. Asegúrate de que es un backup válido de Voltflow.'); }
+
+      // ── Formato A: backup completo  { leads:[...], emailHistory:[...], ... }
+      // Generado por "Backup completo (JSON)" en Voltflow2 / app.html
+      if (data.leads && Array.isArray(data.leads)) {
+        const dateStr = data.date
+          ? new Date(data.date).toLocaleDateString('es-ES')
+          : 'fecha desconocida';
+        if (!confirm(`Restaurar backup del ${dateStr}?\nSe cargarán ${data.leads.length} leads.\nLos datos actuales en memoria serán reemplazados.`)) return;
+
+        leads        = data.leads        || [];
+        emailHistory = data.emailHistory || [];
+        campaigns    = data.campaigns    || [];
+        objectives   = data.objectives   || objectives;
+        if (data.templates) {
+          const base = (typeof defaultTemplates !== 'undefined') ? defaultTemplates : {};
+          emailTemplates = { ...base, ...data.templates };
+        }
+        saveLeads();
+        localStorage.setItem('gordi_email_history', JSON.stringify(emailHistory));
+        localStorage.setItem('gordi_campaigns',     JSON.stringify(campaigns));
+        localStorage.setItem('gordi_objectives',    JSON.stringify(objectives));
+        localStorage.setItem('gordi_templates',     JSON.stringify(emailTemplates));
+        renderAll(); renderDashboardCharts();
+        if (typeof renderTracking     === 'function') renderTracking();
+        if (typeof renderCampaigns    === 'function') renderCampaigns();
+        if (typeof renderTemplateList === 'function') renderTemplateList();
+        showToast(`✅ Backup restaurado: ${leads.length} leads`);
+        return;
+      }
+
+      // ── Formato B: snapshot portátil del index.html antiguo ──────────────────
+      // Generado por "Exportar datos portátiles" — estructura:
+      // { _voltflow_version:"x", _exported:"...", gordi_leads:"[...]", ... }
+      if (data.gordi_leads !== undefined || data._voltflow_version || data._exported) {
+        let parsedLeads = [];
+        try { parsedLeads = JSON.parse(data.gordi_leads || '[]'); } catch {}
+        const dateStr = data._exported
+          ? new Date(data._exported).toLocaleDateString('es-ES')
+          : 'fecha desconocida';
+        if (!confirm(`Restaurar datos portátiles del ${dateStr}?\nSe cargarán ${parsedLeads.length} leads.\nLos datos actuales serán reemplazados.`)) return;
+
+        // Volcar todas las claves gordi_* al localStorage
+        let restored = 0;
+        for (const [key, val] of Object.entries(data)) {
+          if (key.startsWith('_')) continue;
+          if (typeof val === 'string') { localStorage.setItem(key, val); restored++; }
+        }
+
+        // Recargar estado en memoria desde el localStorage recién poblado
+        try { leads        = JSON.parse(localStorage.getItem('gordi_leads')         || '[]'); } catch { leads = []; }
+        try { emailHistory = JSON.parse(localStorage.getItem('gordi_email_history') || '[]'); } catch { emailHistory = []; }
+        try { campaigns    = JSON.parse(localStorage.getItem('gordi_campaigns')     || '[]'); } catch { campaigns = []; }
+        try { objectives   = JSON.parse(localStorage.getItem('gordi_objectives')    || '[]'); } catch {}
+        const tplRaw = localStorage.getItem('gordi_templates');
+        if (tplRaw) {
+          try {
+            const base = (typeof defaultTemplates !== 'undefined') ? defaultTemplates : {};
+            emailTemplates = { ...base, ...JSON.parse(tplRaw) };
+          } catch {}
+        }
+
+        renderAll(); renderDashboardCharts();
+        if (typeof renderTracking     === 'function') renderTracking();
+        if (typeof renderCampaigns    === 'function') renderCampaigns();
+        if (typeof renderTemplateList === 'function') renderTemplateList();
+        showToast(`✅ Datos portátiles restaurados: ${leads.length} leads`);
+        return;
+      }
+
+      alert('Archivo no reconocido.\nUsa un "Backup completo" (gordi_backup_*.json) o un "Exportar datos portátiles" (voltflow_datos_*.json) generado por Voltflow.');
+
+    } catch(err) {
+      alert('Error al leer el archivo: ' + err.message + '\nAsegúrate de que es un JSON válido exportado desde Voltflow.');
+    }
   };
   reader.readAsText(file);
 }
@@ -1013,3 +1099,23 @@ function renderDailyStats() {
   container.innerHTML = html;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GOOGLE MAPS AUTO-INIT
+// En el monolito index.html, loadGoogleMapsScript() se llamaba al guardar la
+// API Key. En la versión modular esa llamada se perdió al separar init.js.
+// Esta función lo resuelve: se ejecuta al arrancar (si ya hay key guardada)
+// y también puede llamarse desde init.js / saveApiKey() tras guardar una key.
+// ══════════════════════════════════════════════════════════════════════════════
+function ensureGoogleMapsLoaded() {
+  const apiKey = localStorage.getItem('gordi_api_key');
+  if (!apiKey) return;
+  if (typeof loadGoogleMapsScript === 'function') {
+    loadGoogleMapsScript(apiKey);
+  }
+}
+
+// Arrancar automáticamente cuando todos los módulos estén listos
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(ensureGoogleMapsLoaded, 500);
+});
