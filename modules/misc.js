@@ -85,8 +85,47 @@ const GUARDIAN = {
 
   MIN_SCRIPT_LENGTH: 480000,
 
+  // ── Construye la fuente de búsqueda combinando HTML + funciones globales ──────
+  // En la arquitectura modular el JS está en archivos externos, no inline.
+  // Usamos dos fuentes complementarias:
+  //   • src  = innerHTML del documento (HTML + scripts inline si los hay)
+  //   • fnSrc = lista de nombres de funciones globales definidas en window
+  // Para los tokens de scraping usamos la representación string de la función global.
+  _buildSrc() {
+    const htmlSrc = document.documentElement.innerHTML;
+    // Recopilar todos los nombres de funciones globales como texto "function X("
+    // para que los checks de REQUIRED_FUNCTIONS sigan funcionando igual
+    const globalFnNames = Object.keys(window)
+      .filter(k => typeof window[k] === 'function')
+      .map(k => 'function ' + k + '(')
+      .join('\n');
+    // Para tokens de contenido (REQUIRED_TOKENS, scraping checks) necesitamos
+    // el source real de las funciones clave — obtenemos toString() de las globales
+    let fnBodies = '';
+    const KEY_FNS = [
+      'fetchWithProxy','enrichFromWeb','searchBusinesses','fetchPlaces',
+      'purgeStaleCaches','buildSearchGrid','getCityDistricts',
+    ];
+    KEY_FNS.forEach(name => {
+      if (typeof window[name] === 'function') {
+        try { fnBodies += window[name].toString() + '\n'; } catch(e) {}
+      }
+    });
+    // Constantes globales relevantes (CORS_PROXIES, BATCH_SIZE, etc.)
+    const KEY_CONSTS = ['CORS_PROXIES','BATCH_SIZE','SEQUENCE_RULES','SEGMENT_TONE',
+      'CITY_DISTRICTS','HUNTER_BATCH','SLASH_COMMANDS','SHEETS_COLS','STATUS_LIST'];
+    let constBodies = '';
+    KEY_CONSTS.forEach(name => {
+      if (typeof window[name] !== 'undefined') {
+        try { constBodies += name + ' = ' + JSON.stringify(window[name]) + '\n'; } catch(e) {}
+      }
+    });
+    return htmlSrc + '\n' + globalFnNames + '\n' + fnBodies + '\n' + constBodies;
+  },
+
   run() {
-    const src = document.documentElement.innerHTML;
+    // En arquitectura modular el JS está en archivos externos — usar fuente combinada
+    const src = this._buildSrc();
     const results = [];
     let allOk = true;
 
@@ -95,10 +134,13 @@ const GUARDIAN = {
       results.push({ section, label, ok, detail: detail || '' });
     };
 
-    // 1. Funciones presentes
-    const missing_funcs = this.REQUIRED_FUNCTIONS.filter(fn =>
-      !src.includes('function ' + fn + '(') && !src.includes('function ' + fn + ' (')
-    );
+    // 1. Funciones presentes — chequeo contra window (modular) o innerHTML (monolito)
+    const missing_funcs = this.REQUIRED_FUNCTIONS.filter(fn => {
+      // Primero comprobar si la función existe en el scope global (módulos cargados)
+      if (typeof window[fn] === 'function') return false;
+      // Fallback: buscar en el texto combinado (funciones locales, métodos, etc.)
+      return !src.includes('function ' + fn + '(') && !src.includes('function ' + fn + ' (');
+    });
     check('Funciones', 'Funciones requeridas',
       missing_funcs.length === 0,
       missing_funcs.length === 0
@@ -106,7 +148,7 @@ const GUARDIAN = {
         : 'PERDIDAS: ' + missing_funcs.join(', ')
     );
 
-    // 2. Tokens clave
+    // 2. Tokens clave — buscar en fuente combinada (incluye toString de funciones clave)
     const missing_tokens = this.REQUIRED_TOKENS.filter(t => !src.includes(t));
     check('Tokens', 'Tokens clave',
       missing_tokens.length === 0,
@@ -115,30 +157,49 @@ const GUARDIAN = {
         : 'PERDIDOS: ' + missing_tokens.join(', ')
     );
 
-    // 3. IDs críticos
+    // 3. IDs críticos — siempre correcto, usa DOM real
     const missing_ids = this.REQUIRED_IDS.filter(id => !document.getElementById(id));
     check('DOM', 'IDs HTML críticos',
       missing_ids.length === 0,
       missing_ids.length === 0 ? this.REQUIRED_IDS.length + ' presentes' : 'PERDIDOS: ' + missing_ids.join(', ')
     );
 
-    // 4. Tamaño mínimo
-    const scriptLen = src.length;
-    check('Tamaño', 'Tamaño del código',
-      scriptLen >= this.MIN_SCRIPT_LENGTH,
-      scriptLen.toLocaleString('es-ES') + ' chars' + (scriptLen < this.MIN_SCRIPT_LENGTH ? ' — POSIBLE TRUNCAMIENTO' : ' OK')
-    );
+    // 4. Tamaño del código — en versión modular contar funciones globales en vez de chars
+    // El monolito tenía ~480k chars inline; en modular contamos funciones cargadas en window
+    const globalFnCount = Object.keys(window).filter(k => typeof window[k] === 'function').length;
+    const MIN_GLOBAL_FNS = 80; // umbral conservador para la versión modular
+    const isModular = !document.querySelector('script:not([src])') ||
+      document.querySelectorAll('script[src*="modules/"]').length > 0;
+    if (isModular) {
+      check('Tamaño', 'Módulos cargados',
+        globalFnCount >= MIN_GLOBAL_FNS,
+        globalFnCount + ' funciones globales cargadas' +
+          (globalFnCount < MIN_GLOBAL_FNS ? ' — POSIBLE MÓDULO SIN CARGAR' : ' ✓')
+      );
+    } else {
+      const scriptLen = document.documentElement.innerHTML.length;
+      check('Tamaño', 'Tamaño del código',
+        scriptLen >= this.MIN_SCRIPT_LENGTH,
+        scriptLen.toLocaleString('es-ES') + ' chars' +
+          (scriptLen < this.MIN_SCRIPT_LENGTH ? ' — POSIBLE TRUNCAMIENTO' : ' OK')
+      );
+    }
 
-    // 5. Sin backticks escapados
-    const btSeq = '\\' + '`';
-    let escapedBt = 0, btPos = 0;
-    while ((btPos = src.indexOf(btSeq, btPos)) !== -1) { escapedBt++; btPos++; }
-    escapedBt = Math.max(0, escapedBt - 1);
-    check('Sintaxis', 'Sin backticks escapados', escapedBt === 0,
-      escapedBt === 0 ? 'OK' : escapedBt + ' encontrados — riesgo de SyntaxError'
-    );
+    // 5. Sin backticks escapados — solo aplica al monolito (inline JS)
+    if (!isModular) {
+      const htmlSrc = document.documentElement.innerHTML;
+      const btSeq = '\\' + '`';
+      let escapedBt = 0, btPos = 0;
+      while ((btPos = htmlSrc.indexOf(btSeq, btPos)) !== -1) { escapedBt++; btPos++; }
+      escapedBt = Math.max(0, escapedBt - 1);
+      check('Sintaxis', 'Sin backticks escapados', escapedBt === 0,
+        escapedBt === 0 ? 'OK' : escapedBt + ' encontrados — riesgo de SyntaxError'
+      );
+    } else {
+      check('Sintaxis', 'Arquitectura modular', true, 'Módulos JS externos — check inline N/A ✓');
+    }
 
-    // 6. Versiones acumuladas
+    // 6. Versiones acumuladas — tokens buscados en fuente combinada
     const versionMarkers = {
       'v2.1 t0Fetch':      't0Fetch',
       'v2.2 drawer':       'openLeadDrawer',
@@ -159,16 +220,14 @@ const GUARDIAN = {
 
     // ══════════════════════════════════════════════════════════════════
     // 7. TESTS DEL MOTOR DE SCRAPING
-    // Detectan exactamente los 3 bugs que rompieron el scraping en v2.0-v2.5.
-    // Cualquier futura actualización que los reintroduzca fallará aquí ANTES
-    // de que el usuario lo note.
+    // Ahora usan el toString() de las funciones globales (válido en modular).
     // ══════════════════════════════════════════════════════════════════
 
     // TEST 7a: BATCH_SIZE <= 4
-    // Con BATCH_SIZE > 4 se lanzan >40 peticiones simultáneas a los proxies
-    // CORS gratuitos → rate limiting → fallo silencioso de todo el scraping.
     const batchMatch = src.match(/const BATCH_SIZE\s*=\s*(\d+)/);
-    const batchSize = batchMatch ? parseInt(batchMatch[1]) : 0;
+    // También intentar leer directamente de window si está definido
+    const batchDirect = typeof window.BATCH_SIZE !== 'undefined' ? window.BATCH_SIZE : null;
+    const batchSize = batchDirect !== null ? batchDirect : (batchMatch ? parseInt(batchMatch[1]) : 0);
     check('Scraping', 'BATCH_SIZE seguro (max 4)',
       batchSize >= 1 && batchSize <= 4,
       batchSize === 0 ? 'NO ENCONTRADO'
@@ -177,36 +236,39 @@ const GUARDIAN = {
     );
 
     // TEST 7b: fetchWithProxy NO usa Promise.any
-    // Promise.any lanza todos los proxies en paralelo. Con batches de empresas
-    // se multiplican exponencialmente las peticiones y se satura el rate-limit.
-    const fpStart = src.indexOf('async function fetchWithProxy(');
-    const fetchProxyFn = fpStart !== -1 ? (() => {
-      let depth = 0, i = src.indexOf('{', fpStart);
-      while (i < src.length) {
-        if (src[i] === '{') depth++;
-        else if (src[i] === '}') { depth--; if (depth === 0) return src.slice(fpStart, i+1); }
-        i++;
-      }
-      return src.slice(fpStart, fpStart + 3000);
-    })() : '';
+    const fetchProxyFn = typeof window.fetchWithProxy === 'function'
+      ? window.fetchWithProxy.toString()
+      : (() => {
+          const fpStart = src.indexOf('async function fetchWithProxy(');
+          if (fpStart === -1) return '';
+          let depth = 0, i = src.indexOf('{', fpStart);
+          while (i < src.length) {
+            if (src[i] === '{') depth++;
+            else if (src[i] === '}') { depth--; if (depth === 0) return src.slice(fpStart, i+1); }
+            i++;
+          }
+          return src.slice(fpStart, fpStart + 3000);
+        })();
     check('Scraping', 'fetchWithProxy sin Promise.any',
       !fetchProxyFn.includes('Promise.any'),
       !fetchProxyFn.includes('Promise.any') ? 'Modo secuencial correcto ✓'
         : 'Promise.any DETECTADO — volverá a saturar los proxies'
     );
 
-    // TEST 7c: enrichFromWeb NO usa Promise.allSettled en scraping profundo
-    // 9 rutas en paralelo por empresa × BATCH_SIZE = decenas de fetches simultáneos.
-    const ewStart = src.indexOf('async function enrichFromWeb(');
-    const enrichWebFn = ewStart !== -1 ? (() => {
-      let depth = 0, i = src.indexOf('{', ewStart);
-      while (i < src.length) {
-        if (src[i] === '{') depth++;
-        else if (src[i] === '}') { depth--; if (depth === 0) return src.slice(ewStart, i+1); }
-        i++;
-      }
-      return src.slice(ewStart, ewStart + 20000);
-    })() : '';
+    // TEST 7c: enrichFromWeb NO usa Promise.allSettled
+    const enrichWebFn = typeof window.enrichFromWeb === 'function'
+      ? window.enrichFromWeb.toString()
+      : (() => {
+          const ewStart = src.indexOf('async function enrichFromWeb(');
+          if (ewStart === -1) return '';
+          let depth = 0, i = src.indexOf('{', ewStart);
+          while (i < src.length) {
+            if (src[i] === '{') depth++;
+            else if (src[i] === '}') { depth--; if (depth === 0) return src.slice(ewStart, i+1); }
+            i++;
+          }
+          return src.slice(ewStart, ewStart + 20000);
+        })();
     check('Scraping', 'Scraping profundo sin Promise.allSettled',
       !enrichWebFn.includes('Promise.allSettled'),
       !enrichWebFn.includes('Promise.allSettled') ? 'Bucle secuencial correcto ✓'
@@ -214,20 +276,25 @@ const GUARDIAN = {
     );
 
     // TEST 7d: Mínimo 5 proxies CORS configurados
-    // Con <5 proxies, si caen los más populares a la vez, el scraping falla total.
-    const proxyUrls = src.match(/url:\s*'https:\/\/[^']+'/gi) || [];
-    const proxyCount = proxyUrls.filter(u =>
-      /allorigins|corsproxy|codetabs|thingproxy|crossorigin|cors\.sh/i.test(u)
-    ).length;
+    // En modular: leer directamente CORS_PROXIES si está en window
+    let proxyCount = 0;
+    if (Array.isArray(window.CORS_PROXIES)) {
+      proxyCount = window.CORS_PROXIES.filter(p =>
+        p.url && /allorigins|corsproxy|codetabs|thingproxy|crossorigin|cors\.sh/i.test(p.url)
+      ).length;
+    } else {
+      const proxyUrls = src.match(/url:\s*'https:\/\/[^']+'/gi) || [];
+      proxyCount = proxyUrls.filter(u =>
+        /allorigins|corsproxy|codetabs|thingproxy|crossorigin|cors\.sh/i.test(u)
+      ).length;
+    }
     check('Scraping', 'Mínimo 5 proxies CORS',
       proxyCount >= 5,
       proxyCount >= 5 ? proxyCount + ' proxies configurados ✓'
         : 'Solo ' + proxyCount + ' — añadir más para mayor resiliencia'
     );
 
-    // TEST 7e: Sin APIs de pago en el flujo principal de scraping
-    // api.anthropic.com, api.openai.com, etc. tienen coste por petición.
-    // El scraping debe funcionar al 100% con herramientas gratuitas.
+    // TEST 7e: Sin APIs de pago en fetchWithProxy
     const paidApisInProxy = ['api.anthropic.com', 'api.openai.com'].filter(a => fetchProxyFn.includes(a));
     check('Scraping', 'Sin APIs de pago en scraping',
       paidApisInProxy.length === 0,
@@ -235,7 +302,35 @@ const GUARDIAN = {
         : 'DETECTADAS APIs de pago: ' + paidApisInProxy.join(', ')
     );
 
-    const funcCount = (src.match(/function \w+\s*\(/g) || []).length;
+    // 8. CHECK NUEVO: source 'propio' registrado en leads.js
+    const srcLabelsOk = typeof window.renderLeads === 'function'
+      ? window.renderLeads.toString().includes('propio')
+      : src.includes("propio");
+    check('Módulos', "source 'propio' en leads.js",
+      srcLabelsOk,
+      srcLabelsOk ? "srcLabels incluye 'propio' ✓" : "FALTA entrada 'propio' en srcLabels — leads importados sin emoji"
+    );
+
+    // 9. CHECK NUEVO: search-history.js cargado
+    const shLoaded = typeof window.loadSearchHistory === 'function' ||
+      typeof window.saveSearchHistory === 'function';
+    check('Módulos', 'search-history.js cargado',
+      shLoaded,
+      shLoaded ? 'Historial de búsquedas disponible ✓' : 'MÓDULO NO CARGADO — añadir <script src="modules/search-history.js">'
+    );
+
+    // 10. CHECK NUEVO: restoreBackup con soporte dual-format
+    const restoreFn = typeof window.restoreBackup === 'function'
+      ? window.restoreBackup.toString() : '';
+    const hasDualFormat = restoreFn.includes('gordi_leads') || restoreFn.includes('Formato B') ||
+      restoreFn.includes('_voltflow_version');
+    check('Módulos', 'restoreBackup dual-format',
+      hasDualFormat,
+      hasDualFormat ? 'Soporta backup completo + datos portátiles ✓'
+        : 'SOLO formato nuevo — no puede restaurar backups del index.html antiguo'
+    );
+
+    const funcCount = Object.keys(window).filter(k => typeof window[k] === 'function').length;
     return { allOk, results, funcCount };
   },
 

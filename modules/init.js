@@ -151,7 +151,7 @@ const VOLTFLOW_DATA_KEYS = [
   'gordi_pin', 'gordi_streak', 'gordi_tutorial_done',
   'gordi_light_mode', 'gordi_font_scale',
   // ── GitHub sync ──────────────────────────────────────────────────────
-  'gordi_gh_user', 'gordi_gh_repo', 'gordi_gh_auto',
+  'gordi_gh_token', 'gordi_gh_user', 'gordi_gh_repo', 'gordi_gh_auto',
 ];
 
 function exportDataSnapshot() {

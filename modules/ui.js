@@ -518,34 +518,8 @@ function removePin() {
 }
 
 // ============ BACKUP / RESTORE ============
-
-// ─── SNAPSHOT DEL localStorage (todas las claves gordi_) ─────────────────────
-// Necesario para exportPortableData. En el monolito index.html esta función
-// estaba definida ahí; en la versión modular hay que tenerla en ui.js.
-function exportDataSnapshot() {
-  const snapshot = {
-    _voltflow_version: (typeof VOLTFLOW_VERSION !== 'undefined' ? VOLTFLOW_VERSION : '2.0'),
-    _exported: new Date().toISOString()
-  };
-  const DATA_KEYS = [
-    'gordi_leads','gordi_email_history','gordi_campaigns','gordi_objectives','gordi_templates',
-    'gordi_api_key','gordi_gemini_key','gordi_hunter_key','gordi_apollo_key','gordi_claude_key',
-    'gordi_user_name','gordi_user_email','gordi_user_company','gordi_user_phone','gordi_user_web',
-    'gordi_user_logo','gordi_pin','gordi_light_mode','gordi_font_scale','gordi_search_history',
-    'gordi_streak','gordi_custom_proxy','gordi_sheets_token','gordi_sheets_client_id',
-    'gordi_github_token','gordi_github_user','gordi_github_repo'
-  ];
-  for (const key of DATA_KEYS) {
-    const val = localStorage.getItem(key);
-    if (val !== null) snapshot[key] = val;
-  }
-  // Caché de enriquecimiento
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith('gordi_ecache_')) snapshot[k] = localStorage.getItem(k);
-  }
-  return snapshot;
-}
+// exportDataSnapshot está definida en modules/init.js (versión authoritative
+// con todas las claves gordi_gh_* y VOLTFLOW_DATA_KEYS completo)
 
 // ─── EXPORTAR / IMPORTAR DATOS PORTÁTILES ENTRE VERSIONES ────────────────────
 function exportPortableData() {
