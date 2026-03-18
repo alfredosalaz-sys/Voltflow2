@@ -299,7 +299,40 @@ async function enrichDistances(companies, locationStr) {
 
 // ─── HELPERS GRID SEARCH ────────────────────────────────────────────────────
 // Geocodifica una dirección y devuelve {lat, lng}
+// ── Esperar a que el SDK de Google Maps esté disponible ──────────────────────
+// Race condition: loadGoogleMapsScript inyecta un <script> asíncrono.
+// Si el usuario pulsa "Buscar" antes de que cargue, google es undefined → crash.
+// Esta función espera hasta 15 segundos antes de lanzar un error claro.
+async function waitForGoogleMaps(timeoutMs = 15000) {
+  if (typeof google !== 'undefined' && google.maps) return; // ya cargado
+
+  // Si no hay API Key ni script en el DOM, cargar ahora
+  const apiKey = localStorage.getItem('gordi_api_key');
+  if (apiKey && !document.getElementById('google-maps-script')) {
+    loadGoogleMapsScript(apiKey);
+  }
+  if (!apiKey) {
+    throw new Error('API Key de Google no configurada. Ve a Configuración → API Keys.');
+  }
+
+  // Esperar con polling cada 200ms hasta que google.maps esté disponible
+  const start = Date.now();
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      if (typeof google !== 'undefined' && google.maps) {
+        resolve();
+      } else if (Date.now() - start > timeoutMs) {
+        reject(new Error('Google Maps tardó demasiado en cargar. Recarga la página (F5) e inténtalo de nuevo.'));
+      } else {
+        setTimeout(check, 200);
+      }
+    };
+    check();
+  });
+}
+
 async function geocodeSearch(locationStr) {
+  await waitForGoogleMaps();
   const { Geocoder } = await google.maps.importLibrary('geocoding');
   const geocoder = new Geocoder();
   return new Promise((resolve, reject) => {
@@ -440,6 +473,7 @@ async function fetchPlaces(segment, location, maxResults) {
   const apiKey = localStorage.getItem('gordi_api_key');
   if (!apiKey) throw new Error('API Key de Google no configurada. Ve a Configuración.');
 
+  await waitForGoogleMaps();
   const { Place } = await google.maps.importLibrary('places');
   const queries = getSegmentQueries(segment);
   const seenIds = new Set();
@@ -1604,6 +1638,7 @@ async function enrichCompetitivePressure(company, location) {
   const apiKey = localStorage.getItem('gordi_api_key');
   if (!apiKey || !company.rating || !company.name) return company;
   try {
+    await waitForGoogleMaps();
     const { Place } = await google.maps.importLibrary('places');
     const typeRaw = (company.types || '').split(',')[0]?.trim().replace(/_/g, ' ') || 'negocio';
     const { places } = await Place.searchByText({
