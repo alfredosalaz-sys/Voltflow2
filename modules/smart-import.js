@@ -280,24 +280,130 @@ function _parseFile(file, callback) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
+// DETECTOR FORMATO "OBRAS" — Construdata / exportaciones de plataformas de obras
+// Cabeceras tipo: Obra:Nombre, Promotor1:Empresa, Promotor1:Email, Obra:Hito...
+// Genera UN lead por fila (el Promotor como empresa objetivo)
+// ══════════════════════════════════════════════════════════════════════════
+function _isObrasFormat(headers) {
+  const h = headers.join('|').toLowerCase();
+  return h.includes('obra:nombre') || h.includes('promotor1:empresa') ||
+         h.includes('obra:hito') || h.includes('promotor1:email');
+}
+
+function _mapObrasRow(row, headers, fileName) {
+  const get = (keyword) => {
+    const idx = headers.findIndex(h => h.toLowerCase().includes(keyword.toLowerCase()));
+    return idx >= 0 && row[idx] != null ? String(row[idx]).trim() : '';
+  };
+  const getExact = (exact) => {
+    const idx = headers.findIndex(h => h.toLowerCase() === exact.toLowerCase());
+    return idx >= 0 && row[idx] != null ? String(row[idx]).trim() : '';
+  };
+
+  // ── Empresa: Promotor es el cliente objetivo de Voltium ────────────────
+  const company = get('Promotor1:Empresa') || get('Promotor:Empresa') || '';
+  if (!company) return null;
+
+  // ── Nombre del contacto: persona de contacto del promotor ──────────────
+  const contactRaw = get('Promotor1:Persona contacto') || get('Promotor:Persona contacto') || '';
+  // Limpiar cargo entre paréntesis: "Pablo García (Head of Dev)" → "Pablo García"
+  const name = contactRaw.replace(/\s*\([^)]*\)\s*/g, '').trim() || 'Responsable';
+
+  // ── Email: preferir email personal sobre el genérico ───────────────────
+  const emailPersonal = get('Promotor1:Email Persona Contacto') || get('Promotor:Email Persona Contacto') || '';
+  const emailGenerico = get('Promotor1:Email') || get('Promotor:Email') || '';
+  // Descartar LinkedIn URLs que a veces aparecen en campo email
+  const cleanEmail = (e) => (e && e.includes('@') && !e.includes('linkedin') ? e.split(',')[0].trim() : '');
+  const email = cleanEmail(emailPersonal) || cleanEmail(emailGenerico);
+
+  // ── Teléfono: coger el primero de la lista ──────────────────────────────
+  const phoneRaw = get('Promotor1:Telefonos') || get('Promotor:Telefonos') || '';
+  const phone = _normalizePhone(phoneRaw.split('/')[0].trim());
+
+  // ── Web ─────────────────────────────────────────────────────────────────
+  const website = get('Promotor1:Web') || get('Promotor:Web') || '';
+
+  // ── Dirección: usar la de la obra (más relevante que la del promotor) ───
+  const obraDireccion = get('Obra:Direccion') || '';
+  const localidad     = get('Obra:Localidad')  || get('Localidad') || '';
+  const provincia     = get('Obra:Provincia')  || get('Provincia') || '';
+  const address = [obraDireccion, localidad, provincia].filter(Boolean).join(', ') ||
+                  get('Promotor1:Direccion') || '';
+
+  // ── Señal: combinar datos de la obra para máximo contexto ───────────────
+  const obraNombre  = get('Obra:Nombre')       || '';
+  const hito        = get('Obra:Hito')          || '';
+  const tipoObra    = get('Obra:Tipo de obra')  || '';
+  const descripcion = get('Obra:Descripcion')   || '';
+  const obraUrl     = get('Obra:Url (Enlace Obra)') || get('Obra:Url') || '';
+
+  // Presupuesto — formatear en euros
+  const presRaw = get('Obra:Presupuesto') || '';
+  let presupuesto = 0;
+  let presStr = '';
+  if (presRaw) {
+    presupuesto = parseFloat(presRaw) || 0;
+    if (presupuesto >= 1000000)      presStr = `${(presupuesto/1000000).toFixed(1)}M€`;
+    else if (presupuesto >= 1000)    presStr = `${(presupuesto/1000).toFixed(0)}K€`;
+    else if (presupuesto > 0)        presStr = `${presupuesto.toFixed(0)}€`;
+  }
+
+  const signalParts = [];
+  if (obraNombre)  signalParts.push(`Obra: ${obraNombre}`);
+  if (hito)        signalParts.push(`Fase: ${hito}`);
+  if (presStr)     signalParts.push(`Presupuesto: ${presStr}`);
+  if (tipoObra)    signalParts.push(tipoObra.split('/')[0].trim());
+  if (descripcion) signalParts.push(descripcion.slice(0, 120));
+  const signal = signalParts.join(' | ') || `Importado desde ${fileName}`;
+
+  // ── Segmento: inferir de tipo de obra ──────────────────────────────────
+  const tipoLower = tipoObra.toLowerCase();
+  let segment = 'Industrial';
+  if (/hotel|hostal|hostel|turism/.test(tipoLower))                    segment = 'Hoteles';
+  else if (/viviend|residen|apartament/.test(tipoLower))               segment = 'Industrial';
+  else if (/comercial|centro.comercial|mall|retail/.test(tipoLower))   segment = 'Comercial';
+  else if (/oficin|laborator|trabajo/.test(tipoLower))                 segment = 'Oficinas';
+  else if (/colegio|escuela|educac|univers/.test(tipoLower))           segment = 'Educativo';
+  else if (/deportiv|gimnasio|piscina|padel/.test(tipoLower))         segment = 'Deportivo';
+  else if (/museo|cultural|teatro|exposic/.test(tipoLower))            segment = 'Cultural';
+
+  // ── Notas: info adicional útil ─────────────────────────────────────────
+  const cif      = get('Promotor1:Cif') || '';
+  const contacto = get('Promotor1:Persona contacto') || '';
+  const notesParts = [];
+  if (cif)       notesParts.push(`CIF: ${cif}`);
+  if (contacto)  notesParts.push(`Contacto: ${contacto}`);
+  if (obraUrl)   notesParts.push(`Enlace obra: ${obraUrl}`);
+  const notes = notesParts.join(' | ');
+
+  return { company, name, email, phone, segment, signal, website, address,
+           budget: presupuesto, notes, status: 'Pendiente' };
+}
+
+// ══════════════════════════════════════════════════════════════════════════
 // PROCESAR ARCHIVO COMPLETO → LEADS MAPEADOS
 // ══════════════════════════════════════════════════════════════════════════
 function _processRows(rawRows, fileName) {
   if (!rawRows || rawRows.length < 2) return [];
 
   const headers = (rawRows[0] || []).map(h => h != null ? String(h) : '');
-  const colMap  = _detectColumnMap(headers);
   const dataRows = rawRows.slice(1);
 
   // Filtrar filas completamente vacías
   const validRows = dataRows.filter(r => r && r.some(c => c != null && String(c).trim() !== ''));
 
+  // ── Detección automática de formato "Obras" (Construdata / plataformas obras) ──
+  if (_isObrasFormat(headers)) {
+    return validRows
+      .map(row => _mapObrasRow(row, headers, fileName))
+      .filter(Boolean);
+  }
+
+  // ── Formato genérico ──────────────────────────────────────────────────
+  const colMap = _detectColumnMap(headers);
   const mapped = validRows
     .map(row => _mapRowToLead(row, colMap, fileName))
-    .filter(Boolean); // eliminar nulls (filas sin empresa)
-
-  // Si "Compañía" (col0) tiene siempre el mismo valor, era el exportador → ignorarla
-  // ya se manejó usando "Oportunidad" como fuente primaria de empresa
+    .filter(Boolean);
 
   return mapped;
 }
