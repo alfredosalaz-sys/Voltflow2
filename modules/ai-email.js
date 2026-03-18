@@ -1107,7 +1107,6 @@ Servicios: Reforma integral llave en mano · Aislamientos acústicos y térmicos
 Diferenciales REALES:
   - Un único responsable técnico durante toda la obra (no subcontratan)
   - Presupuesto cerrado desde el primer día, sin sorpresas
-  - Trabajan SIN interrumpir la actividad del cliente (por fases, horario nocturno, fines de semana)
   - Documentación digital del proyecto accesible en tiempo real
   - Planificación previa detallada antes de empezar
 Filosofía: "La reforma como proceso previsible, controlado y bien ejecutado"
