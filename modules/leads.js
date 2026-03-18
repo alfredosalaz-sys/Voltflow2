@@ -301,18 +301,41 @@ function renderLeads() {
 
 function copyEmail(email, event) {
   if (event) event.stopPropagation();
-  if (!email) { showToast('⚠️ Este lead no tiene email'); return; }
-  navigator.clipboard.writeText(email).then(() => {
-    showToast('📋 Email copiado: ' + email);
+  if (!email || !email.trim()) { showToast('⚠️ Este lead no tiene email'); return; }
+  navigator.clipboard.writeText(email.trim()).then(() => {
+    showToast('📋 Email copiado: ' + email.trim());
+    // Visual feedback on the button
+    const btn = document.getElementById('detail-email-copy-btn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✅ Copiado';
+      btn.style.borderColor = 'var(--success)';
+      btn.style.color = 'var(--success)';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.style.borderColor = 'var(--glass-border)';
+        btn.style.color = 'var(--text-muted)';
+      }, 1500);
+    }
   }).catch(() => {
     // Fallback para navegadores sin clipboard API
     const ta = document.createElement('textarea');
-    ta.value = email; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    ta.value = email.trim(); ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast('📋 Email copiado: ' + email);
+    showToast('📋 Email copiado: ' + email.trim());
   });
+}
+
+// Activa/desactiva el botón de copiar email en el modal de detalle
+// según si el input tiene contenido. Se llama desde oninput del campo email.
+function updateDetailEmailBtn(input) {
+  const btn = document.getElementById('detail-email-copy-btn');
+  if (!btn) return;
+  const hasEmail = input.value && input.value.trim().length > 0;
+  btn.style.opacity = hasEmail ? '1' : '0.35';
+  btn.style.pointerEvents = hasEmail ? 'auto' : 'none';
 }
 
 function deleteLead(id) {
@@ -519,7 +542,7 @@ function openLeadDetail(id) {
       </div>
       ${followupHtml}
       <div class="grid-form" style="grid-template-columns:1fr 1fr;gap:.75rem">
-        <div><label>Email</label><div style="display:flex;align-items:center;gap:.4rem"><input type="email" value="${lead.email||''}" id="detail-email" placeholder="email@empresa.com" style="flex:1" oninput="updateDetailEmailBtn(this)"><button id="detail-email-copy-btn" onclick="copyEmail(document.getElementById('detail-email').value, event)" title="Copiar email al portapapeles" style="background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:.78rem;white-space:nowrap;transition:all .15s;${lead.email ? '' : 'opacity:.35;pointer-events:none'}" onmouseover="if(document.getElementById('detail-email').value){this.style.borderColor='var(--primary)';this.style.color='var(--primary)'}" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">⧉ Copiar</button></div></div>
+        <div><label>Email</label><div style="display:flex;align-items:center;gap:.4rem"><input type="email" value="${lead.email||''}" id="detail-email" placeholder="email@empresa.com" style="flex:1" oninput="updateDetailEmailBtn(this)"><button id="detail-email-copy-btn" onclick="copyEmail(document.getElementById('detail-email').value, event)" title="Copiar email al portapapeles" style="background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:.78rem;white-space:nowrap;transition:all .15s;${lead.email && lead.email.trim() ? '' : 'opacity:.35;pointer-events:none'}" onmouseover="if(document.getElementById('detail-email').value){this.style.borderColor='var(--primary)';this.style.color='var(--primary)'}" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">⧉ Copiar</button></div></div>
         <div><label>Teléfono</label><input type="text" value="${lead.phone||''}" id="detail-phone" placeholder="+34 600..."></div>
         <div><label>Estado</label>
           <select id="detail-status">
