@@ -6,9 +6,9 @@
 // ============================================================
 
 // ── Proxies CORS (se prueban en orden, primer éxito gana) ────────────────────
-// ── Lista de proxies CORS ordenados por fiabilidad ───────────────────────────
-// FIX-SCRAPING: 7 proxies para máxima resiliencia. Se prueban en orden
-// y se usa el primero que devuelva contenido real (≥200 chars).
+// ── Lista de proxies CORS — actualizada 2026 ─────────────────────────────────
+// Se intentan en orden; el sistema aprende cuáles funcionan mejor en la sesión
+// y los sube en el ranking automáticamente.
 
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -16,17 +16,20 @@
 // ──  Motor de scraping y enriquecimiento web de empresas
 // ──  Funciones: CORS_PROXIES, _proxyStats, _getSortedProxies, fetchWithProxy, enrichFromWeb,
   //          enrichFromHunter, enrichFromApollo, enrichFromWhois, enrichFromOpenCorporates,
-  //          enrichFromNews, enrichFromStreetView, enrichFromBorme, extractEmailWithAI
+  //          enrichFromNews, enrichFromStreetView, enrichFromBorme,
+  //          enrichFromEmpressite, enrichFromExperian, extractEmailWithAI
 // ══════════════════════════════════════════════════════════════════════════
 
 const CORS_PROXIES = [
-  { url: 'https://api.allorigins.win/get?url=',           mode: 'allorigins' },
-  { url: 'https://corsproxy.io/?',                        mode: 'raw' },
-  { url: 'https://api.codetabs.com/v1/proxy?quest=',      mode: 'raw' },
-  { url: 'https://corsproxy.org/?',                       mode: 'raw' },
-  { url: 'https://thingproxy.freeboard.io/fetch/',        mode: 'raw' },
-  { url: 'https://api.allorigins.win/raw?url=',           mode: 'raw' },
-  { url: 'https://corsproxy.org/?url=',                   mode: 'raw' },
+  // ── Tier 1: alta fiabilidad (sin rate-limit agresivo) ───────────────────
+  { url: 'https://api.allorigins.win/get?url=',           mode: 'allorigins' }, // JSON wrapper — más estable
+  { url: 'https://corsproxy.io/?',                        mode: 'raw' },        // El mejor servicio público
+  { url: 'https://api.allorigins.win/raw?url=',           mode: 'raw' },        // Variante raw de allorigins
+  // ── Tier 2: alternativos bien mantenidos ────────────────────────────────
+  { url: 'https://cors-anywhere.hexlet.io/',              mode: 'raw' },        // Fork mantenido de cors-anywhere
+  { url: 'https://proxy.cors.sh/',                        mode: 'raw' },        // Nuevo servicio 2024+
+  { url: 'https://cors.eu.org/',                          mode: 'raw' },        // Europeo, GDPR-friendly
+  { url: 'https://api.codetabs.com/v1/proxy?quest=',      mode: 'raw' },        // Rate-limited (1/s) — último recurso
 ];
 
 // ── Cache de rendimiento de proxies (sesión) ─────────────────────────────────
@@ -35,7 +38,9 @@ const _proxyStats = {};
 CORS_PROXIES.forEach((p, i) => { _proxyStats[i] = { ok: 0, fail: 0, ms: 999 }; });
 
 function _getSortedProxies() {
-  return CORS_PROXIES
+  // Si el usuario tiene un proxy personalizado configurado, va siempre primero
+  const customProxyUrl = localStorage.getItem('gordi_custom_proxy')?.trim();
+  const base = CORS_PROXIES
     .map((p, i) => ({ proxy: p, idx: i, stats: _proxyStats[i] }))
     .sort((a, b) => {
       // Primero los que han funcionado, luego por velocidad
@@ -44,23 +49,64 @@ function _getSortedProxies() {
       return bScore - aScore;
     })
     .map(x => ({ ...x.proxy, _idx: x.idx }));
+
+  if (customProxyUrl) {
+    // El proxy personalizado ocupa la posición 0 siempre, con modo raw
+    return [{ url: customProxyUrl, mode: 'raw', _idx: -1 }, ...base];
+  }
+  return base;
 }
 
-async function fetchWithProxy(targetUrl, timeoutMs = 8000) {
-  // FIX-SCRAPING: Modo secuencial ordenado por rendimiento histórico de sesión.
-  // Cada proxy que funciona sube en el ranking; los que fallan bajan.
-  // Si todos fallan, intenta con la Claude API como último recurso.
+// ── Diagnóstico de proxies — exportado para el botón de configuración ─────────
+async function testAllProxies() {
+  const testUrl = 'https://httpbin.org/get';
+  const results = [];
+  const customProxyUrl = localStorage.getItem('gordi_custom_proxy')?.trim();
+  const proxiesToTest = [
+    ...(customProxyUrl ? [{ url: customProxyUrl, mode: 'raw', label: '⭐ Tu proxy' }] : []),
+    ...CORS_PROXIES.map(p => ({ ...p, label: p.url.split('/')[2] })),
+  ];
+  for (const proxy of proxiesToTest) {
+    const t0 = Date.now();
+    try {
+      const fullUrl = proxy.url + encodeURIComponent(testUrl);
+      const res = await fetch(fullUrl, { signal: AbortSignal.timeout(7000) });
+      const content = proxy.mode === 'allorigins'
+        ? (await res.json()).contents || ''
+        : await res.text();
+      const ms = Date.now() - t0;
+      results.push({ label: proxy.label, ok: res.ok && content.length > 50, ms });
+    } catch (e) {
+      results.push({ label: proxy.label, ok: false, ms: Date.now() - t0, err: e.message });
+    }
+  }
+  return results;
+}
+
+async function fetchWithProxy(targetUrl, timeoutMs = 9000) {
+  // FIX-SCRAPING 2026: Detección activa de proxies saturados (429/503)
   const sortedProxies = _getSortedProxies();
 
   for (const proxy of sortedProxies) {
     const t0 = Date.now();
     try {
       const fullUrl = proxy.url + encodeURIComponent(targetUrl);
-      const res = await fetch(fullUrl, { signal: AbortSignal.timeout(timeoutMs) });
-      if (!res.ok) {
-        _proxyStats[proxy._idx].fail++;
+      const res = await fetch(fullUrl, { 
+        signal: AbortSignal.timeout(timeoutMs),
+        headers: { 'Cache-Control': 'no-cache' } 
+      });
+
+      // Si el proxy responde que está saturado, penalizarlo fuertemente en esta sesión
+      if (res.status === 429 || res.status === 503 || res.status === 403) {
+        if (proxy._idx >= 0) _proxyStats[proxy._idx].fail += 5; 
         continue;
       }
+
+      if (!res.ok) {
+        if (proxy._idx >= 0) _proxyStats[proxy._idx].fail++;
+        continue;
+      }
+
       let content = '';
       if (proxy.mode === 'allorigins') {
         const j = await res.json();
@@ -68,19 +114,42 @@ async function fetchWithProxy(targetUrl, timeoutMs = 8000) {
       } else {
         content = await res.text();
       }
-      if (content.length >= 200) {
+
+      // Validación de contenido: evitar páginas de error comunes envueltas en 200 OK
+      const isErrorPage = /access denied|forbidden|blocked|security check|cloudflare|hcaptcha/i.test(content.slice(0, 2000));
+      
+      if (content.length >= 200 && !isErrorPage) {
         const ms = Date.now() - t0;
-        _proxyStats[proxy._idx].ok++;
-        _proxyStats[proxy._idx].ms = Math.round((_proxyStats[proxy._idx].ms * 0.7) + (ms * 0.3));
+        if (proxy._idx >= 0) {
+          _proxyStats[proxy._idx].ok++;
+          // Media móvil ponderada para el tiempo de respuesta
+          _proxyStats[proxy._idx].ms = Math.round((_proxyStats[proxy._idx].ms * 0.6) + (ms * 0.4));
+        }
         return content;
       }
-      _proxyStats[proxy._idx].fail++;
-    } catch {
-      _proxyStats[proxy._idx].fail++;
+      
+      if (proxy._idx >= 0) _proxyStats[proxy._idx].fail++;
+    } catch (err) {
+      if (proxy._idx >= 0) _proxyStats[proxy._idx].fail++;
+      // Si el error es timeout, es una señal de que el proxy es lento
+      if (err.name === 'TimeoutError' && proxy._idx >= 0) _proxyStats[proxy._idx].ms = Math.max(_proxyStats[proxy._idx].ms, timeoutMs);
     }
   }
 
-  return ''; // Todos los proxies gratuitos fallaron
+  // ── Último recurso: fetch directo (funciona para URLs con CORS abierto) ──────
+  try {
+    const res = await fetch(targetUrl, {
+      signal: AbortSignal.timeout(Math.min(timeoutMs, 5000)),
+      mode: 'cors',
+      headers: { 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' }
+    });
+    if (res.ok) {
+      const txt = await res.text();
+      if (txt.length >= 200) return txt;
+    }
+  } catch {}
+
+  return ''; 
 }
 
 
@@ -580,7 +649,7 @@ async function enrichFromWeb(company) {
   // Ahora medimos el tiempo del fetch que ya necesitamos hacer de todas formas.
   const t0Fetch = Date.now();
   try {
-    html = await fetchWithProxy(company.website, 8000); // FIX-SCRAPING: reducido de 12000 a 8000ms
+    html = await fetchWithProxy(company.website, 10000); // 10s: proxy añade ~2-4s de latencia extra
   } catch { return company; }
   company.webLoadMs = Date.now() - t0Fetch;
   if (!html || html.length < 200) {
@@ -828,7 +897,7 @@ async function enrichFromWeb(company) {
     for (const path of deepPaths) {
       if (company.email && company.decision_maker) break; // Ya tenemos todo, parar
       try {
-        const pageHtml = await fetchWithProxy(baseUrl + path, 3500);
+        const pageHtml = await fetchWithProxy(baseUrl + path, 5500); // +2s para compensar latencia del proxy
         if (!pageHtml || pageHtml.length < 200) continue;
 
         // Buscar emails en esta página
@@ -921,7 +990,7 @@ async function enrichFromWeb(company) {
     if (_skipSitemap) { /* early-exit: datos completos, no merece el fetch */ }
     else {
     const sitemapUrl = company.website.replace(/\/$/, '') + '/sitemap.xml';
-    const sitemapHtml = await fetchWithProxy(sitemapUrl, 5000);
+    const sitemapHtml = await fetchWithProxy(sitemapUrl, 7000); // sitemap puede tardar más via proxy
     if (sitemapHtml && /<loc>/i.test(sitemapHtml)) {
       company.hasSitemap = true;
       const urls = [...sitemapHtml.matchAll(/<loc>([^<]+)<\/loc>/gi)].map(m => m[1].trim());
@@ -935,7 +1004,7 @@ async function enrichFromWeb(company) {
       // Scraping de página de equipo desde sitemap
       if (teamUrl && !company.decision_maker) {
         try {
-          const teamHtml = await fetchWithProxy(teamUrl, 6000);
+          const teamHtml = await fetchWithProxy(teamUrl, 7000);
           if (teamHtml) {
             const roleStr = ROLE_KEYWORDS.join('|');
             const namePattern = /([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,20}\s+(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,20}\s+)?[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,25})/;
@@ -1743,6 +1812,241 @@ async function enrichFromBorme(company) {
   return company;
 }
 
+// ─── CAPA EMPRESITE: Directorio empresarial español (gratis, sin key) ─────────
+// Fuente: empresite.eleconomista.es
+// Datos: NIF/CIF, CNAE, empleados, facturación estimada, año fundación, actividad
+async function enrichFromEmpressite(company) {
+  if (!company.name) return company;
+  try {
+    // Construir query: primeras 4 palabras del nombre para mejor matching
+    const q = encodeURIComponent(
+      company.name
+        .replace(/\b(SL|SA|SLU|SLL|SLP|SC|CB|AIE|LTD|S\.L\.|S\.A\.)\b\.?/gi, '')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 4)
+        .join(' ')
+    );
+
+    // Empresite tiene una página por empresa en formato slug
+    // también tiene búsqueda por nombre
+    const searchUrl = `https://empresite.eleconomista.es/${encodeURIComponent(
+      company.name.split(' ').slice(0, 3).join('-').toUpperCase()
+    )}/`;
+
+    const html = await fetchWithProxy(searchUrl, 8000);
+    if (!html || html.length < 500) {
+      // Fallback: búsqueda general
+      const searchFallback = `https://empresite.eleconomista.es/busqueda/?q=${q}`;
+      const searchHtml = await fetchWithProxy(searchFallback, 8000);
+      if (!searchHtml) return company;
+      return _parseEmpressiteHtml(company, searchHtml, true);
+    }
+    return _parseEmpressiteHtml(company, html, false);
+  } catch(e) {
+    console.warn('Empresite error:', e.message);
+  }
+  return company;
+}
+
+function _parseEmpressiteHtml(company, html, isSearch) {
+  try {
+    // ── NIF / CIF ────────────────────────────────────────────────────────────
+    const nifMatch = html.match(/\b([A-Z]\d{7}[A-Z0-9]|\d{8}[A-Z])\b/);
+    if (nifMatch && !company.nif) {
+      company.nif = nifMatch[1];
+    }
+
+    // ── CNAE / Actividad ─────────────────────────────────────────────────────
+    const cnaeMatch = html.match(/CNAE[:\s-]+(\d{4})/i) ||
+                      html.match(/actividad[^<]{0,80}?(\d{4})/i);
+    if (cnaeMatch && !company.cnae) {
+      company.cnae = cnaeMatch[1];
+    }
+
+    // ── Número de empleados ──────────────────────────────────────────────────
+    const empMatch = html.match(/(\d[\d.]+)\s*(?:empleados?|trabajadores?|personas?)/i) ||
+                     html.match(/empleados?[^<]{0,30}?(\d[\d.]+)/i);
+    if (empMatch && !company.signals.find(s => s.includes('empleados'))) {
+      const n = parseInt(empMatch[1].replace(/\./g, ''));
+      if (n > 0 && n < 500000) {
+        company.employeeCount = n;
+        company.signals.push(`👥 ${n.toLocaleString('es-ES')} empleados (Empresite)`);
+      }
+    }
+
+    // ── Facturación / Ingresos ───────────────────────────────────────────────
+    const revMatch = html.match(/facturaci[oó]n[^<]{0,60}?([\d,.]+)\s*(?:M|millones?|€|euros?|K)/i) ||
+                     html.match(/([\d,.]+)\s*(?:M|millones?)\s*(?:de\s*)?€/i) ||
+                     html.match(/ingresos?[^<]{0,60}?([\d,.]+)/i);
+    if (revMatch && !company.revenue) {
+      const rawNum = revMatch[1].replace(/\./g, '').replace(',', '.');
+      const val = parseFloat(rawNum);
+      if (!isNaN(val) && val > 0) {
+        company.revenue = val;
+        const label = val >= 1 ? `${val}M €` : `${Math.round(val * 1000)}K €`;
+        company.signals.push(`💶 Facturación ~${label} (Empresite)`);
+      }
+    }
+
+    // ── Año de fundación ─────────────────────────────────────────────────────
+    const yearMatch = html.match(/(?:fundada?|constituida?|a[ñn]o\s+de\s+(?:creaci[oó]n|fundaci[oó]n))[^<]{0,30}?(\d{4})/i) ||
+                      html.match(/\b(19[5-9]\d|20[0-2]\d)\b/);
+    if (yearMatch && !company.incorporationYear) {
+      const yr = parseInt(yearMatch[1]);
+      if (yr >= 1950 && yr <= new Date().getFullYear()) {
+        company.incorporationYear = yr;
+        const age = new Date().getFullYear() - yr;
+        if (!company.signals.find(s => s.includes('años') || s.includes('fundada'))) {
+          company.signals.push(`🏢 Fundada en ${yr} (${age} años) — Empresite`);
+        }
+      }
+    }
+
+    // ── Dirección / municipio ────────────────────────────────────────────────
+    if (!company.address) {
+      const addrMatch = html.match(/(?:direcci[oó]n|domicilio)[^<]{0,10}?<[^>]+>([^<]{10,80})</i) ||
+                        html.match(/C\/?\.?\s+[A-ZÁÉÍÓÚ][a-záéíóú]+[^<]{5,50},\s*\d{5}/);
+      if (addrMatch) {
+        const addr = addrMatch[1].trim().replace(/\s+/g, ' ');
+        if (addr.length > 8 && addr.length < 100) company.address = addr;
+      }
+    }
+
+    // ── Señal: empresa destacada o activa ────────────────────────────────────
+    if (/destacada|premium|verificada|activa/i.test(html)) {
+      if (!company.enrichSource.includes('Empresite'))
+        company.enrichSource.push('Empresite');
+    } else if (nifMatch || empMatch || revMatch) {
+      company.enrichSource.push('Empresite');
+    }
+
+  } catch(e) {
+    console.warn('Empresite parse error:', e.message);
+  }
+  return company;
+}
+
+// ─── CAPA EXPERIAN: Riesgo crediticio y señales financieras (gratis) ──────────
+// Fuente: www.experian.es/empresas (parte pública, sin registro)
+// Datos: score de riesgo, morosidades, cambios recientes, tamaño estimado
+async function enrichFromExperian(company) {
+  if (!company.name) return company;
+  try {
+    // Experian España permite búsqueda pública de empresas por nombre/NIF
+    const q = encodeURIComponent(
+      company.name
+        .replace(/\b(SL|SA|SLU|SLL|SLP|SC|CB|AIE|S\.L\.|S\.A\.)\b\.?/gi, '')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 4)
+        .join(' ')
+    );
+
+    // Endpoint público de búsqueda de Experian España
+    const url = `https://www.experian.es/empresas/informe-empresas?nombre=${q}${company.nif ? '&nif=' + encodeURIComponent(company.nif) : ''}`;
+    const html = await fetchWithProxy(url, 9000);
+    if (!html || html.length < 300) return company;
+
+    return _parseExperianHtml(company, html);
+  } catch(e) {
+    console.warn('Experian error:', e.message);
+  }
+  return company;
+}
+
+function _parseExperianHtml(company, html) {
+  try {
+    // ── Score / Rating de riesgo ──────────────────────────────────────────────
+    // Experian muestra un semáforo o puntuación pública de riesgo
+    const riskMatch = html.match(/(?:riesgo|score|puntuaci[oó]n)[^<]{0,50}?(\d{1,3})\s*(?:\/\s*100)?/i) ||
+                      html.match(/\b(muy\s+(?:bajo|alto)|bajo|medio|alto|m[ií]nimo|m[aá]ximo)\s+riesgo/i);
+    if (riskMatch) {
+      const raw = riskMatch[1].toLowerCase();
+      if (!isNaN(parseInt(raw))) {
+        const score = parseInt(raw);
+        company.creditScore = score;
+        if (score >= 70) {
+          company.signals.push(`✅ Riesgo financiero bajo (${score}/100) — Experian`);
+        } else if (score >= 40) {
+          company.signals.push(`⚠️ Riesgo financiero medio (${score}/100) — Experian`);
+        } else {
+          company.signals.push(`🔴 Riesgo financiero alto (${score}/100) — Experian`);
+        }
+      } else {
+        const label = raw.includes('bajo') ? 'bajo' : raw.includes('alto') ? 'alto' : 'medio';
+        if (label === 'alto') {
+          company.signals.push('🔴 Riesgo financiero alto detectado — Experian');
+        } else if (label === 'bajo') {
+          company.signals.push('✅ Empresa con riesgo financiero bajo — Experian');
+        }
+      }
+    }
+
+    // ── Incidencias / Morosidad ───────────────────────────────────────────────
+    const moraMatch = html.match(/(\d+)\s*(?:incidencia[s]?|morosidad|impagos?|deuda[s]?)/i) ||
+                      html.match(/(?:incidencia[s]?|morosidad)[^<]{0,40}?(\d+)/i);
+    if (moraMatch) {
+      const n = parseInt(moraMatch[1]);
+      if (n > 0) {
+        company.signals.push(`⚠️ ${n} incidencia(s) de morosidad registradas — Experian`);
+      }
+    }
+
+    // ── Sin incidencias (señal positiva) ─────────────────────────────────────
+    if (/sin\s+incidencias?|0\s+incidencias?|no\s+(?:constan|hay)\s+incidencias?/i.test(html)) {
+      if (!company.signals.find(s => s.includes('morosidad') || s.includes('incidencia'))) {
+        company.signals.push('✅ Sin incidencias de morosidad — Experian');
+      }
+    }
+
+    // ── Tamaño / Clasificación ────────────────────────────────────────────────
+    const sizeMatch = html.match(/(?:tama[ñn]o|clasificaci[oó]n)[^<]{0,40}?(microempresa|peque[ñn]a|mediana|grande)/i);
+    if (sizeMatch && !company.companySize) {
+      company.companySize = sizeMatch[1].toLowerCase();
+    }
+
+    // ── Cambios recientes (nuevo administrador, cambio domicilio) ────────────
+    if (/nuevo\s+administrador|cambio\s+(?:de\s+)?(?:administrador|titular)/i.test(html)) {
+      if (!company.signals.find(s => s.includes('administrador'))) {
+        company.signals.push('👤 Cambio de administrador reciente — Experian (nueva gestión = oportunidad)');
+      }
+    }
+    if (/cambio\s+(?:de\s+)?domicilio|traslado|nueva\s+sede/i.test(html)) {
+      if (!company.signals.find(s => s.includes('domicilio') || s.includes('traslado'))) {
+        company.signals.push('📍 Cambio de domicilio reciente — Experian (obra probable)');
+      }
+    }
+
+    // ── NIF si no lo teníamos ─────────────────────────────────────────────────
+    if (!company.nif) {
+      const nifMatch = html.match(/\b([A-Z]\d{7}[A-Z0-9]|\d{8}[A-Z])\b/);
+      if (nifMatch) company.nif = nifMatch[1];
+    }
+
+    // ── Año de constitución ───────────────────────────────────────────────────
+    if (!company.incorporationYear) {
+      const yrMatch = html.match(/(?:constituci[oó]n|fundaci[oó]n|alta)[^<]{0,30}?(\d{4})/i);
+      if (yrMatch) {
+        const yr = parseInt(yrMatch[1]);
+        if (yr >= 1950 && yr <= new Date().getFullYear()) {
+          company.incorporationYear = yr;
+        }
+      }
+    }
+
+    // ── Marcar fuente ─────────────────────────────────────────────────────────
+    if (riskMatch || moraMatch || sizeMatch ||
+        html.includes('Experian') || html.length > 1000) {
+      company.enrichSource.push('Experian');
+    }
+
+  } catch(e) {
+    console.warn('Experian parse error:', e.message);
+  }
+  return company;
+}
+
 // ─── SINCRONIZACIÓN GOOGLE SHEETS ─────────────────────────────────────────────
 const SHEETS_HEADERS = ['ID','Empresa','Nombre','Email','Teléfono','Estado','Score',
   'Segmento','Dirección','Web','Rating','Reseñas','Decisor','Señales','Fuentes','Fecha','Notas','Próximo contacto'];
@@ -1972,287 +2276,170 @@ async function searchBusinesses() {
         try {
           tempSearchResults[i] = await enrichFromWeb(company);
         } catch (e1) {
-          // Retry automático tras 800ms si falla el primer intento
+          // Retry automático con proxy alternativo tras pausa corta
           try {
-            await sleep(800);
+            await sleep(1500); 
             tempSearchResults[i] = await enrichFromWeb(company);
           } catch (e2) {
-            // Fallback silencioso — mantener datos de Places originales
-            console.warn('Enrich retry failed:', company.name, e2.message);
-            logEnrich(`  ⚠️ ${company.name}: proxy sin respuesta — se conservan datos de Places`);
+            console.warn('Enrich failed after retry:', company.name);
           }
         }
         done++;
       }));
 
-      // Actualizar UI para el batch completo
-      let proxyFailCount = 0;
+      // Actualizar UI y deduplicar PROGRESIVAMENTE
+      // (Si detectamos duplicados por website o email que Places no pilló)
       batchIndices.forEach(i => {
         markCardEnriching(i, false);
         updateCard(i);
         const c = tempSearchResults[i];
-        const cached   = (c.enrichSource||[]).includes('Caché');
         const proxyFail = (c.enrichSource||[]).includes('Proxy-fallo');
-        if (proxyFail) proxyFailCount++;
-        logEnrich(`  → ${c.name}: ${c.email ? '✉️ ' + c.email : '—'} ${c.phone ? '📞' : ''} ${c.instagram ? '📸' : ''}${cached ? ' ⚡cache' : ''}${proxyFail ? ' ⚠️sin-proxy' : ''}`);
+        logEnrich(`  → ${c.name}: ${c.email ? '✉️ ' + c.email : '—'}${proxyFail ? ' ⚠️retry-needed' : ''}`);
       });
-
-      // Alerta visible si todos los proxies están fallando
-      if (proxyFailCount === batchIndices.filter(i => tempSearchResults[i].website).length && proxyFailCount > 0) {
-        logEnrich(`  ⚠️ Los proxies CORS no responden. Si tienes Key de Claude configurada, se usará como respaldo automático. Si no, los datos de enriquecimiento serán limitados.`, 'warn');
-      }
 
       setProgress(20 + Math.round(done / tempSearchResults.length * 40));
       setStep('web','active', `${done}/${tempSearchResults.length}`);
       updateEnrichStats();
 
-      // FIX-50+: Pausa adaptativa — crece con el número total de empresas para
-      // no saturar los proxies gratuitos cuando hay muchos resultados.
-      // ≤20 empresas: 800ms | ≤50: 1200ms | >50: 1800ms
+      // Pausa adaptativa para no quemar proxies
       if (b + BATCH_SIZE < enrichOrder.length) {
-        const pauseMs = tempSearchResults.length <= 20 ? 800
-                      : tempSearchResults.length <= 50 ? 1200 : 1800;
-        await sleep(pauseMs);
+        await sleep(tempSearchResults.length > 30 ? 2000 : 1000);
       }
     }
+    
+    // DEDUP FINAL post-scraping (Places no detecta cadenas que comparten misma web)
+    const originalLen = tempSearchResults.length;
+    tempSearchResults = deduplicateResults(tempSearchResults);
+    if (tempSearchResults.length < originalLen) {
+      logEnrich(`✨ Deduplicación inteligente: eliminadas ${originalLen - tempSearchResults.length} sucursales duplicadas detectadas por web/email`, 'ok');
+      renderSearchCards();
+      updateEnrichStats();
+    }
+
     setStep('web','done', done + ' procesadas');
     setProgress(60);
   }
 
-  // ── Capa 3: Hunter.io ─────────────────────────────────────
-  // PRIORIZACIÓN: Solo gastar créditos en empresas con mayor potencial
-  // Criterios: tiene website, sin email aún, y rating > 0 o muchas reseñas
+  // ── Capa 3: Hunter & Apollo (Pipeline Priorizado) ──────────────────────────
+  // Agrupamos Hunter y Apollo para evitar loops redundantes y priorizar leads sin email
   const hunterKey = localStorage.getItem('gordi_hunter_key');
-  if ((enrichMode === 'all' || enrichMode === 'hunter') && hunterKey) {
-    setStep('hunter','active','Buscando emails...');
+  const apolloKey = localStorage.getItem('gordi_apollo_key');
 
-    // Ordenar por potencial (rating + ratingCount) y tomar el top 60%
-    const hunterCandidates = tempSearchResults
-      .map((c, i) => ({ i, score: (c.rating || 0) * 20 + Math.min(c.ratingCount || 0, 200) / 10 + (c.website ? 5 : 0) }))
-      .filter(x => !tempSearchResults[x.i].email && tempSearchResults[x.i].website)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, Math.max(Math.ceil(tempSearchResults.length * 0.6), 3))
-      .map(x => x.i);
+  if (enrichMode === 'all' || enrichMode === 'hunter' || enrichMode === 'apollo') {
+    const externalCandidates = tempSearchResults
+      .map((c, i) => ({ i, c }))
+      .filter(x => x.c.website && (!x.c.email || !x.c.decision_maker))
+      .sort((a, b) => (b.c.rating || 0) - (a.c.rating || 0));
 
-    const noEmail = tempSearchResults.filter(c => !c.email && c.website);
-    logEnrich(`📧 Hunter.io: buscando emails para ${hunterCandidates.length}/${noEmail.length} empresas prioritarias...`);
-    let hdone = 0;
+    if (externalCandidates.length > 0) {
+      logEnrich(`🔍 Capas Externas (Hunter/Apollo): procesando ${externalCandidates.length} candidatos...`);
+      setStep('hunter', hunterKey ? 'active' : 'done', hunterKey ? 'Buscando...' : 'Omitido');
+      setStep('apollo', apolloKey ? 'active' : 'done', apolloKey ? 'Buscando...' : 'Omitido');
 
-    // FIX 4: Hunter en batches paralelos de 4 en vez de uno a uno con 400ms entre cada uno
-    // Antes: 20 empresas × (llamada + 400ms) = ~30s mínimo
-    // Ahora: 20 empresas / 4 por batch × 300ms entre batches = ~5 batches × 300ms ≈ ~6s
-    const HUNTER_BATCH = 4;
-    for (let hb = 0; hb < hunterCandidates.length; hb += HUNTER_BATCH) {
-      const batch = hunterCandidates.slice(hb, hb + HUNTER_BATCH);
-      batch.forEach(i => markCardEnriching(i, true));
+      let extDone = 0;
+      for (const item of externalCandidates) {
+        const i = item.i;
+        markCardEnriching(i, true);
+        
+        // Hunter.io (solo si no hay email)
+        if (hunterKey && !tempSearchResults[i].email) {
+          tempSearchResults[i] = await enrichFromHunter(tempSearchResults[i]);
+        }
+        
+        // Apollo.io (si no hay decisor o email después de Hunter)
+        if (apolloKey && (!tempSearchResults[i].email || !tempSearchResults[i].decision_maker)) {
+          tempSearchResults[i] = await enrichFromApollo(tempSearchResults[i]);
+        }
 
-      await Promise.all(batch.map(async i => {
-        tempSearchResults[i] = await enrichFromHunter(tempSearchResults[i]);
         markCardEnriching(i, false);
         updateCard(i);
-        hdone++;
-        logEnrich(`  → Hunter: ${tempSearchResults[i].name} → ${tempSearchResults[i].email || 'sin resultado'}`);
+        extDone++;
+        if (extDone % 3 === 0) updateEnrichStats();
+        await sleep(600); // Evitar rate-limits de APIs externas
+      }
+      setStep('hunter','done', 'Completado');
+      setStep('apollo','done', 'Completado');
+    }
+  }
+
+  // ── Capa Social & Señales (Pipeline de Análisis de Bajo Coste) ─────────────
+  // Consolidamos News, Social, Whois, OpenCorp y Reviews en un solo flujo eficiente
+  if (enrichMode === 'all') {
+    setStep('social','active','Pipeline Señales...');
+    logEnrich('🧠 Pipeline de Señales: ejecutando análisis multicapa...');
+    
+    // Procesar en pequeños grupos para mantener la UI fluida pero rápida
+    const SIGNAL_BATCH = 2; 
+    for (let i = 0; i < tempSearchResults.length; i += SIGNAL_BATCH) {
+      const batch = tempSearchResults.slice(i, i + SIGNAL_BATCH);
+      await Promise.all(batch.map(async (c, idx) => {
+        const realIdx = i + idx;
+        // 1. Social & Web Signals
+        tempSearchResults[realIdx] = await enrichFromSocial(tempSearchResults[realIdx]);
+        // 2. Google News (solo si no tenemos muchas señales aún)
+        if (tempSearchResults[realIdx].signals.length < 3) {
+          tempSearchResults[realIdx] = await enrichFromNews(tempSearchResults[realIdx]);
+        }
+        // 3. Whois (edad de dominio)
+        if (tempSearchResults[realIdx].website) {
+          tempSearchResults[realIdx] = await enrichFromWhois(tempSearchResults[realIdx]);
+        }
+        // 4. OpenCorporates (registro legal)
+        tempSearchResults[realIdx] = await enrichFromOpenCorporates(tempSearchResults[realIdx]);
+        // 5. Análisis de Reseñas (dolor del cliente)
+        tempSearchResults[realIdx] = await enrichFromReviews(tempSearchResults[realIdx]);
+        
+        updateCard(realIdx);
       }));
-
-      updateEnrichStats();
-      if (hb + HUNTER_BATCH < hunterCandidates.length) await sleep(300);
+      
+      setProgress(80 + Math.round((i / tempSearchResults.length) * 20));
+      await sleep(400); 
     }
-    setStep('hunter','done', `${hdone} procesadas`);
-    setProgress(75);
-  } else if (!hunterKey && (enrichMode === 'all' || enrichMode === 'hunter')) {
-    setStep('hunter','error','Sin API Key');
-    logEnrich('⚠️ Hunter.io no configurado. Añade la key en Configuración.', 'warn');
-  } else {
-    setStep('hunter','done','Omitido');
+    setStep('social', 'done', 'Analizado');
+    ['news', 'whois', 'opencorp'].forEach(s => {
+      const el = document.getElementById(`step-${s}`);
+      if (el) el.className = 'pipeline-step done';
+    });
   }
 
-  // ── Capa 4: Apollo.io ─────────────────────────────────────
-  // PRIORIZACIÓN: Solo top 50% por potencial para ahorrar créditos
-  const apolloKey = localStorage.getItem('gordi_apollo_key');
-  if ((enrichMode === 'all' || enrichMode === 'apollo') && apolloKey) {
-    setStep('apollo','active','Buscando decisores...');
-
-    // Top 50% de candidatos sin decisor ni email, ordenados por potencial
-    const apolloCandidates = tempSearchResults
-      .map((c, i) => ({ i, score: (c.rating || 0) * 20 + Math.min(c.ratingCount || 0, 200) / 10 + (c.website ? 5 : 0) + (c.email ? 3 : 0) }))
-      .filter(x => (!tempSearchResults[x.i].email || !tempSearchResults[x.i].decision_maker) && tempSearchResults[x.i].website)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, Math.max(Math.ceil(tempSearchResults.length * 0.5), 3))
-      .map(x => x.i);
-
-    const noDecision = tempSearchResults.filter(c => (!c.email || !c.decision_maker) && c.website);
-    logEnrich(`🚀 Apollo.io: enriqueciendo ${apolloCandidates.length}/${noDecision.length} empresas prioritarias...`);
-    let adone = 0;
-
-    for (const i of apolloCandidates) {
-      markCardEnriching(i, true);
-      tempSearchResults[i] = await enrichFromApollo(tempSearchResults[i]);
-      markCardEnriching(i, false);
-      updateCard(i);
-      adone++;
-      logEnrich(`  → Apollo: ${tempSearchResults[i].name} → ${tempSearchResults[i].decision_maker || '—'} ${tempSearchResults[i].email ? '✉️' : ''}`);
-      updateEnrichStats();
-      await sleep(500);
-    }
-    setStep('apollo','done', `${adone} procesadas`);
-    setProgress(92);
-  } else if (!apolloKey && (enrichMode === 'all' || enrichMode === 'apollo')) {
-    setStep('apollo','error','Sin API Key');
-    logEnrich('⚠️ Apollo.io no configurado. Añade la key en Configuración (gratis).', 'warn');
-  } else {
-    setStep('apollo','done','Omitido');
-  }
-
-  // ── Capa 4b: Social (LinkedIn + Instagram + FB Ads + Name change) ───────────
-  if (enrichMode === 'all') {
-    setStep('social','active','Analizando redes...');
-    let sdone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      tempSearchResults[i] = await enrichFromSocial(tempSearchResults[i]);
-      updateCard(i);
-      sdone++;
-      await sleep(300);
-    }
-    setStep('social','done', `${sdone} analizadas`);
-    setProgress(87);
-  } else { setStep('social','done','Omitido'); }
-
-  // ── Capa 4c: Google News — señales de prensa reciente ────────────────────
-  if (enrichMode === 'all') {
-    logEnrich('🗞️ Google News: buscando noticias recientes...');
-    let ndone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      tempSearchResults[i] = await enrichFromNews(tempSearchResults[i]);
-      if ((tempSearchResults[i].enrichSource || []).includes('Google-News')) {
-        updateCard(i);
-        ndone++;
-      }
-      await sleep(200);
-    }
-    if (ndone > 0) logEnrich(`  → ${ndone} empresas con noticias recientes encontradas`, 'ok');
-  }
-
-  // ── Capa 5: WHOIS ────────────────────────────────────────
-  if (enrichMode === 'all') {
-    setStep('whois','active','Consultando dominios...');
-    let wdone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      if (tempSearchResults[i].website) {
-        tempSearchResults[i] = await enrichFromWhois(tempSearchResults[i]);
-        wdone++;
-        await sleep(150);
-      }
-    }
-    setStep('whois','done', `${wdone} consultados`);
-    setProgress(95);
-  } else { setStep('whois','done','Omitido'); }
-
-  // ── Capa 6: OpenCorporates ───────────────────────────────
-  if (enrichMode === 'all') {
-    setStep('opencorp','active','Verificando registro...');
-    let odone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      tempSearchResults[i] = await enrichFromOpenCorporates(tempSearchResults[i]);
-      odone++;
-      updateCard(i);
-      await sleep(300);
-    }
-    setStep('opencorp','done', `${odone} verificadas`);
-    setProgress(98);
-  } else { setStep('opencorp','done','Omitido'); }
-
-  // ── Capa 6b: Análisis de reseñas Google — detectar dolor real ─────────────
-  if (enrichMode === 'all') {
-    logEnrich('🔥 Analizando reseñas para detectar señales de dolor...');
-    let rdone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      const before = tempSearchResults[i].signals.length;
-      tempSearchResults[i] = await enrichFromReviews(tempSearchResults[i]);
-      if (tempSearchResults[i].signals.length > before) {
-        updateCard(i);
-        rdone++;
-      }
-      await sleep(150);
-    }
-    if (rdone > 0) logEnrich(`  → ${rdone} empresas con señales de dolor en reseñas`, 'ok');
-  }
-
-  // ── Capa 6c: Presión competitiva — detectar competidores con mejor rating ──
-  if (enrichMode === 'all') {
-    logEnrich('⚔️ Analizando presión competitiva...');
-    let cdone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      const c = tempSearchResults[i];
-      if (c.rating && c.rating < 4.5) { // Solo analizar si tienen margen de mejora
-        const before = c.signals.length;
-        tempSearchResults[i] = await enrichCompetitivePressure(c, location);
-        if (tempSearchResults[i].signals.length > before) {
-          updateCard(i);
-          cdone++;
-        }
-      }
-      await sleep(300);
-    }
-    if (cdone > 0) logEnrich(`  → ${cdone} empresas con presión competitiva detectada`, 'ok');
-  }
-
-  // ── Capa 6d: BORME — trámites y cambios societarios recientes ─────────────
-  if (enrichMode === 'all') {
-    logEnrich('📜 BORME: buscando trámites societarios recientes...');
-    let _bdone = 0;
-    for (let i = 0; i < tempSearchResults.length; i++) {
-      const _bb = tempSearchResults[i].signals.length;
-      tempSearchResults[i] = await enrichFromBorme(tempSearchResults[i]);
-      if (tempSearchResults[i].signals.length > _bb) { updateCard(i); _bdone++; }
-      await sleep(300);
-    }
-    if (_bdone > 0) logEnrich('  → ' + _bdone + ' con trámites en BORME', 'ok');
-  }
-
-  // ── Capa 6e: Street View + Gemini Vision — análisis visual de fachada ──────
-  if (enrichMode === 'all') {
-    if (localStorage.getItem('gordi_gemini_key')) {
-      logEnrich('📸 Street View: analizando fachadas con Gemini Vision...');
-      let _svdone = 0;
-      for (let i = 0; i < tempSearchResults.length; i++) {
-        if (!tempSearchResults[i].address) continue;
-        const _svb = tempSearchResults[i].signals.length;
-        tempSearchResults[i] = await enrichFromStreetView(tempSearchResults[i]);
-        if (tempSearchResults[i].signals.length > _svb) { updateCard(i); _svdone++; }
-        await sleep(600);
-      }
-      if (_svdone > 0) logEnrich('  → ' + _svdone + ' fachadas analizadas', 'ok');
-    }
-  }
-
-  // ── Capa 7: IA Email Rescue (Gemini) — último recurso para empresas sin email
+  // ── Capa Especial Avanzada (Borme + Street View + IA Rescue) ───────────────
   const geminiKey = localStorage.getItem('gordi_gemini_key');
-  if (enrichMode === 'all' && geminiKey) {
-    const noEmailAfterAll = tempSearchResults.filter(c => !c.email && c.website);
-    if (noEmailAfterAll.length > 0) {
-      logEnrich(`🤖 IA Email Rescue: intentando recuperar email en ${noEmailAfterAll.length} empresas sin email...`);
-      let aiDone = 0;
-      for (let i = 0; i < tempSearchResults.length; i++) {
-        const c = tempSearchResults[i];
-        if (!c.email && c.website) {
-          try {
-            const aiEmail = await extractEmailWithAI(c.website, c.name, geminiKey);
-            if (aiEmail) {
-              tempSearchResults[i].email = aiEmail;
-              tempSearchResults[i].enrichSource.push('IA-Rescue');
-              updateCard(i);
-              logEnrich(`  → IA: ${c.name} → ✉️ ${aiEmail}`);
-              aiDone++;
-            }
-          } catch {}
-          await sleep(600); // Gemini tiene rate limit
+  if (enrichMode === 'all') {
+    logEnrich('💎 Capas Avanzadas: ejecutando análisis de alto valor...');
+    setStep('empresite', 'active', 'Consultando...');
+    setStep('experian', 'active', 'Consultando...');
+    let empresiteOk = 0, experianOk = 0;
+    for (let i = 0; i < tempSearchResults.length; i++) {
+      // 1. BORME (Trámites legales reales)
+      tempSearchResults[i] = await enrichFromBorme(tempSearchResults[i]);
+      
+      // 2. Empresite (directorio empresarial español — NIF, empleados, facturación)
+      tempSearchResults[i] = await enrichFromEmpressite(tempSearchResults[i]);
+      if (tempSearchResults[i].enrichSource.includes('Empresite')) empresiteOk++;
+
+      // 3. Experian (riesgo crediticio, morosidades, cambios societarios)
+      tempSearchResults[i] = await enrichFromExperian(tempSearchResults[i]);
+      if (tempSearchResults[i].enrichSource.includes('Experian')) experianOk++;
+
+      // 4. Street View Vision (Análisis de fachada)
+      if (geminiKey && tempSearchResults[i].address) {
+        tempSearchResults[i] = await enrichFromStreetView(tempSearchResults[i]);
+      }
+      
+      // 5. IA Email Rescue (Último recurso con Gemini)
+      if (geminiKey && !tempSearchResults[i].email && tempSearchResults[i].website) {
+        const rescued = await extractEmailWithAI(tempSearchResults[i].website, tempSearchResults[i].name, geminiKey);
+        if (rescued) {
+          tempSearchResults[i].email = rescued;
+          tempSearchResults[i].enrichSource.push('IA-Rescue');
         }
       }
-      if (aiDone > 0) {
-        logEnrich(`✨ IA Rescue recuperó ${aiDone} emails adicionales`, 'ok');
-        updateEnrichStats();
-      }
+      
+      if (i % 2 === 0) updateCard(i);
+      await sleep(tempSearchResults.length > 20 ? 300 : 100);
     }
+    setStep('empresite', 'done', empresiteOk + ' enriquecidas');
+    setStep('experian',  'done', experianOk  + ' con datos');
   }
 
   // ── Mostrar info de duplicados ──────────────────────────────────────────────
@@ -2332,6 +2519,9 @@ async function enrichSingleCard(idx) {
     tempSearchResults[idx] = await enrichFromApollo(tempSearchResults[idx]);
   tempSearchResults[idx] = await enrichFromSocial(tempSearchResults[idx]);
   tempSearchResults[idx] = await enrichFromNews(tempSearchResults[idx]);
+  tempSearchResults[idx] = await enrichFromBorme(tempSearchResults[idx]);
+  tempSearchResults[idx] = await enrichFromEmpressite(tempSearchResults[idx]);
+  tempSearchResults[idx] = await enrichFromExperian(tempSearchResults[idx]);
   if (!tempSearchResults[idx].email && geminiKey)
     tempSearchResults[idx].email = await extractEmailWithAI(
       tempSearchResults[idx].website, tempSearchResults[idx].name, geminiKey
