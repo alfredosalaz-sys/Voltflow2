@@ -19,6 +19,7 @@ const SECTOR_WEIGHTS = {
   'almacen':       { multiplier: 1.7, newsBonus: 8,  hasReservationsBonus: 3  },
   'fabrica':       { multiplier: 1.8, newsBonus: 10, hasReservationsBonus: 3  },
   'colegio':       { multiplier: 1.6, newsBonus: 8,  hasReservationsBonus: 4  },
+  'residencia':    { multiplier: 1.7, newsBonus: 10, hasReservationsBonus: 6  },
   'default':       { multiplier: 1.0, newsBonus: 5,  hasReservationsBonus: 3  },
 };
 

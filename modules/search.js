@@ -2772,7 +2772,7 @@ function buildCardHTML(c, i) {
         <span class="sc-icon">✉️</span>
         <div class="sc-val ${c.email ? '' : 'empty'}">
           ${c.email
-            ? `<span style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">${c.email}${emailsExtra ? '<br>' + emailsExtra : ''}<button onclick="copyEmail('${c.email.split('<br>')[0]}',event)" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 4px;font-size:.72rem;line-height:1;flex-shrink:0;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button></span>`
+            ? `<span style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">${c.email}${emailsExtra ? '<br>' + emailsExtra : ''}<button onclick="copyEmail('${c.email.split('<br>')[0]}',event)" title="Copiar email al portapapeles" class="sc-copy-email-btn">📋 Copiar</button></span>`
             : `<input type="email" placeholder="Añadir email..." onchange="tempSearchResults[${i}].email=this.value;updateEnrichStats()" style="background:none;border:none;border-bottom:1px solid var(--glass-border);padding:.15rem 0;color:var(--text);font-size:.78rem;outline:none;width:100%">`
           }
         </div>
@@ -3201,3 +3201,29 @@ function loadGoogleMapsScript(apiKey) {
 // ──  segmentQueries y getSegmentQueries están definidas en email-templates.js
 // ──  (cargado antes que este módulo) — no redeclarar aquí.
 // ══════════════════════════════════════════════════════════════════════════
+
+// ── Parche: añadir Residencias de Ancianos a getSegmentQueries ────────────
+// Se ejecuta al finalizar la carga del módulo, extendiendo la función
+// original definida en email-templates.js sin modificar ese archivo.
+(function patchResidenciasQueries() {
+  const _originalGetSegmentQueries = (typeof getSegmentQueries === 'function')
+    ? getSegmentQueries
+    : null;
+
+  window.getSegmentQueries = function(segment) {
+    if (segment === 'Residencias') {
+      return [
+        'residencia de ancianos',
+        'residencia de mayores',
+        'centro de mayores',
+        'centro geriátrico',
+        'geriátrico',
+        'residencia tercera edad',
+        'centro día mayores',
+      ];
+    }
+    // Delegar al original para el resto de segmentos
+    if (_originalGetSegmentQueries) return _originalGetSegmentQueries(segment);
+    return [segment]; // fallback de seguridad
+  };
+})();
