@@ -342,6 +342,7 @@
             <option value="Deportivo">Centros Deportivos</option>
             <option value="Comercial">Centros Comerciales</option>
             <option value="Educativo">Educación</option>
+            <option value="Residencias">Residencias de Ancianos</option>
           </select>
         </div>
         <div class="input-group">
@@ -433,6 +434,7 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
+        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="filter-status" onchange="renderLeads(); sfUpdateChips('leads')">
         <option value="">Todos los estados</option>
@@ -560,6 +562,7 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
+        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="kanban-filter-score" onchange="renderKanban(); sfUpdateChips('kanban')">
         <option value="">Cualquier score</option>
@@ -640,6 +643,7 @@
             <option value="Deportivo">⚽ Deportivo / Gimnasios</option>
             <option value="Cultural">🎭 Cultural / Museos</option>
             <option value="Comercial">🏬 Centros Comerciales</option>
+            <option value="Residencias">🏥 Residencias de Ancianos</option>
           </select>
         </div>
         <div class="input-group" style="flex:1.4;min-width:180px">
@@ -1052,6 +1056,7 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
+        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="campaigns-filter-status" onchange="renderCampaigns(); sfUpdateChips('campaigns')">
         <option value="">Cualquier estado</option>
@@ -1110,6 +1115,7 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
+        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="tracking-filter-channel" onchange="renderTracking(); sfUpdateChips('tracking')">
         <option value="">Todos los canales</option>
@@ -1729,6 +1735,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
           <option value="Deportivo">Deportivo</option>
           <option value="Comercial">Comercial</option>
           <option value="Cultural">Cultural</option>
+          <option value="Residencias">Residencias de Ancianos</option>
         </select>
       </div>
       <div class="input-group" style="margin-bottom:1rem">
@@ -2374,6 +2381,36 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
 <script src="modules/ai-router.js"></script>
 <script src="modules/misc.js"></script>
 <script src="modules/smart-import.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════
+     Estilos: botón copiar email en search cards
+═══════════════════════════════════════════════════════ -->
+<style>
+  /* Botón "📋 Copiar" visible en la fila de email de las search cards */
+  .sc-copy-email-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .15rem .5rem;
+    font-size: .67rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid rgba(10,132,255,.3);
+    background: rgba(10,132,255,.08);
+    color: var(--primary, #4ea8ff);
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s, transform .1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.5;
+  }
+  .sc-copy-email-btn:hover {
+    background: rgba(10,132,255,.18);
+    border-color: rgba(10,132,255,.6);
+    color: #7cc4ff;
+  }
+  .sc-copy-email-btn:active { transform: scale(.92); }
+</style>
 
 </body>
 </html>
