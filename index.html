@@ -111,10 +111,6 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Importar Base Datos
         </li>
-        <li data-view="reddit" onclick="showView('reddit');initRedditPanel()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M14.5 9a3 3 0 0 0-5 0"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M9.5 16s.5 1 2.5 1 2.5-1 2.5-1"/></svg>
-          Leads Reddit
-        </li>
         <li data-view="campaigns" onclick="showView('campaigns')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           Campañas
@@ -1015,50 +1011,6 @@
       </table>
     </div>
   </section>
-
-  <!-- ======================== LEADS REDDIT ======================== -->
-  <section id="reddit-view" class="view">
-    <div class="page-header">
-      <div>
-        <h1>Leads Reddit</h1>
-        <p class="page-sub">Escanea Reddit en busca de problemas en reformas y obras</p>
-      </div>
-      <div style="display:flex;gap:.75rem;align-items:center">
-        <button class="btn-primary" onclick="redditSearch()">⚡ Buscar en Reddit</button>
-      </div>
-    </div>
-
-    <!-- Interface -->
-    <div class="glass-panel" style="margin-bottom:1.5rem">
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:.75rem;align-items:end">
-        <div class="input-group">
-          <label>Palabras clave (ej: problemas reforma, mal instalador)</label>
-          <input type="text" id="reddit-keywords" placeholder="problemas reforma, chapuza, estafa obra">
-        </div>
-        <div class="input-group">
-          <label>Subreddits (separados por coma)</label>
-          <input type="text" id="reddit-subs" value="es,madrid,barcelona,reformas,España">
-        </div>
-        <button class="btn-primary" onclick="redditSearch()" style="height:42px">Buscar</button>
-      </div>
-    </div>
-
-    <!-- Results -->
-    <div id="reddit-results-container">
-      <div id="reddit-results-grid" class="search-cards-grid"></div>
-      
-      <!-- Empty/Initial state -->
-      <div id="reddit-empty" class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        <p>Introduce palabras clave para encontrar potenciales leads en Reddit</p>
-      </div>
-
-      <!-- Loading state -->
-      <div id="reddit-loading" class="empty-state" style="display:none">
-        <div class="spinner" style="margin-bottom:1rem"></div>
-        <p>Buscando en Reddit...</p>
-      </div>
-    </div>
   </section>
 
 
@@ -2585,7 +2537,6 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
 <script src="modules/ai-router.js"></script>
 <script src="modules/misc.js"></script>
 <script src="modules/smart-import.js"></script>
-<script src="modules/reddit.js"></script>
 
 </body>
 </html>
