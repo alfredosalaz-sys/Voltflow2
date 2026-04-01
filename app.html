@@ -111,10 +111,6 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Importar Base Datos
         </li>
-        <li data-view="reddit" onclick="showView('reddit');initRedditPanel()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M14.5 9a3 3 0 0 0-5 0"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M9.5 16s.5 1 2.5 1 2.5-1 2.5-1"/></svg>
-          Leads Reddit
-        </li>
         <li data-view="campaigns" onclick="showView('campaigns')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           Campañas
@@ -346,7 +342,6 @@
             <option value="Deportivo">Centros Deportivos</option>
             <option value="Comercial">Centros Comerciales</option>
             <option value="Educativo">Educación</option>
-            <option value="Residencias">Residencias de Ancianos</option>
           </select>
         </div>
         <div class="input-group">
@@ -438,7 +433,6 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
-        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="filter-status" onchange="renderLeads(); sfUpdateChips('leads')">
         <option value="">Todos los estados</option>
@@ -566,7 +560,6 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
-        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="kanban-filter-score" onchange="renderKanban(); sfUpdateChips('kanban')">
         <option value="">Cualquier score</option>
@@ -647,7 +640,6 @@
             <option value="Deportivo">⚽ Deportivo / Gimnasios</option>
             <option value="Cultural">🎭 Cultural / Museos</option>
             <option value="Comercial">🏬 Centros Comerciales</option>
-            <option value="Residencias">🏥 Residencias de Ancianos</option>
           </select>
         </div>
         <div class="input-group" style="flex:1.4;min-width:180px">
@@ -1020,59 +1012,6 @@
     </div>
   </section>
 
-  <!-- ======================== LEADS REDDIT ======================== -->
-  <section id="reddit-view" class="view">
-    <div class="page-header">
-      <div>
-        <h1>Leads Reddit</h1>
-        <p class="page-sub">Escanea Reddit en busca de problemas en reformas y obras</p>
-      </div>
-      <div style="display:flex;gap:.75rem;align-items:center">
-        <button class="btn-primary" onclick="redditSearch()">⚡ Buscar en Reddit</button>
-      </div>
-    </div>
-
-    <!-- Reddit Multi-Search Bar -->
-    <div class="sf-bar" style="margin-bottom: 2rem;">
-      <div class="sf-search-wrap" style="flex: 1;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="reddit-search-query" placeholder="Ej: problemas reforma cocina, estafa obra baño..." onkeyup="if(event.key==='Enter') redditSearch()">
-      </div>
-      <div class="sf-sort-wrap" style="width: 250px;">
-        <select id="reddit-subreddits">
-          <option value="es,spain,madrid,barcelona">Comunidades España (es, spain...)</option>
-          <option value="reformas,obras,interiorismo">Reformas & Obras</option>
-          <option value="all">Todo Reddit (Global)</option>
-        </select>
-      </div>
-      <div class="sf-sort-wrap" style="width: 150px;">
-        <select id="reddit-limit">
-          <option value="25">25 resultados</option>
-          <option value="50">50 resultados</option>
-          <option value="100">100 resultados</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Results Grid -->
-    <div id="reddit-results" class="search-cards-grid">
-      <!-- Se llena dinámicamente -->
-      <div class="empty-state" style="grid-column: 1/-1; padding: 4rem 2rem;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-        <h3 style="color: var(--text-muted);">Listo para buscar</h3>
-        <p style="color: var(--text-muted); max-width: 400px; margin: 0.5rem auto;">
-          Introduce términos de búsqueda para encontrar posts de Reddit donde los usuarios se quejan de sus reformas.
-        </p>
-      </div>
-    </div>
-
-    <!-- Loading State (CSS en app.css) -->
-    <div id="reddit-loading" style="display:none; text-align:center; padding: 4rem; grid-column: 1/-1;">
-      <div class="spinner" style="margin: 0 auto 1rem;"></div>
-      <p style="color: var(--text-muted);">Escaneando Reddit...</p>
-    </div>
-  </section>
-
   <!-- ======================== CAMPAÑAS ======================== -->
   <section id="campaigns-view" class="view">
     <div class="page-header">
@@ -1113,7 +1052,6 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
-        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="campaigns-filter-status" onchange="renderCampaigns(); sfUpdateChips('campaigns')">
         <option value="">Cualquier estado</option>
@@ -1172,7 +1110,6 @@
         <option value="Deportivo">Deportivo</option>
         <option value="Comercial">Comercial</option>
         <option value="Educativo">Educativo</option>
-        <option value="Residencias">Residencias de Ancianos</option>
       </select>
       <select id="tracking-filter-channel" onchange="renderTracking(); sfUpdateChips('tracking')">
         <option value="">Todos los canales</option>
@@ -1792,7 +1729,6 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
           <option value="Deportivo">Deportivo</option>
           <option value="Comercial">Comercial</option>
           <option value="Cultural">Cultural</option>
-          <option value="Residencias">Residencias de Ancianos</option>
         </select>
       </div>
       <div class="input-group" style="margin-bottom:1rem">
@@ -2438,37 +2374,6 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
 <script src="modules/ai-router.js"></script>
 <script src="modules/misc.js"></script>
 <script src="modules/smart-import.js"></script>
-<script src="modules/reddit.js"></script>
-
-<!-- ═══════════════════════════════════════════════════════
-     Estilos: botón copiar email en search cards
-═══════════════════════════════════════════════════════ -->
-<style>
-  /* Botón "📋 Copiar" visible en la fila de email de las search cards */
-  .sc-copy-email-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: .25rem;
-    padding: .15rem .5rem;
-    font-size: .67rem;
-    font-weight: 600;
-    border-radius: 6px;
-    border: 1px solid rgba(10,132,255,.3);
-    background: rgba(10,132,255,.08);
-    color: var(--primary, #4ea8ff);
-    cursor: pointer;
-    transition: background .15s, border-color .15s, color .15s, transform .1s;
-    white-space: nowrap;
-    flex-shrink: 0;
-    line-height: 1.5;
-  }
-  .sc-copy-email-btn:hover {
-    background: rgba(10,132,255,.18);
-    border-color: rgba(10,132,255,.6);
-    color: #7cc4ff;
-  }
-  .sc-copy-email-btn:active { transform: scale(.92); }
-</style>
 
 </body>
 </html>
