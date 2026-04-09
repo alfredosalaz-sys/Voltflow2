@@ -191,6 +191,30 @@ Puede ver algunos de nuestros proyectos en: https://www.voltiummadrid.es/galer%c
 {{FIRMA}}`
   },
 
+  // ── RESIDENCIAS ──────────────────────────────────────────────────────────────
+  // Pain: las familias eligen residencia por imagen y confort percibido. Hook: la reforma no interrumpe la vida de los residentes.
+  "Residencias": {
+    subjectA: "Una pregunta sobre las instalaciones de {{Company}}",
+    subjectB: "{{Company}}: habitaciones y zonas comunes que marcan la diferencia",
+    body: `{{SALUDO}},
+
+Las familias que buscan residencia para un familiar mayor toman una decisión muy emocional — y el estado de las instalaciones influye más de lo que parece en la primera visita.
+
+Una habitación bien renovada, unas zonas comunes cuidadas o un baño adaptado moderno generan confianza inmediata. Y esa confianza se traduce en ocupación.
+
+En Voltium Madrid trabajamos con residencias y centros de mayores con una premisa fundamental: la obra nunca puede interrumpir la tranquilidad de los residentes. Por eso planificamos cada fase con precisión — habitación por habitación, zona por zona — minimizando ruidos, polvo y cualquier alteración de la rutina del centro.
+
+Trabajamos en adaptaciones de accesibilidad, renovación de habitaciones y baños adaptados, mejora de zonas comunes, aislamientos acústicos y térmicos, y eficiencia energética — incluyendo instalaciones fotovoltaicas que reducen significativamente la factura eléctrica.
+
+Presupuesto cerrado desde el primer día. Un único responsable técnico. Toda la documentación del proyecto accesible para usted en tiempo real.
+
+Puede ver proyectos similares en: https://www.voltiummadrid.es/galer%c3%Ada
+
+¿Tienen prevista alguna actuación en las instalaciones de {{Company}} este año? Me gustaría conocer la situación y ver si podemos ser de ayuda.
+
+{{FIRMA}}`
+  },
+
   // ── DEFAULT ──────────────────────────────────────────────────────────────────
   "Default": {
     subjectA: "Una propuesta para las instalaciones de {{Company}}",
@@ -272,6 +296,13 @@ const segmentQueries = {
     "shopping center mall", "supermarket hypermarket",
     "galería comercial tiendas", "parque comercial outlet",
     "mercado gourmet alimentación", "comercial plaza tiendas"
+  ],
+  "Residencias": [
+    "residencia ancianos mayores", "residencia tercera edad",
+    "centro geriátrico mayores", "residencia de mayores",
+    "nursing home elderly care", "centro día mayores",
+    "geriátrico residencia asistida", "centro sociosanitario mayores",
+    "residencia asistida dependencia", "centro de atención mayores"
   ]
 };
 
@@ -291,6 +322,7 @@ const SEGMENT_COLORS = {
   "Deportivo": "#fb923c",
   "Cultural": "#e879f9",
   "Comercial": "#38bdf8",
+  "Residencias": "#f87171",
   "Default": "#7a8ba0"
 };
 
@@ -343,6 +375,12 @@ const SEGMENT_TONE = {
     pain: "las zonas comunes deterioradas reducen el atractivo del centro y afectan a la renovación de contratos con inquilinos.",
     angle: "reforma de zonas comunes que aumenta la afluencia y justifica rentas más altas a los inquilinos.",
     forbidden: "no dirigirse como si fuera un local pequeño — son gestores de activos inmobiliarios, lenguaje más corporativo."
+  },
+  "Residencias": {
+    tone: "empático, humano y orientado al bienestar del residente. Habla de 'residentes', 'familias', 'confort', 'accesibilidad', 'dignidad', 'primera visita', 'ocupación'. El decisor es el director o gerente de la residencia.",
+    pain: "las familias deciden en la primera visita. Instalaciones deterioradas o baños no adaptados generan desconfianza inmediata y pérdida de ocupación. Además, la normativa de accesibilidad en residencias es cada vez más exigente.",
+    angle: "Voltium ejecuta la reforma habitación por habitación, sin alterar la rutina de los residentes. Accesibilidad, baños adaptados y zonas comunes renovadas que transmiten confianza en la primera visita.",
+    forbidden: "nunca usar lenguaje frío o empresarial en exceso. No hablar de 'productividad' ni 'ROI' directamente — el argumento es humano primero, económico después."
   },
   "Default": {
     tone: "profesional y directo. Adapta el lenguaje al contexto del negocio.",
