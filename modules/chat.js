@@ -303,7 +303,7 @@ function extractAndSaveMemory(userMsg, botReply) {
   const lower = userMsg.toLowerCase();
 
   // Sector preferences
-  const sectorMatch = lower.match(/sector (hotelero|restauración|retail|educativo|industrial|oficinas|sanidad|logística)/);
+  const sectorMatch = lower.match(/sector (hotelero|restauración|retail|educativo|industrial|oficinas|sanidad|logística|dental|médico|estético)/);
   if (sectorMatch) {
     chatMemory.preferredSector = sectorMatch[1];
   }
@@ -2882,7 +2882,7 @@ function runGlobalSearch(query) {
     return;
   }
 
-  const COLORS = { 'Oficinas':'#0A84FF','Retail':'#5E5CE6','Industrial':'#f59e0b','Hoteles':'#10d97c','Cultural':'#f87171','Deportivo':'#34d399','Comercial':'#a78bfa','Educativo':'#60a5fa' };
+  const COLORS = { 'Oficinas':'#0A84FF','Retail':'#5E5CE6','Industrial':'#f59e0b','Hoteles':'#10d97c','Cultural':'#f87171','Deportivo':'#34d399','Comercial':'#a78bfa','Educativo':'#60a5fa', 'Dental':'#facc15', 'Medico':'#6366f1', 'Estetico':'#f472b6' };
 
   gsActiveIndex = -1;
   container.innerHTML = [

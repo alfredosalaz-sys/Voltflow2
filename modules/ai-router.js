@@ -856,7 +856,7 @@ const MAX_SAVED_SEARCHES = 10;
 const SAVED_SEARCHES_KEY = 'gordi_saved_searches';
 let ssCompareSelection = [];
 let ssCurrentFilter = '';
-const SEGMENT_ICONS = { Industrial:'🏭', Retail:'🛍️', Oficinas:'🏢', Hoteles:'🏨', Educativo:'🎓', Deportivo:'⚽', Cultural:'🎭', Comercial:'🏬' };
+const SEGMENT_ICONS = { Industrial:'🏭', Retail:'🛍️', Oficinas:'🏢', Hoteles:'🏨', Educativo:'🎓', Deportivo:'⚽', Cultural:'🎭', Comercial:'🏬', Dental:'🦷', Medico:'🏥', Estetico:'✨' };
 
 function getSavedSearches() {
   try { return JSON.parse(localStorage.getItem(SAVED_SEARCHES_KEY) || '[]'); } catch { return []; }
