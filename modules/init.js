@@ -37,10 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     }
     if (e.key === 'n' && !e.ctrlKey) { showView('leads'); toggleLeadForm(); }
-    if (e.key === 'f' && !e.ctrlKey && !e.metaKey) { openFocusMode(); }
-    if (e.key === 'b') showView('planner');
-    if (e.key === 'd') showView('dashboard');
-    if (e.key === 'k' && !e.ctrlKey) showView('kanban');
+    else if (e.key === 'f' && !e.ctrlKey && !e.metaKey) { openFocusMode(); }
+    else if (e.key === 'b') showView('planner');
+    else if (e.key === 'd') showView('dashboard');
+    else if (e.key === 'k' && !e.ctrlKey && !e.metaKey) showView('kanban');
   });
 
   // Tutorial solo si es instalación completamente nueva (sin datos y sin migración)
@@ -149,7 +149,7 @@ const VOLTFLOW_DATA_KEYS = [
   'gordi_leads', 'gordi_email_history', 'gordi_campaigns',
   'gordi_objectives', 'gordi_search_history', 'gordi_templates',
   'gordi_api_key', 'gordi_hunter_key', 'gordi_apollo_key',
-  'gordi_claude_key', 'gordi_gemini_key',
+  'gordi_claude_key',
   'gordi_groq_key', 'gordi_openrouter_key',
   'gordi_user_name', 'gordi_user_email', 'gordi_user_company',
   'gordi_user_phone', 'gordi_user_web', 'gordi_user_logo',
@@ -545,6 +545,11 @@ async function jsonbinPull(showFeedback = true) {
     })();
     const localLeadCount = leads.length;
 
+    // Hash rápido: longitud del JSON local vs nube para detectar cambios reales sin parsear todo
+    const cloudLeadsRaw  = snapshot['gordi_leads'] || '[]';
+    const localLeadsRaw  = localStorage.getItem('gordi_leads') || '[]';
+    const dataIsDifferent = cloudLeadsRaw.length !== localLeadsRaw.length;
+
     let isNewer = false;
     let shouldPull = false;
 
@@ -567,8 +572,12 @@ async function jsonbinPull(showFeedback = true) {
         shouldPull = true; // El usuario pulsó el botón manualmente y no hay diff grave, hacemos pull
       }
     } else {
-      // Descarga silenciosa (al arrancar)
-      if (isNewer || cloudLeadCount > localLeadCount) {
+      // Descarga silenciosa (al arrancar): solo si la nube es realmente más reciente Y los datos difieren.
+      // Evita render extra + pérdida de ediciones tempranas cuando counts son iguales pero la nube
+      // tiene el mismo snapshot que acabamos de pushear hace menos de 5 s.
+      if (isNewer && dataIsDifferent) {
+        shouldPull = true;
+      } else if (cloudLeadCount > localLeadCount && dataIsDifferent) {
         shouldPull = true;
       }
     }

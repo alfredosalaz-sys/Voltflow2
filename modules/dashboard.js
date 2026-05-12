@@ -1,6 +1,5 @@
 // ============ STATS ============
 function updateStats() {
-  const s = id => { const el = document.getElementById(id); if (el) el.innerText = 0; };
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
   set('stat-total', leads.filter(l => !l.archived).length);
   set('stat-high', leads.filter(l => !l.archived && l.score >= 70).length);
@@ -36,8 +35,9 @@ function renderTopLeads() {
   if (!container) return;
 
   // Recalcular scores con datos reales antes de ordenar
+  // NOTA: no llamar saveLeads() aquí — este es un render, no una mutación persistida.
+  // El recálculo masivo se hace en saveLeadDetail/saveLead donde ya hay un saveLeads().
   leads.forEach(l => { l.score = recalculateLeadScore(l); });
-  saveLeads();
 
   const top = [...leads]
     .filter(l => l.status === 'Pendiente' || l.status === 'Contactado')
@@ -80,7 +80,7 @@ function renderConversionMetrics() {
   const contacted = leads.filter(l => ['Contactado','Respuesta del cliente','Visita','Entrega de presupuesto','Cerrado'].includes(l.status)).length;
   const responded = leads.filter(l => ['Respuesta del cliente','Visita','Entrega de presupuesto','Cerrado'].includes(l.status)).length;
   const closed = leads.filter(l => l.status === 'Cerrado').length;
-  const convRate = contacted ? Math.round(responded/contacted*100) : 0;
+  const convRate = contacted ? Math.min(Math.round(responded/contacted*100), 100) : 0;
   const closeRate = responded ? Math.round(closed/responded*100) : 0;
   const avgScore = total ? Math.round(leads.reduce((s,l)=>s+l.score,0)/total) : 0;
 
@@ -386,13 +386,16 @@ function renderKanban() {
   const kCountEl = document.getElementById('kanban-filter-count');
   if (kCountEl) {
     const total = leads.filter(l => !l.archived).length;
-    const shown = leads.filter(l => !l.archived).length; // rough total
     const kSearch = (document.getElementById('kanban-search')?.value || '');
     const kSeg = document.getElementById('kanban-filter-seg')?.value || '';
     const kScore = document.getElementById('kanban-filter-score')?.value || '';
     const kOverdue = document.getElementById('kanban-filter-overdue')?.checked || false;
     const activeK = [kSearch, kSeg, kScore, kOverdue ? '1' : ''].filter(Boolean).length;
-    kCountEl.textContent = activeK ? `${activeK} filtro${activeK>1?'s':''} activo${activeK>1?'s':''}` : '';
+    // Contar items reales mostrados sumando las columnas ya renderizadas
+    const shownCount = document.querySelectorAll('#kanban-board .kanban-card').length;
+    kCountEl.textContent = activeK
+      ? `${shownCount} de ${total} · ${activeK} filtro${activeK>1?'s':''} activo${activeK>1?'s':''}`
+      : '';
   }
 }
 

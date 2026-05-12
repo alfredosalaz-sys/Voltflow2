@@ -10,6 +10,12 @@
 
 function saveLead() {
   const g = id => document.getElementById(id).value;
+  const name = g('lead-name').trim();
+  const company = g('lead-company').trim();
+  if (!name || !company) {
+    showToast('⚠️ Nombre y empresa son obligatorios');
+    return;
+  }
   const role = g('lead-role'), size = g('lead-size'), signal = g('lead-signal');
   const tagsRaw = g('lead-tags');
   const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -17,7 +23,7 @@ function saveLead() {
   const nextContact = g('lead-next-contact') || '';
   const lead = {
     id: Date.now(),
-    name: g('lead-name'), company: g('lead-company'),
+    name, company,
     email: g('lead-email'), phone: g('lead-phone'),
     segment: g('lead-segment'), website: g('lead-website'),
     signal, role, size,
@@ -162,17 +168,15 @@ function renderLeads() {
   if (!list.length) { empty.style.display = 'flex'; return; }
   empty.style.display = 'none';
 
-  // Check for no-email leads
+  // Check for no-email leads — always remove stale banner first to prevent duplicates
+  document.getElementById('no-email-banner')?.remove();
   const noEmail = leads.filter(l => !l.archived && !l.email);
-  const noEmailBanner = document.getElementById('no-email-banner');
   if (noEmail.length >= 5) {
-    if (!noEmailBanner) {
-      const banner = document.createElement('div');
-      banner.id = 'no-email-banner';
-      banner.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:.6rem 1rem;margin-bottom:.75rem;font-size:.78rem;display:flex;align-items:center;gap:.75rem;';
-      banner.innerHTML = `⚠️ <span style="color:var(--danger)">${noEmail.length} leads sin email</span> — sin email no se puede generar el email IA. <button class="btn-action" onclick="filterNoEmail()">Ver</button> <button onclick="this.parentNode.remove()" style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer">✕</button>`;
-      tbody.parentNode.parentNode.insertBefore(banner, tbody.parentNode);
-    }
+    const banner = document.createElement('div');
+    banner.id = 'no-email-banner';
+    banner.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:.6rem 1rem;margin-bottom:.75rem;font-size:.78rem;display:flex;align-items:center;gap:.75rem;';
+    banner.innerHTML = `⚠️ <span style="color:var(--danger)">${noEmail.length} leads sin email</span> — sin email no se puede generar el email IA. <button class="btn-action" onclick="filterNoEmail()">Ver</button> <button onclick="this.parentNode.remove()" style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer">✕</button>`;
+    tbody.parentNode.parentNode.insertBefore(banner, tbody.parentNode);
   }
 
   // Pagination — show LEADS_PAGE_SIZE leads per page for performance
@@ -210,7 +214,7 @@ function renderLeads() {
     const tr = document.createElement('tr');
     tr.setAttribute('data-lead-id', lead.id);
     const bc = lead.score >= 70 ? 'badge-high' : (lead.score >= 40 ? 'badge-mid' : 'badge-low');
-    const sc = (lead.status || 'pendiente').toLowerCase().replace(' ', '-');
+    const sc = (lead.status || 'pendiente').toLowerCase().replace(/\s+/g, '-');
     const scoreColor = lead.score >= 70 ? '#10d97c' : (lead.score >= 40 ? '#f59e0b' : '#ef4444');
     const isSelected = selectedLeadIds.has(String(lead.id));
 
@@ -373,6 +377,7 @@ function undoDelete() {
 }
 
 function duplicateLead(id) {
+  closeLead();
   const lead = leads.find(l => l.id == id);
   if (!lead) return;
   const copy = { ...lead, id: Date.now(), status: 'Pendiente', date: new Date().toISOString(),
@@ -396,6 +401,7 @@ function archiveLead(id) {
 }
 
 function bulkArchive() {
+  const count = selectedLeadIds.size;
   selectedLeadIds.forEach(id => {
     const l = leads.find(x => x.id == id);
     if (l) l.archived = true;
@@ -403,7 +409,7 @@ function bulkArchive() {
   saveLeads();
   clearBulkSelection();
   renderAll();
-  showToast(`${selectedLeadIds.size} leads archivados`);
+  showToast(`${count} leads archivados`);
 }
 
 function filterNoEmail() {
@@ -437,7 +443,7 @@ function editLeadEmail(id) {
   const lead = leads.find(l => l.id == id);
   if (!lead) return;
   const email = prompt(`Introduce el email de ${lead.company}:`);
-  if (email && email.includes('@')) {
+  if (email && isValidEmail(email.trim())) {
     lead.email = email.trim();
     saveLeads();
     renderLeads();
@@ -452,7 +458,7 @@ function saveInlineEmail(input) {
   if (!lead) return;
   const val = input.value.trim();
   if (val === (lead.email || '')) return; // no change
-  if (val && !val.includes('@')) {
+  if (val && !isValidEmail(val)) {
     showToast('⚠️ Email no válido');
     input.value = lead.email || '';
     return;
@@ -479,10 +485,10 @@ function saveInlineEmail(input) {
   // Also update the copy button in the same row
   if (row) {
     const emailWrap = input.parentElement;
-    const oldCopyBtn = emailWrap?.querySelector('button[title="Copiar email"]');
+    const oldCopyBtn = emailWrap?.querySelector('button[title="Copiar email al portapapeles"]');
     if (val && !oldCopyBtn) {
       const copyBtn = document.createElement('button');
-      copyBtn.title = 'Copiar email';
+      copyBtn.title = 'Copiar email al portapapeles';
       copyBtn.textContent = '⧉';
       copyBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s';
       copyBtn.onmouseover = () => copyBtn.style.color = 'var(--primary)';
@@ -519,7 +525,7 @@ function openLeadDetail(id) {
   // Psych profile placeholder
   const psychHtml = `<div id="psych-profile-${lead.id}" class="psych-profile">
     ${lead.psychProfile
-      ? '<div style=\"font-size:.72rem;color:var(--text-dim)\">Cargando perfil...</div>'
+      ? '<div style=\"font-size:.72rem;color:var(--text-dim)\">Ver perfil IA</div>'
       : '<div style=\"font-size:.72rem;color:var(--text-dim)\">Sin perfil generado</div>'}
     <button onclick="generateLeadProfile(${lead.id})" style="margin-top:.4rem;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:.2rem .55rem;font-size:.7rem;color:var(--primary);cursor:pointer">🧬 ${lead.psychProfile ? 'Ver perfil IA' : 'Generar perfil IA'}</button>
   </div>`;
@@ -527,8 +533,8 @@ function openLeadDetail(id) {
   // Follow-up suggestion
   const daysInStatus = lead.status_date ? Math.floor((Date.now()-new Date(lead.status_date))/86400000) : 0;
   let followupHtml = '';
-  if (lead.status === 'Visita' && daysInStatus >= 5) {
-    followupHtml = `<div class="followup-box"><span>💡</span><span>Llevan <strong>${daysInStatus} días</strong> en "Enviado". Es buen momento para un email de seguimiento breve. <button class="btn-action" style="margin-left:.5rem" onclick="generateFollowupEmail('${lead.id}')">Generar seguimiento IA</button></span></div>`;
+  if (lead.status === 'Contactado' && daysInStatus >= 5) {
+    followupHtml = `<div class="followup-box"><span>💡</span><span>Llevan <strong>${daysInStatus} días</strong> en "Contactado". Es buen momento para un email de seguimiento breve. <button class="btn-action" style="margin-left:.5rem" onclick="generateFollowupEmail('${lead.id}')">Generar seguimiento IA</button></span></div>`;
   }
 
   const tagsVal = (lead.tags || []).join(', ');
@@ -733,12 +739,12 @@ function generateEmail(id) {
   }
   const oldStatus = lead.status;
   const _applyVisita = () => {
-    lead.status = 'Visita';
+    lead.status = 'Contactado';
     lead.status_date = new Date().toISOString();
     addActivityLog(lead.id, `✉️ Email plantilla enviado: "${subject}"`);
     saveLeads(); renderAll(); renderTracking(); renderRecentActivity(); updateStreakData();
   };
-  confirmStatusChange(lead, 'Visita', _applyVisita);
+  confirmStatusChange(lead, 'Contactado', _applyVisita);
 }
 
 
