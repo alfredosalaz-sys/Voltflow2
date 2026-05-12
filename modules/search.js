@@ -3202,27 +3202,114 @@ function loadGoogleMapsScript(apiKey) {
 // ──  (cargado antes que este módulo) — no redeclarar aquí.
 // ══════════════════════════════════════════════════════════════════════════
 
-// ── Parche: añadir Residencias de Ancianos a getSegmentQueries ────────────
-// Se ejecuta al finalizar la carga del módulo, extendiendo la función
-// original definida en email-templates.js sin modificar ese archivo.
-(function patchResidenciasQueries() {
+// ── Parche: añadir sectores extendidos a getSegmentQueries ───────────────
+// Extiende la función original de email-templates.js sin modificar ese archivo.
+// Sectores añadidos: Residencias, Dental, Medico, Estetico, Deportivo
+(function patchExtendedSegmentQueries() {
   const _originalGetSegmentQueries = (typeof getSegmentQueries === 'function')
     ? getSegmentQueries
     : null;
 
+  // ── Mapa de queries por sector ────────────────────────────────────────────
+  // Cada array combina términos generales + específicos para maximizar cobertura
+  // en Google Places API (textQuery). Orden: más probable → menos probable.
+  const EXTENDED_QUERIES = {
+
+    // ── Residencias de Ancianos ────────────────────────────────────────────
+    'Residencias': [
+      'residencia de ancianos',
+      'residencia de mayores',
+      'centro de mayores',
+      'centro geriátrico',
+      'geriátrico',
+      'residencia tercera edad',
+      'centro día mayores',
+    ],
+
+    // ── Clínicas Dentales ─────────────────────────────────────────────────
+    // Captura desde clínicas premium hasta dentistas de barrio y ortodoncias
+    'Dental': [
+      'clínica dental',
+      'dentista',
+      'clínica odontológica',
+      'odontólogo',
+      'ortodoncia',
+      'implantes dentales clínica',
+      'clínica de odontología',
+      'dental clínica',
+      'clínica estomatológica',
+      'estomatólogo',
+      'ortopedia dental',
+      'clínica dental infantil',
+    ],
+
+    // ── Centros Médicos ───────────────────────────────────────────────────
+    // Captura clínicas generales, policlínicas, especialidades y centros privados
+    'Medico': [
+      'centro médico',
+      'clínica médica',
+      'policlínica',
+      'clínica privada',
+      'consulta médica',
+      'médico especialista',
+      'centro de salud privado',
+      'clínica especialidades médicas',
+      'clínica traumatología',
+      'clínica dermatología',
+      'clínica ginecología',
+      'clínica oftalmología',
+      'clínica psicología',
+      'clínica fisioterapia',
+      'unidad médica',
+    ],
+
+    // ── Centros Estéticos ─────────────────────────────────────────────────
+    // Captura centros de belleza, medicina estética, peluquerías premium y spas
+    'Estetico': [
+      'centro estético',
+      'clínica de estética',
+      'medicina estética',
+      'centro de belleza',
+      'spa',
+      'salón de belleza',
+      'peluquería y estética',
+      'micropigmentación',
+      'depilación láser centro',
+      'tratamientos faciales centro',
+      'centro estetica corporal',
+      'instituto de belleza',
+      'centro de depilación',
+      'clínica estética corporal',
+    ],
+
+    // ── Centros Deportivos ────────────────────────────────────────────────
+    // Captura gimnasios, clubs deportivos, centros de fitness y piscinas
+    'Deportivo': [
+      'gimnasio',
+      'centro deportivo',
+      'club deportivo',
+      'polideportivo',
+      'fitness center',
+      'centro de fitness',
+      'piscina municipal',
+      'pádel club',
+      'club de tenis',
+      'yoga studio',
+      'pilates centro',
+      'crossfit box',
+      'box fitness',
+      'academia de artes marciales',
+      'club de natación',
+      'instalaciones deportivas',
+    ],
+  };
+
   window.getSegmentQueries = function(segment) {
-    if (segment === 'Residencias') {
-      return [
-        'residencia de ancianos',
-        'residencia de mayores',
-        'centro de mayores',
-        'centro geriátrico',
-        'geriátrico',
-        'residencia tercera edad',
-        'centro día mayores',
-      ];
+    // Buscar primero en el mapa extendido
+    if (EXTENDED_QUERIES[segment]) {
+      return EXTENDED_QUERIES[segment];
     }
-    // Delegar al original para el resto de segmentos
+    // Delegar al original para el resto de segmentos (Industrial, Retail, Oficinas, etc.)
     if (_originalGetSegmentQueries) return _originalGetSegmentQueries(segment);
     return [segment]; // fallback de seguridad
   };

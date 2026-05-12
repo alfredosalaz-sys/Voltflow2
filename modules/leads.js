@@ -51,7 +51,9 @@ function saveLeads() {
     if (localStorage.getItem('gordi_gh_auto') === 'true' && localStorage.getItem('gordi_gh_token')) {
       githubPush(false); // silent GitHub push
     }
-
+    if (localStorage.getItem('gordi_jsonbin_auto') === 'true') {
+      if (typeof jsonbinPush === 'function') jsonbinPush(false);
+    }
   }, 2000); // wait 2s after last save before pushing to cloud
 }
 

@@ -63,6 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Guardar versión actual para referencia futura
   localStorage.setItem('_voltflow_last_version', VOLTFLOW_VERSION);
+
+  // Auto-pull JSONBin al iniciar si está habilitado
+  if (localStorage.getItem('gordi_jsonbin_auto') === 'true') {
+    setTimeout(() => {
+      if (typeof jsonbinPull === 'function') jsonbinPull(false);
+    }, 1000); // 1s delay para asegurar que renderAllFull ya terminó y se evita race condition visual
+  }
 });
 
 
@@ -530,7 +537,7 @@ async function jsonbinPull(showFeedback = true) {
     const snapshot = data.record?.voltflow;
     if (!snapshot) throw new Error('Datos no encontrados en el bin');
 
-    // Smart merge: only import if cloud data is newer or has more leads
+    // Smart merge: solo importar si la nube es más reciente o tiene diferencias claras
     const cloudUpdated = data.record?._updated || data.record?._created || '';
     const lastPush = localStorage.getItem('gordi_jsonbin_last_push') || '';
     const cloudLeadCount = (() => {
@@ -538,15 +545,37 @@ async function jsonbinPull(showFeedback = true) {
     })();
     const localLeadCount = leads.length;
 
+    let isNewer = false;
+    let shouldPull = false;
+
+    if (cloudUpdated) {
+      const cloudTime = new Date(cloudUpdated).getTime();
+      const localTime = lastPush ? new Date(lastPush).getTime() : 0;
+      // Añadimos buffer de 5s para evitar pull de algo que acabamos de pushear
+      if (cloudTime > localTime + 5000) isNewer = true;
+    }
+
     if (showFeedback) {
-      // Show confirmation if there's a meaningful difference
-      if (cloudLeadCount !== localLeadCount) {
+      if (cloudLeadCount !== localLeadCount || isNewer) {
         const confirmMsg = `¿Descargar datos de la nube?\n\nNube: ${cloudLeadCount} leads (actualizado: ${cloudUpdated ? new Date(cloudUpdated).toLocaleString('es-ES') : 'desconocido'})\nLocal: ${localLeadCount} leads\n\nEsto reemplazará tus datos locales.`;
         if (!confirm(confirmMsg)) {
           jsonbinSetStatus('Descarga cancelada por el usuario', 'var(--text-dim)');
           return;
         }
+        shouldPull = true;
+      } else {
+        shouldPull = true; // El usuario pulsó el botón manualmente y no hay diff grave, hacemos pull
       }
+    } else {
+      // Descarga silenciosa (al arrancar)
+      if (isNewer || cloudLeadCount > localLeadCount) {
+        shouldPull = true;
+      }
+    }
+
+    if (!shouldPull) {
+      if (!showFeedback) console.log('JSONBin Pull omitido: los datos locales ya están actualizados.');
+      return;
     }
 
     // Apply snapshot

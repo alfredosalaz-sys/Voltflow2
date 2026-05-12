@@ -544,6 +544,9 @@ function saveTemplate() {
   const saved = {};
   Object.entries(emailTemplates).forEach(([k,v]) => { if (JSON.stringify(v) !== JSON.stringify(defaultTemplates[k])) saved[k] = v; });
   localStorage.setItem('gordi_templates', JSON.stringify(emailTemplates));
+  if (localStorage.getItem('gordi_jsonbin_auto') === 'true') {
+    if (typeof jsonbinPush === 'function') jsonbinPush(false);
+  }
   showToast('Plantilla guardada ✓');
 }
 
@@ -602,6 +605,9 @@ function saveCampaign() {
   const filtered = seg === 'Todos' ? leads : leads.filter(l => l.segment === seg);
   campaigns.push({ id: Date.now(), name, segment: seg, sequence: seq, desc, leadCount: filtered.length, sent: 0, date: new Date().toISOString(), active: true });
   localStorage.setItem('gordi_campaigns', JSON.stringify(campaigns));
+  if (localStorage.getItem('gordi_jsonbin_auto') === 'true') {
+    if (typeof jsonbinPush === 'function') jsonbinPush(false);
+  }
   closeCampaignModal();
   renderCampaigns();
   showToast('Campaña creada ✓');
