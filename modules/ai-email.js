@@ -28,7 +28,9 @@ function openAiEmailModal(id) {
 
   // Reset modal UI
   document.getElementById('ai-modal-title').innerText = `✨ Email IA para ${lead.company}`;
-  document.getElementById('ai-modal-sub').innerText = 'Analizando reseñas con Gemini IA (gratuito)...';
+  document.getElementById('ai-modal-sub').innerHTML = lead.email 
+    ? `Destinatario: <span style="color:var(--primary);cursor:pointer;text-decoration:underline" onclick="copyToClipboard('${lead.email}', 'Email: ${lead.email}')" title="Clic para copiar">${lead.email} ⧉</span>`
+    : 'Analizando reseñas con Gemini IA (gratuito)...';
   document.getElementById('ai-loading').style.display = 'block';
   document.getElementById('ai-result').style.display = 'none';
   document.getElementById('ai-error').style.display = 'none';
@@ -45,15 +47,7 @@ function openAiEmailModal(id) {
 
 // ── copySubjectOption ────────────────────────────────────────────────────────
 function copySubjectOption(subject) {
-  navigator.clipboard.writeText(subject).then(() => {
-    showToast('📋 Asunto copiado: ' + subject.slice(0, 50) + (subject.length > 50 ? '…' : ''));
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = subject; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 Asunto copiado');
-  });
+  copyToClipboard(subject, 'Asunto copiado');
 }
 
 // ── PAIN PICKER ──────────────────────────────────────────────────────────────
@@ -517,8 +511,7 @@ function copyWaMessage() {
   const phoneClean = phone.replace(/[^0-9+]/g, '');
   const btn = document.getElementById('wa-send-btn');
   if (btn) btn.href = `https://wa.me/${phoneClean.startsWith('+') ? phoneClean.slice(1) : phoneClean}?text=${encodeURIComponent(msg)}`;
-  navigator.clipboard.writeText(msg).then(() => showToast('📋 Mensaje copiado'))
-    .catch(() => showToast('📋 Mensaje copiado'));
+  copyToClipboard(msg, 'Mensaje copiado');
 }
 
 function registerWaSent() {
@@ -1432,15 +1425,11 @@ async function copyHtmlEmail() {
       };
       confirmStatusChange(lead, 'Contactado', _doContactado);
     }
-  } catch(e) {
-    // Fallback: copiar texto plano
-    try {
-      await navigator.clipboard.writeText(editor.innerText);
-      showToast('📋 Copiado como texto (sin formato) — tu navegador no soporta copia HTML');
-    } catch(e2) {
-      alert('No se pudo copiar. Selecciona el texto del email manualmente y copia con Ctrl+C.');
+    const ok = await copyToClipboard(editor.innerText, 'Email copiado');
+    if (ok) {
+      btn.innerHTML = '✅ ¡Copiado!';
+      setTimeout(() => btn.innerHTML = '📋 Copiar Email', 2500);
     }
-  }
 }
 
 

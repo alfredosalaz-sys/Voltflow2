@@ -1,6 +1,7 @@
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', () => {
   checkPin();
+  populateSegmentDropdowns(); // Poblar dropdowns antes de cargar datos que puedan depender de ellos
   const migrationResult = tryAutoMigrate();
   loadAllData();
 
@@ -25,27 +26,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Keyboard shortcuts
   document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
-      openGlobalSearch();
-      return;
+    // 1. Teclas con modificadores (Ctrl/Alt)
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'k') { e.preventDefault(); openGlobalSearch(); return; }
     }
+    
+    if (e.altKey) {
+      if (e.key === 'l') { e.preventDefault(); showView('leads'); return; }
+      if (e.key === 'd') { e.preventDefault(); showView('dashboard'); return; }
+      if (e.key === 's') { e.preventDefault(); showView('settings'); return; }
+      if (e.key === 'i' && typeof aiCurrentLeadId !== 'undefined' && aiCurrentLeadId) { 
+        e.preventDefault(); openAiEmailModal(aiCurrentLeadId); return; 
+      }
+    }
+
+    // 2. Teclas simples (Solo si no estamos escribiendo)
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
     if (e.key === 'Escape') {
       closeGlobalSearch();
+      // Cerrar paneles laterales de leads (si están abiertos)
+      if (typeof closeLeadSidePanel === 'function') closeLeadSidePanel();
       closeLead(); closeAiModal(); closeCampaignModal(); closeObjectivesModal();
       document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+      return;
     }
-    if (e.key === 'n' && !e.ctrlKey) { showView('leads'); toggleLeadForm(); }
-    else if (e.key === 'f' && !e.ctrlKey && !e.metaKey) { openFocusMode(); }
-    else if (e.key === 'b') showView('planner');
-    else if (e.key === 'd') showView('dashboard');
-    else if (e.key === 'k' && !e.ctrlKey && !e.metaKey) showView('kanban');
+
+    // Atajos de navegación rápida
+    const navMap = {
+      'n': () => { showView('leads'); toggleLeadForm(); },
+      'f': () => { openFocusMode(); },
+      'b': () => { showView('planner'); },
+      'd': () => { showView('dashboard'); },
+      'k': () => { showView('kanban'); },
+      's': () => { showView('settings'); }
+    };
+
+    if (navMap[e.key]) {
+      e.preventDefault();
+      navMap[e.key]();
+    }
   });
 
   // Tutorial solo si es instalación completamente nueva (sin datos y sin migración)
   if (!localStorage.getItem('gordi_tutorial_done') && leads.length === 0 && !migrationResult) {
     setTimeout(() => showTutorial(), 800);
+  } else {
+    // Si no es instalación nueva, comprobar si hay actualización de versión
+    const lastVersion = localStorage.getItem('_voltflow_last_version');
+    if (lastVersion && lastVersion !== VOLTFLOW_VERSION) {
+      setTimeout(() => showWhatsNewModal(lastVersion, VOLTFLOW_VERSION), 1000);
+    }
   }
 
   // Apply saved theme
@@ -61,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Purgar cachés de enriquecimiento caducadas (>7 días)
   purgeStaleCaches();
 
-  // Guardar versión actual para referencia futura
-  localStorage.setItem('_voltflow_last_version', VOLTFLOW_VERSION);
+  // MEJORA: Sistema de Actualizaciones Automático via version.json
+  checkUpdates();
 
   // Auto-pull JSONBin al iniciar si está habilitado
   if (localStorage.getItem('gordi_jsonbin_auto') === 'true') {
@@ -77,7 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // Todas las versiones de Voltflow comparten el mismo localStorage en file://
 // Al arrancar por primera vez esta versión, se vuelcan todos los datos automáticamente.
 
-const VOLTFLOW_VERSION = '1.9';
+let VOLTFLOW_VERSION = '2.1.0'; // Fallback
+let VOLTFLOW_CHANGELOG = [];
 
 // ══════════════════════════════════════════════════════════════════════════
 // ⚡ PERFORMANCE SYSTEM — debounce renders, smart batching, pagination
@@ -734,3 +766,72 @@ function refreshAiRouterStatus() {
     `<p style="margin-top:.6rem;font-size:.75rem;color:var(--text-dim)">💡 Configura los 3 proveedores para tener IA prácticamente ilimitada. El sistema cambia automáticamente cuando uno alcanza su límite.</p>`;
 }
 
+async function checkUpdates() {
+  try {
+    const res = await fetch('version.json?t=' + Date.now()); // t= para evitar cache del navegador
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    VOLTFLOW_VERSION = data.version;
+    VOLTFLOW_CHANGELOG = data.changelog;
+    
+    const lastSeen = localStorage.getItem('_voltflow_last_version');
+    
+    // Si la versión del archivo es distinta a la última que vio el usuario -> Mostrar PopUp
+    if (lastSeen && lastSeen !== VOLTFLOW_VERSION) {
+      showWhatsNewModal(lastSeen, VOLTFLOW_VERSION);
+    } else if (!lastSeen) {
+      // Primera vez que usa la app con este sistema, guardamos versión sin molestar
+      localStorage.setItem('_voltflow_last_version', VOLTFLOW_VERSION);
+    }
+  } catch (e) {
+    console.warn('No se pudo comprobar version.json:', e);
+  }
+}
+
+function showWhatsNewModal(oldV, newV) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity 0.4s ease;";
+  
+  const items = VOLTFLOW_CHANGELOG.map(item => `
+    <div style="margin-bottom:15px;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.05)">
+      <strong style="display:block;color:var(--primary);margin-bottom:4px;font-size:15px">${item.title}</strong>
+      <span style="font-size:13px;color:var(--text-dim);line-height:1.4">${item.desc}</span>
+    </div>
+  `).join('');
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);max-width:500px;width:100%;border-radius:20px;border:1px solid var(--glass-border);box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);overflow:hidden;transform:scale(0.9);transition:transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)">
+      <div style="background:linear-gradient(135deg, var(--primary), var(--secondary));padding:30px;text-align:center;position:relative">
+        <div style="font-size:40px;margin-bottom:10px">🚀</div>
+        <h2 style="margin:0;color:#fff;font-size:24px">¡Gordi se ha actualizado!</h2>
+        <p style="margin:5px 0 0 0;color:rgba(255,255,255,0.8);font-size:14px">v${oldV} → v${newV}</p>
+      </div>
+      <div style="padding:25px;max-height:400px;overflow-y:auto">
+        <h3 style="margin:0 0 15px 0;font-size:16px;color:var(--text)">Novedades en esta versión:</h3>
+        ${items}
+      </div>
+      <div style="padding:20px;text-align:center;border-top:1px solid var(--glass-border)">
+        <button id="close-whats-new" style="background:var(--primary);color:#fff;border:none;padding:12px 35px;border-radius:30px;font-weight:bold;cursor:pointer;box-shadow:0 10px 20px -5px var(--primary)">¡Entendido!</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  
+  // Animation
+  requestAnimationFrame(() => {
+    modal.style.opacity = '1';
+    modal.querySelector('div').style.transform = 'scale(1)';
+  });
+
+  modal.querySelector('#close-whats-new').onclick = () => {
+    modal.style.opacity = '0';
+    modal.querySelector('div').style.transform = 'scale(0.9)';
+    setTimeout(() => {
+      modal.remove();
+      localStorage.setItem('_voltflow_last_version', VOLTFLOW_VERSION);
+    }, 400);
+  };
+}

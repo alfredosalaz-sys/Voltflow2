@@ -408,6 +408,21 @@ const SEGMENT_COLORS = {
   "Default": "#7a8ba0"
 };
 
+const SEGMENT_LABELS = {
+  "Industrial": "🏭 Industrial / Naves",
+  "Retail": "🛍️ Retail / Tiendas",
+  "Oficinas": "🏢 Oficinas / Consultoras",
+  "Hoteles": "🏨 Hoteles / Hostelería",
+  "Dental": "🦷 Clínicas Dentales",
+  "Medico": "🏥 Centros Médicos",
+  "Estetico": "✨ Centros Estéticos",
+  "Educativo": "🎓 Educación / Colegios",
+  "Deportivo": "⚽ Deportivo / Gimnasios",
+  "Cultural": "🎭 Cultural / Museos",
+  "Comercial": "🏬 Centros Comerciales",
+  "Residencias": "🏠 Residencias de Ancianos"
+};
+
 // ─── TONOS Y CONTEXTO POR SEGMENTO ───────────────────────────────────────────
 const SEGMENT_TONE = {
   "Hoteles": {

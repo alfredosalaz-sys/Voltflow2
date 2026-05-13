@@ -1,0 +1,11 @@
+{
+  "version": "2.1.0",
+  "date": "2024-05-13",
+  "changelog": [
+    { "title": "🔥 Termómetro de Leads", "desc": "Clasificación automática por temperatura (Hirviendo, Templado, Gélido) basada en señales de mercado." },
+    { "title": "📋 Micro-Auditorías", "desc": "Informes de diagnóstico instantáneos con ángulos de venta recomendados para cada lead." },
+    { "title": "🔍 Buscador de Similares", "desc": "Encuentra empresas parecidas a tus mejores leads con un solo clic." },
+    { "title": "🏢 Panel Lateral", "desc": "Vista rápida de detalles del lead sin perder el contexto de tu búsqueda." },
+    { "title": "🛣️ Pipeline Visual", "desc": "Gestión de estados del CRM mediante una línea de progreso intuitiva." }
+  ]
+}

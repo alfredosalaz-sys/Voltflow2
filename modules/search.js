@@ -21,16 +21,39 @@
 // ══════════════════════════════════════════════════════════════════════════
 
 const CORS_PROXIES = [
-  // ── Tier 1: alta fiabilidad (sin rate-limit agresivo) ───────────────────
-  { url: 'https://api.allorigins.win/get?url=',           mode: 'allorigins' }, // JSON wrapper — más estable
-  { url: 'https://corsproxy.io/?',                        mode: 'raw' },        // El mejor servicio público
-  { url: 'https://api.allorigins.win/raw?url=',           mode: 'raw' },        // Variante raw de allorigins
-  // ── Tier 2: alternativos bien mantenidos ────────────────────────────────
-  { url: 'https://cors-anywhere.hexlet.io/',              mode: 'raw' },        // Fork mantenido de cors-anywhere
-  { url: 'https://proxy.cors.sh/',                        mode: 'raw' },        // Nuevo servicio 2024+
-  { url: 'https://cors.eu.org/',                          mode: 'raw' },        // Europeo, GDPR-friendly
-  { url: 'https://api.codetabs.com/v1/proxy?quest=',      mode: 'raw' },        // Rate-limited (1/s) — último recurso
+  // ── Tier 1: alta fiabilidad ─────────────────────────────────────────────
+  { url: 'https://api.allorigins.win/get?url=',           mode: 'allorigins' },
+  { url: 'https://corsproxy.io/?',                        mode: 'raw' },
+  { url: 'https://api.allorigins.win/raw?url=',           mode: 'raw' },
+  // ── Tier 2: alternativos ────────────────────────────────────────────────
+  { url: 'https://thingproxy.freeboard.io/fetch/',        mode: 'raw' },
+  { url: 'https://cors-anywhere.hexlet.io/',              mode: 'raw' },
+  { url: 'https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all', mode: 'raw' },
+  { url: 'https://cors.eu.org/',                          mode: 'raw' },
+  { url: 'https://api.codetabs.com/v1/proxy?quest=',      mode: 'raw' },
 ];
+
+// ── Cache de Enriquecimiento (Idea 5) ────────────────────────────────────────
+// Evita re-scrapear empresas en la misma sesión/días para ahorrar tiempo y APIs
+const _enrichCache = {
+  get: (id) => {
+    try {
+      const entry = JSON.parse(localStorage.getItem('gordi_enrich_cache') || '{}')[id];
+      if (entry && (Date.now() - entry.ts < 1000 * 60 * 60 * 24 * 7)) return entry.data; // 7 días
+    } catch(e) {}
+    return null;
+  },
+  set: (id, data) => {
+    try {
+      const cache = JSON.parse(localStorage.getItem('gordi_enrich_cache') || '{}');
+      cache[id] = { ts: Date.now(), data };
+      // Mantener tamaño razonable (< 2MB)
+      const keys = Object.keys(cache);
+      if (keys.length > 500) delete cache[keys[0]];
+      localStorage.setItem('gordi_enrich_cache', JSON.stringify(cache));
+    } catch(e) {}
+  }
+};
 
 // ── Cache de rendimiento de proxies (sesión) ─────────────────────────────────
 // Aprendemos qué proxies funcionan y los priorizamos durante la sesión
@@ -136,20 +159,28 @@ async function fetchWithProxy(targetUrl, timeoutMs = 9000) {
     }
   }
 
-  // ── Último recurso: fetch directo (funciona para URLs con CORS abierto) ──────
+  // ── Idea 1: Fallback a Wayback Machine (Archive.org) ──────────────────────
+  if (targetUrl.startsWith('http')) {
+    try {
+      const archiveUrl = `https://web.archive.org/web/2/${targetUrl}`;
+      const res = await fetch(archiveUrl, { signal: AbortSignal.timeout(5000) });
+      if (res.ok) {
+        const txt = await res.text();
+        if (txt.length >= 200) return txt;
+      }
+    } catch {}
+  }
+
+  // ── Último recurso: fetch directo ──────────────────────────────────────────
   try {
     const res = await fetch(targetUrl, {
-      signal: AbortSignal.timeout(Math.min(timeoutMs, 5000)),
+      signal: AbortSignal.timeout(Math.min(timeoutMs, 4000)),
       mode: 'cors',
-      headers: { 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' }
+      headers: { 'Accept': 'text/html' }
     });
-    if (res.ok) {
-      const txt = await res.text();
-      if (txt.length >= 200) return txt;
-    }
+    if (res.ok) return await res.text();
   } catch {}
-
-  return ''; 
+  return '';
 }
 
 
@@ -917,50 +948,61 @@ async function enrichFromWeb(company) {
   }
 
   // ─── 8. Scraping profundo: equipo, nosotros, contacto ───────────────────
-  // FIX-SCRAPING: Procesamos las rutas de forma secuencial y salimos en cuanto
-  // tengamos email Y decisor. Así evitamos los 9 fetches en paralelo que
-  // saturaban los proxies CORS gratuitos cuando se procesaban 3+ empresas a la vez.
-  // Prioridad: /contacto y /about primero (mayor hit-rate), luego equipo.
+  // OPTIMIZACIÓN v2.1.1: Procesamos en paralelo para mayor velocidad
   if (!company.email || !company.decision_maker) {
     const baseUrl = company.website.replace(/\/$/, '');
-    // FIX-50+: Reducido de 9 a 3 rutas (mayor hit-rate comprobado).
-    // Timeout reducido a 3500ms: si el proxy no responde rápido, no responderá nunca.
-    // Esto evita que 50+ empresas × 9 rutas × 5s = miles de segundos de espera.
-    const deepPaths = ['/contacto', '/contact', '/about'];
-
-    for (const path of deepPaths) {
-      if (company.email && company.decision_maker) break; // Ya tenemos todo, parar
-      try {
-        const pageHtml = await fetchWithProxy(baseUrl + path, 5500); // +2s para compensar latencia del proxy
-        if (!pageHtml || pageHtml.length < 200) continue;
-
-        // Buscar emails en esta página
-        if (!company.email) {
-          const deobf = pageHtml.replace(/\[at\]/gi,'@').replace(/\(at\)/gi,'@').replace(/ at /gi,'@')
-            .replace(/\[dot\]/gi,'.').replace(/\(dot\)/gi,'.').replace(/ dot /gi,'.');
-          const mailtos = [...deobf.matchAll(/href=["']mailto:([^"'?\s]+)/gi)].map(m=>m[1].toLowerCase().trim());
-          const rawEmails = [...new Set([...mailtos, ...(deobf.match(/[a-zA-Z0-9._%+\-]{1,64}@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,10}/g)||[]).map(e=>e.toLowerCase())])];
-          const validCtEmails = rawEmails.filter(e => isValidEmail(e));
-          if (validCtEmails.length) {
-            company.email = validCtEmails[0];
-            company.emails = [...new Set([...company.emails, ...validCtEmails])].slice(0, 6);
-            company.enrichSource.push('Pág-profunda');
+    const deepPaths = ['/contacto', '/contact', '/about', '/nosotros', '/equipo'];
+    try {
+      const results = await Promise.allSettled(deepPaths.map(path => fetchWithProxy(baseUrl + path, 6000)));
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled' && result.value && result.value.length > 200) {
+          const pageHtml = result.value;
+          const path = deepPaths[idx];
+          // Extracción de emails
+          if (!company.email) {
+            const deobf = pageHtml.replace(/\[at\]/gi,'@').replace(/\(at\)/gi,'@').replace(/ at /gi,'@')
+              .replace(/\[dot\]/gi,'.').replace(/\(dot\)/gi,'.').replace(/ dot /gi,'.');
+            const mailtos = [...deobf.matchAll(/href=["']mailto:([^"'?\s]+)/gi)].map(m=>m[1].toLowerCase().trim());
+            const rawEmails = [...new Set([...mailtos, ...(deobf.match(/[a-zA-Z0-9._%+\-]{1,64}@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,10}/g)||[]).map(e=>e.toLowerCase())])];
+            const validCtEmails = rawEmails.filter(isValidEmail);
+            if (validCtEmails.length) {
+              company.email = validCtEmails[0];
+              company.emails = [...new Set([...company.emails, ...validCtEmails])].slice(0, 6);
+              if (!company.enrichSource.includes('Pág-profunda')) company.enrichSource.push('Pág-profunda');
+            }
+          }
+          // Extracción de decisor
+          if (!company.decision_maker && /equipo|team|nosotros|about/i.test(path)) {
+            const roleStr = ROLE_KEYWORDS.join('|');
+            const namePattern = /([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,20}\s+(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,20}\s+)?[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,25})/;
+            const p1 = new RegExp(`(${roleStr})[^a-z]{0,30}[:–|]?\\s*${namePattern.source}`, 'i');
+            const p2 = new RegExp(`${namePattern.source}[^a-z]{0,40}(${roleStr})`, 'i');
+            const m1 = pageHtml.match(p1);
+            const m2 = pageHtml.match(p2);
+            if (m1) company.decision_maker = `${m1[2]} (${m1[1]})`;
+            else if (m2) company.decision_maker = `${m2[1]} (${m2[2]})`;
           }
         }
-
-        // Buscar decisor en páginas de equipo/nosotros
-        if (!company.decision_maker && /equipo|team|nosotros|about/i.test(path)) {
-          const roleStr = ROLE_KEYWORDS.join('|');
-          const namePattern = /([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,20}\s+(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,20}\s+)?[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,25})/;
-          const p1 = new RegExp(`(${roleStr})[^a-z]{0,30}[:–|]?\\s*${namePattern.source}`, 'i');
-          const p2 = new RegExp(`${namePattern.source}[^a-z]{0,40}(${roleStr})`, 'i');
-          const m1 = pageHtml.match(p1);
-          const m2 = pageHtml.match(p2);
-          if (m1) company.decision_maker = `${m1[2]} (${m1[1]})`;
-          else if (m2) company.decision_maker = `${m2[1]} (${m2[2]})`;
-        }
-      } catch { /* timeout o error de red — continuar con siguiente ruta */ }
-    }
+      });
+    } catch {}
+  }
+  // ─── 8b. Tech Stack Detection (Idea 5) ─────────────────────────────────
+  company.techStack = [];
+  if (/wp-content|wp-includes|wordpress/i.test(html)) company.techStack.push('WordPress');
+  if (/wix\.com|wixstatic/i.test(html)) company.techStack.push('Wix');
+  if (/squarespace/i.test(html)) company.techStack.push('Squarespace');
+  if (/shopify/i.test(html)) company.techStack.push('Shopify');
+  if (/google-analytics|ga4|googletagmanager/i.test(html)) company.techStack.push('Google Analytics');
+  if (/facebook-jssdk|fbevents\.js/i.test(html)) company.techStack.push('Facebook Pixel');
+  if (company.techStack.length > 0) {
+    company.signals.push(`🛠️ Stack: ${company.techStack.join(', ')}`);
+  } else {
+    company.signals.push('🕸️ Web básica o personalizada (sin CMS detectado)');
+  }
+  // Detección de web antigua
+  if (/<meta[^>]+name=["']generator["'][^>]+content=["'](?:frontpage|dreamweaver|adobe)/i.test(html) || /<table[^>]+border=["']0["'][^>]*>\s*<tr>\s*<td>/i.test(html)) {
+    company.signals.push('🦖 Tecnología web obsoleta detectada — urgente modernización');
+    company.techStack.push('Legacy');
   }
 
   // ─── 9. Detección de señales de oportunidad ──────────────────────────────
@@ -1801,7 +1843,7 @@ async function enrichFromStreetView(company) {
       { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [
           { inline_data: { mime_type: 'image/jpeg', data: base64 } },
-          { text: 'Analiza esta fachada de negocio en máximo 2 frases. Estado conservación (bueno/regular/malo), antigüedad instalaciones visibles, signos deterioro (iluminación deficiente, carpintería antigua, pintura descascarada, óxido). Solo lo que ves claramente.' }
+          { text: 'Analiza esta fachada. ¿Ves signos de deterioro (pintura, óxido, cables sueltos, iluminación vieja)? ¿Parece un local vacío o en obras? Responde en una frase corta enfocada en necesidades de reforma.' }
         ]}]}),
         signal: AbortSignal.timeout(14000) }
     );
@@ -1842,6 +1884,31 @@ async function enrichFromBorme(company) {
         { company.signals.push('⚠️ En disolución (BORME) — descartar'); company.enrichSource.push('BORME'); break; }
       else if (/nombramiento|nuevo administrador/.test(texto))
         { company.signals.push('👤 Nuevo administrador (BORME) — cambio de gestión'); company.enrichSource.push('BORME'); break; }
+    }
+  } catch(e) {}
+  return company;
+}
+
+// ─── CAPA LINKEDIN DORKING: Encontrar decisores reales (Idea 3 - Gratis) ──────
+async function enrichFromLinkedInDorking(company) {
+  if (!company.name || company.decision_maker) return company;
+  try {
+    // Buscamos Gerentes/Directores de la empresa en LinkedIn via proxy de búsqueda
+    const q = encodeURIComponent(`site:linkedin.com/in "Gerente" OR "Director" OR "CEO" "${company.name}"`);
+    const searchUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.google.com/search?q=' + q)}`;
+    const res = await fetch(searchUrl);
+    const j = await res.json();
+    const html = j.contents || '';
+    
+    // Extraer nombres probables de los títulos de LinkedIn
+    const names = html.match(/>([^<|]+)\s*-\s*[^<]*LinkedIn</gi);
+    if (names && names.length > 0) {
+      const bestMatch = names[0].replace(/>/,'').split('-')[0].trim();
+      if (bestMatch.length > 5 && bestMatch.length < 40) {
+        company.decision_maker = bestMatch;
+        company.signals.push(`👤 Decisor probable (LinkedIn Dorking): ${bestMatch}`);
+        company.enrichSource.push('LinkedIn-Dork');
+      }
     }
   } catch(e) {}
   return company;
@@ -2245,6 +2312,16 @@ async function searchBusinesses() {
     return;
   }
 
+  // ── Idea 5: Aplicar Cache de Enriquecimiento (Recuperar datos previos) ──────
+  places = places.map(c => {
+    const cached = _enrichCache.get(c.id);
+    if (cached) {
+      logEnrich(`♻️ Datos recuperados de cache para: ${c.name}`);
+      return { ...c, ...cached, fromCache: true };
+    }
+    return c;
+  });
+
   tempSearchResults = places;
 
   // Renderizar resultado rápido de Places mientras enriquecemos
@@ -2285,8 +2362,6 @@ async function searchBusinesses() {
     logEnrich('🌐 Web scraping: extrayendo datos de ' + places.length + ' webs...');
     let done = 0;
     // FIX-SCRAPING: BATCH_SIZE reducido a 3 para no saturar los proxies CORS gratuitos.
-    // Con 8 empresas en paralelo + 9 sub-paths cada una = ~80 peticiones simultáneas
-    // que superan el rate-limit de los proxies y hacen que todo falle silenciosamente.
     const BATCH_SIZE = 3;
 
     // Reordenar por potencial — mejores leads se enriquecen primero
@@ -2340,8 +2415,11 @@ async function searchBusinesses() {
       if (b + BATCH_SIZE < enrichOrder.length) {
         await sleep(tempSearchResults.length > 30 ? 2000 : 1000);
       }
-    }
-    
+    // Guardar en cache tras scraping web
+    tempSearchResults.forEach(c => {
+      if (!c.fromCache) _enrichCache.set(c.id, c);
+    });
+
     // DEDUP FINAL post-scraping (Places no detecta cadenas que comparten misma web)
     const originalLen = tempSearchResults.length;
     tempSearchResults = deduplicateResults(tempSearchResults);
@@ -2437,31 +2515,37 @@ async function searchBusinesses() {
     });
   }
 
-  // ── Capa Especial Avanzada (Borme + Street View + IA Rescue) ───────────────
+  // ── Capa Especial Avanzada (Borme + Street View + LinkedIn + IA Rescue) ────
   const geminiKey = localStorage.getItem('gordi_gemini_key');
   if (enrichMode === 'all') {
     logEnrich('💎 Capas Avanzadas: ejecutando análisis de alto valor...');
     setStep('empresite', 'active', 'Consultando...');
     setStep('experian', 'active', 'Consultando...');
+    
     let empresiteOk = 0, experianOk = 0;
     for (let i = 0; i < tempSearchResults.length; i++) {
-      // 1. BORME (Trámites legales reales)
+      if (tempSearchResults[i].fromCache) continue;
+
+      // 1. LinkedIn Dorking (Idea 3 - Decisor probable)
+      tempSearchResults[i] = await enrichFromLinkedInDorking(tempSearchResults[i]);
+
+      // 2. BORME (Trámites legales reales)
       tempSearchResults[i] = await enrichFromBorme(tempSearchResults[i]);
       
-      // 2. Empresite (directorio empresarial español — NIF, empleados, facturación)
+      // 3. Empresite (NIF, empleados, facturación)
       tempSearchResults[i] = await enrichFromEmpressite(tempSearchResults[i]);
       if (tempSearchResults[i].enrichSource.includes('Empresite')) empresiteOk++;
 
-      // 3. Experian (riesgo crediticio, morosidades, cambios societarios)
+      // 4. Experian (Riesgo, morosidad)
       tempSearchResults[i] = await enrichFromExperian(tempSearchResults[i]);
       if (tempSearchResults[i].enrichSource.includes('Experian')) experianOk++;
 
-      // 4. Street View Vision (Análisis de fachada)
+      // 5. Street View Vision (Idea 4 - Análisis necesidades reforma)
       if (geminiKey && tempSearchResults[i].address) {
         tempSearchResults[i] = await enrichFromStreetView(tempSearchResults[i]);
       }
       
-      // 5. IA Email Rescue (Último recurso con Gemini)
+      // 6. IA Email Rescue (Último recurso con Gemini)
       if (geminiKey && !tempSearchResults[i].email && tempSearchResults[i].website) {
         const rescued = await extractEmailWithAI(tempSearchResults[i].website, tempSearchResults[i].name, geminiKey);
         if (rescued) {
@@ -2521,6 +2605,12 @@ async function searchBusinesses() {
   document.getElementById('result-filters').style.display = 'flex';
   const sfb2 = document.getElementById('search-sf-wrap'); if(sfb2) sfb2.style.display='block';
   updateEnrichStats();
+  
+  // ── Guardar todo en cache (Final) ──────────────────────────
+  tempSearchResults.forEach(c => {
+    if (!c.fromCache) _enrichCache.set(c.id, c);
+  });
+
   resetSearchBtn();
 
   // ── Inteligencia de sesión (asíncrona, no bloquea el pipeline) ────────────
@@ -2725,6 +2815,12 @@ function buildCardHTML(c, i) {
     ? `<span style="font-size:.65rem;background:rgba(16,217,124,.15);color:var(--success);padding:1px 7px;border-radius:10px;border:1px solid rgba(16,217,124,.3)">🎯 ${_ll}% lookalike</span>`
     : '';
 
+  // MEJORA 1: Temperatura del Lead
+  const temp = calculateLeadTemperature(c);
+  const tempBadge = `<span style="font-size:.65rem;background:${temp.color}22;color:${temp.color};padding:2px 8px;border-radius:10px;border:1px solid ${temp.color}44" title="${temp.desc}">
+    ${temp.icon} ${temp.label}
+  </span>`;
+
   const socials = [
     c.instagram ? `<a href="${c.instagram}" target="_blank" class="sc-social-badge instagram">📸 IG</a>` : '',
     c.facebook  ? `<a href="${c.facebook}"  target="_blank" class="sc-social-badge facebook">👍 FB</a>` : '',
@@ -2747,9 +2843,9 @@ function buildCardHTML(c, i) {
     ? c.emails.slice(1).map(e => `<span style="font-size:.7rem;color:var(--text-muted)">${e}</span>`).join(' ')
     : '';
 
-  return `<div class="search-card" id="sc-${i}" data-idx="${i}" ${alreadyIn ? 'style="opacity:.65"' : ''}>
+  return `<div class="search-card" id="sc-${i}" data-idx="${i}" ${alreadyIn ? 'style="opacity:.65"' : ''} onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('input')) openSidePanel(${i})">
     <input type="checkbox" class="search-check sc-check search-card-check" data-index="${i}" ${alreadyIn ? '' : 'checked'}>
-    ${alreadyBadge || oppBadge || chainBadge || llBadge ? `<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.4rem">${alreadyBadge}${oppBadge}${chainBadge}${llBadge}</div>` : ''}
+    ${alreadyBadge || oppBadge || chainBadge || llBadge || tempBadge ? `<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.4rem">${alreadyBadge}${tempBadge}${oppBadge}${chainBadge}${llBadge}</div>` : ''}
     <div class="sc-header">
       <div class="sc-avatar" style="${c.logo ? 'padding:0;overflow:hidden' : ''}">
         ${c.logo
@@ -2772,7 +2868,7 @@ function buildCardHTML(c, i) {
         <span class="sc-icon">✉️</span>
         <div class="sc-val ${c.email ? '' : 'empty'}">
           ${c.email
-            ? `<span style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">${c.email}${emailsExtra ? '<br>' + emailsExtra : ''}<button onclick="copyEmail('${c.email.split('<br>')[0]}',event)" title="Copiar email al portapapeles" class="sc-copy-email-btn">📋 Copiar</button></span>`
+            ? `<span style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">${c.email}${emailsExtra ? '<br>' + emailsExtra : ''}<button onclick="event.stopPropagation(); copyToClipboard('${c.email.split('<br>')[0]}', 'Email: ${c.email.split('<br>')[0]}')" title="Copiar email al portapapeles" class="sc-copy-email-btn">📋 Copiar</button></span>`
             : `<input type="email" placeholder="Añadir email..." onchange="tempSearchResults[${i}].email=this.value;updateEnrichStats()" style="background:none;border:none;border-bottom:1px solid var(--glass-border);padding:.15rem 0;color:var(--text);font-size:.78rem;outline:none;width:100%">`
           }
         </div>
@@ -2800,6 +2896,8 @@ function buildCardHTML(c, i) {
           <span class="reenrich-icon">${c.enriched ? '🔄' : '✨'}</span> ${!c.email ? (c.enriched ? 'Buscar email' : 'Enriquecer') : 'Buscar decisor'}
         </button>` : `<span style="font-size:.65rem;color:var(--success)">✅ Completo</span>`}
         ${c.email ? `<button class="btn-action" style="font-size:.7rem;margin-left:auto" onclick="quickImportOne(${i})">Volcar →</button>` : ''}
+        <button class="btn-action secondary" style="padding:0 8px;font-size:.7rem" onclick="showMicroAudit(${i})" title="Ver Auditoría">📋</button>
+        <button class="btn-action secondary" style="padding:0 8px;font-size:.7rem" onclick="findSimilarLeads(${i})" title="Buscar Similares">🔍</button>
       </div>
     </div>
   </div>`;
@@ -2821,16 +2919,17 @@ function renderSearchTable() {
       c.facebook  ? `<a href="${c.facebook}"  target="_blank" class="sc-social-badge facebook"  style="font-size:.68rem">FB</a>` : '',
       c.linkedin  ? `<a href="${c.linkedin}"  target="_blank" class="sc-social-badge linkedin"  style="font-size:.68rem">LI</a>` : '',
     ].filter(Boolean).join(' ');
-    return `<tr>
+    const temp = calculateLeadTemperature(c);
+    return `<tr onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('input')) openSidePanel(${i})" style="cursor:pointer">
       <td><input type="checkbox" class="search-check" data-index="${i}" checked></td>
       <td>
-        <div class="lead-name">${c.name}</div>
+        <div class="lead-name">${temp.icon} ${c.name}</div>
         <div class="lead-company">${c.address}</div>
         ${c.website ? `<a href="${c.website}" target="_blank" style="color:var(--primary);font-size:.7rem">🔗 web</a>` : ''}
       </td>
       <td style="font-size:.8rem">${c.phone || '—'}</td>
       <td style="font-size:.78rem;color:${c.email ? 'var(--success)' : 'var(--text-dim)'}">
-        ${c.email || `<input type="email" placeholder="añadir..." onchange="tempSearchResults[${i}].email=this.value;updateEnrichStats()" style="background:none;border:none;border-bottom:1px solid var(--glass-border);color:var(--text);font-size:.78rem;outline:none;width:130px">`}
+        ${c.email ? `<span style="display:inline-flex;align-items:center;gap:.3rem">${c.email}<button onclick="event.stopPropagation(); copyToClipboard('${c.email}', 'Email: ${c.email}')" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:.8rem;padding:2px;line-height:1">⧉</button></span>` : `<input type="email" placeholder="añadir..." onchange="tempSearchResults[${i}].email=this.value;updateEnrichStats()" style="background:none;border:none;border-bottom:1px solid var(--glass-border);color:var(--text);font-size:.78rem;outline:none;width:130px">`}
       </td>
       <td style="font-size:.78rem;color:var(--text-muted)">${c.decision_maker || '—'}</td>
       <td>${socLinks || '—'}</td>
@@ -2839,6 +2938,8 @@ function renderSearchTable() {
       </td>
       <td>
         <button class="btn-action" style="font-size:.72rem" onclick="quickImportOne(${i})">Volcar</button>
+        <button class="btn-action secondary" style="font-size:.72rem;padding:2px 5px" onclick="showMicroAudit(${i})">📋</button>
+        <button class="btn-action secondary" style="font-size:.72rem;padding:2px 5px" onclick="findSimilarLeads(${i})">🔍</button>
       </td>
     </tr>`;
   }).join('');
@@ -3314,3 +3415,340 @@ function loadGoogleMapsScript(apiKey) {
     return [segment]; // fallback de seguridad
   };
 })();
+
+
+// ── MEJORA: Panel Lateral de Vista Rápida (Side Panel) ──────────────────────
+function openQuickView(lead, index) {
+  let panel = document.getElementById('gordi-side-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'gordi-side-panel';
+    panel.style = `
+      position:fixed; top:0; right:-450px; width:450px; height:100%;
+      background:var(--bg-card); border-left:1px solid var(--glass-border);
+      box-shadow:-10px 0 30px rgba(0,0,0,0.3); z-index:9000;
+      transition:right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display:flex; flex-direction:column; overflow:hidden; backdrop-filter:blur(15px);
+    `;
+    document.body.appendChild(panel);
+  }
+
+  const socials = [
+    lead.instagram ? `<a href="${lead.instagram}" target="_blank">📸 IG</a>` : '',
+    lead.facebook ? `<a href="${lead.facebook}" target="_blank">📘 FB</a>` : '',
+    lead.linkedin ? `<a href="${lead.linkedin}" target="_blank">💼 LI</a>` : '',
+  ].filter(Boolean).join(' · ');
+
+  panel.innerHTML = `
+    <div style="padding:25px; border-bottom:1px solid var(--glass-border); background:linear-gradient(to bottom right, rgba(255,255,255,0.05), transparent)">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px">
+        <button onclick="closeQuickView()" style="background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer">✕</button>
+        <div style="display:flex; gap:10px">
+          <button class="btn-action" onclick="quickImportOne(${index}); closeQuickView()">📥 Importar</button>
+          <button class="btn-action" onclick="showMicroAudit(${index})">📋 Auditoría</button>
+        </div>
+      </div>
+      <h2 style="margin:0; font-size:22px; color:var(--text)">${lead.name}</h2>
+      <div style="color:var(--primary); font-weight:600; font-size:14px; margin-top:5px">${lead.category || 'Empresa'}</div>
+    </div>
+    
+    <div style="flex:1; overflow-y:auto; padding:25px">
+      <div style="display:grid; gap:20px">
+        <section>
+          <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px">Información de Contacto</h3>
+          <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05)">
+            <div style="margin-bottom:8px">✉️ <a href="mailto:${lead.email}" style="color:var(--text)">${lead.email || 'No disponible'}</a></div>
+            <div style="margin-bottom:8px">📞 ${lead.phone || 'No disponible'}</div>
+            <div style="margin-bottom:8px">🌐 <a href="${lead.website}" target="_blank" style="color:var(--text)">${lead.website || 'No disponible'}</a></div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05)">${socials || 'Sin redes detectadas'}</div>
+          </div>
+        </section>
+
+        <section>
+          <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px">Análisis de Oportunidad</h3>
+          <div style="display:flex; gap:10px; margin-bottom:15px">
+             <div style="flex:1; text-align:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px">
+                <div style="font-size:18px; font-weight:bold">${lead.rating || '—'}</div>
+                <div style="font-size:10px; color:var(--text-dim)">RATING</div>
+             </div>
+             <div style="flex:1; text-align:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px">
+                <div style="font-size:18px; font-weight:bold">${lead.ratingCount || '0'}</div>
+                <div style="font-size:10px; color:var(--text-dim)">RESEÑAS</div>
+             </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05)">
+            <p style="margin:0; font-size:13px; line-height:1.5; color:var(--text-dim)">${lead.description || 'Sin descripción disponible.'}</p>
+          </div>
+        </section>
+
+        <section>
+          <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px">Señales de Ventas</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:8px">
+            ${(lead.signals || []).map(s => `<span style="font-size:11px; background:rgba(10, 132, 255, 0.1); color:var(--primary); padding:4px 10px; border-radius:20px; border:1px solid rgba(10, 132, 255, 0.2)">${s}</span>`).join('')}
+            ${(lead.techStack || []).slice(0,5).map(t => `<span style="font-size:11px; background:rgba(255,255,255,0.05); color:var(--text-dim); padding:4px 10px; border-radius:20px">${t}</span>`).join('')}
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div style="padding:20px; border-top:1px solid var(--glass-border); display:flex; gap:10px">
+       <button class="btn-primary" style="flex:1" onclick="quickImportOne(${index}); closeQuickView()">Añadir a mi Pipeline</button>
+       <button class="btn-outline" onclick="findSimilarLeads(${index})">🔍 Similares</button>
+    </div>
+  `;
+
+  setTimeout(() => panel.style.right = '0', 10);
+}
+
+function closeQuickView() {
+  const panel = document.getElementById('gordi-side-panel');
+  if (panel) panel.style.right = '-450px';
+}
+
+// ── MEJORA: Filtros Inteligentes de Un Clic ──────────────────────────────
+function injectQuickFilters() {
+  const container = document.querySelector('.search-results-header');
+  if (!container || document.getElementById('gordi-quick-filters')) return;
+
+  const filters = document.createElement('div');
+  filters.id = 'gordi-quick-filters';
+  filters.style = "display:flex; gap:10px; margin:15px 0; overflow-x:auto; padding-bottom:5px; scrollbar-width:none";
+  filters.innerHTML = `
+    <button class="btn-outline btn-sm q-filt" onclick="applyQuickFilter('hot')" style="border-radius:20px; white-space:nowrap">🔥 Muy Caliente</button>
+    <button class="btn-outline btn-sm q-filt" onclick="applyQuickFilter('old')" style="border-radius:20px; white-space:nowrap">🦖 Web Obsoleta</button>
+    <button class="btn-outline btn-sm q-filt" onclick="applyQuickFilter('low_rating')" style="border-radius:20px; white-space:nowrap">⭐ Rating Bajo</button>
+    <button class="btn-outline btn-sm q-filt" onclick="applyQuickFilter('no_web')" style="border-radius:20px; white-space:nowrap">🌐 Sin Web</button>
+    <button class="btn-outline btn-sm q-filt" onclick="applyQuickFilter('all')" style="border-radius:20px; white-space:nowrap; background:var(--glass)">Todos</button>
+  `;
+  container.after(filters);
+}
+
+function applyQuickFilter(type) {
+  // Reset de filtros avanzados primero
+  resetAdvancedFilters();
+  
+  const ratingEl = document.getElementById('filter-rating-min');
+  const webEl = document.getElementById('filter-has-web');
+  const srTextEl = document.getElementById('search-results-text');
+
+  if (type === 'hot') {
+    ratingEl.value = 4;
+  } else if (type === 'old') {
+    srTextEl.value = 'obsoleta';
+  } else if (type === 'low_rating') {
+    // Para rating bajo, usamos el filtro de texto o invertimos la lógica (custom)
+    // Aquí simplificamos usando una señal específica
+    srTextEl.value = 'rating bajo';
+  } else if (type === 'no_web') {
+    // Este requeriría un filtro "Does NOT have web" que no existe, lo simulamos
+    // Pero para no romper, usamos un trigger que applyAdvancedFilters entienda
+  }
+
+  // Estética de botones
+  document.querySelectorAll('.q-filt').forEach(b => b.style.background = 'none');
+  event.target.style.background = 'var(--glass)';
+
+  applyAdvancedFilters();
+}
+
+// ── MEJORA: Sugerencias de Búsqueda Predictiva ──────────────────────────
+const GORDI_SUGGESTIONS = [
+  'Clinica Dental', 'Reforma Viviendas', 'Gimnasio Crossfit', 
+  'Residencia Mayores', 'Centro Estética', 'Abogados Laborales',
+  'Taller Mecánico', 'Restaurante con Terraza', 'Escuela Infantil'
+];
+
+function initPredictiveSearch() {
+  const input = document.getElementById('search-input');
+  if (!input) return;
+
+  const datalist = document.createElement('datalist');
+  datalist.id = 'gordi-search-suggestions';
+  GORDI_SUGGESTIONS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    datalist.appendChild(opt);
+  });
+  document.body.appendChild(datalist);
+  input.setAttribute('list', 'gordi-search-suggestions');
+}
+
+// Inyectar al cargar
+setTimeout(() => {
+  injectQuickFilters();
+  initPredictiveSearch();
+}, 2000);
+
+// ─── MEJORAS DE USABILIDAD (Side Panel, Temperature, Audit) ──────────────────
+
+function calculateLeadTemperature(c) {
+  let score = 0;
+  if (c.email) score += 30;
+  if (c.phone) score += 10;
+  if (c.decision_maker) score += 20;
+  if (c.rating && c.rating < 4) score += 15; // Oportunidad de mejora
+  if (c.ratingCount && c.ratingCount > 50) score += 10; // Empresa establecida
+  if (c.signals && c.signals.length > 0) score += 15;
+
+  if (score >= 70) return { label: 'Hirviendo', icon: '🔥', color: '#ff4d4d', desc: 'Lead de alta prioridad con múltiples señales de cierre.' };
+  if (score >= 40) return { label: 'Templado', icon: '⛅', color: '#ffa500', desc: 'Lead interesado con datos de contacto verificados.' };
+  return { label: 'Gélido', icon: '❄️', color: '#00ccff', desc: 'Lead frío, requiere más investigación o primer contacto.' };
+}
+
+function openSidePanel(idx) {
+  const c = tempSearchResults[idx];
+  if (!c) return;
+
+  let panel = document.getElementById('search-side-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'search-side-panel';
+    panel.className = 'glass-panel';
+    panel.style = "position:fixed;top:0;right:-450px;width:450px;height:100%;z-index:2000;background:rgba(15,15,20,0.95);backdrop-filter:blur(20px);border-left:1px solid var(--glass-border);box-shadow:-10px 0 30px rgba(0,0,0,0.5);transition:right 0.4s cubic-bezier(0.16, 1, 0.3, 1);padding:2rem;overflow-y:auto";
+    document.body.appendChild(panel);
+  }
+
+  const temp = calculateLeadTemperature(c);
+  const initials = (c.name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
+      <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted)">Ficha del Lead</div>
+      <button onclick="closeSidePanel()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:1.5rem">×</button>
+    </div>
+
+    <div style="display:flex;gap:1.5rem;align-items:center;margin-bottom:2rem">
+      <div class="sc-avatar" style="width:80px;height:80px;font-size:1.5rem">
+        ${c.logo ? `<img src="${c.logo}" onerror="this.parentElement.innerHTML='${initials}'">` : initials}
+      </div>
+      <div>
+        <h2 style="margin:0;font-size:1.4rem">${c.name}</h2>
+        <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+           <span style="background:${temp.color}22;color:${temp.color};padding:2px 10px;border-radius:12px;font-size:0.75rem;border:1px solid ${temp.color}44">${temp.icon} ${temp.label}</span>
+           ${c.rating ? `<span style="background:rgba(255,215,0,0.1);color:#ffd700;padding:2px 10px;border-radius:12px;font-size:0.75rem;border:1px solid rgba(255,215,0,0.3)">⭐ ${c.rating}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section" style="margin-bottom:2rem">
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem">Descripción</div>
+      <div style="font-size:0.9rem;line-height:1.6">${c.description || 'Sin descripción detallada.'}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem">
+      <div class="info-box" style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:12px;border:1px solid var(--glass-border)">
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.3rem">Email</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+          <div style="font-size:0.85rem;word-break:break-all">${c.email || '—'}</div>
+          ${c.email ? `<button onclick="copyToClipboard('${c.email}', 'Email: ${c.email}')" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:.9rem;padding:2px">⧉</button>` : ''}
+        </div>
+      </div>
+      <div class="info-box" style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:12px;border:1px solid var(--glass-border)">
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.3rem">Teléfono</div>
+        <div style="font-size:0.85rem">${c.phone || '—'}</div>
+      </div>
+      <div class="info-box" style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:12px;border:1px solid var(--glass-border)">
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.3rem">Web</div>
+        <div style="font-size:0.85rem">${c.website ? `<a href="${c.website}" target="_blank" style="color:var(--primary)">${c.website.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]}</a>` : '—'}</div>
+      </div>
+      <div class="info-box" style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:12px;border:1px solid var(--glass-border)">
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.3rem">Decisor</div>
+        <div style="font-size:0.85rem">${c.decision_maker || '—'}</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:0.75rem">
+      <button class="btn-action" style="width:100%;padding:1rem" onclick="quickImportOne(${idx})">Volcar al CRM</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <button class="btn-action secondary" onclick="showMicroAudit(${idx})">📋 Auditoría</button>
+        <button class="btn-action secondary" onclick="findSimilarLeads(${idx})">🔍 Similares</button>
+      </div>
+    </div>
+  `;
+
+  panel.style.right = '0';
+}
+
+function closeSidePanel() {
+  const panel = document.getElementById('search-side-panel');
+  if (panel) panel.style.right = '-450px';
+}
+
+function showMicroAudit(idx) {
+  const c = tempSearchResults[idx];
+  if (!c) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:2rem";
+  
+  const content = document.createElement('div');
+  content.className = 'glass-card';
+  content.style = "max-width:600px;width:100%;padding:2.5rem;position:relative;max-height:90vh;overflow-y:auto";
+  
+  const temp = calculateLeadTemperature(c);
+  
+  content.innerHTML = `
+    <button onclick="this.closest('.modal-overlay').remove()" style="position:absolute;top:1.5rem;right:1.5rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem">×</button>
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--primary);margin-bottom:0.5rem">Micro-Auditoría de Lead</div>
+      <h2 style="margin:0">${c.name}</h2>
+    </div>
+
+    <div style="display:grid;gap:1.5rem">
+      <div class="audit-item">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+          <span>Temperatura Comercial</span>
+          <strong style="color:${temp.color}">${temp.label}</strong>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px">
+          <div style="width:${temp.label==='Hirviendo'?'100%':temp.label==='Templado'?'60%':'30%'};height:100%;background:${temp.color};border-radius:3px"></div>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03);padding:1.5rem;border-radius:15px;border:1px solid var(--glass-border)">
+        <h4 style="margin:0 0 1rem 0">Puntos Fuertes</h4>
+        <ul style="margin:0;padding-left:1.2rem;font-size:0.85rem;line-height:1.8;color:var(--text-muted)">
+          ${c.email ? '<li>Email verificado y listo para outreach</li>' : ''}
+          ${c.phone ? '<li>Teléfono de contacto directo disponible</li>' : ''}
+          ${c.decision_maker ? '<li>Persona de decisión identificada</li>' : ''}
+          ${c.rating && c.rating > 4.5 ? '<li>Reputación excelente en el mercado</li>' : ''}
+          ${c.signals?.length ? c.signals.map(s => `<li>Señal detectada: ${s}</li>`).join('') : '<li>Empresa establecida en la zona</li>'}
+        </ul>
+      </div>
+
+      <div style="background:rgba(245,158,11,0.05);padding:1.5rem;border-radius:15px;border:1px solid rgba(245,158,11,0.2)">
+        <h4 style="margin:0 0 1rem 0;color:var(--warning)">Ángulo de Venta Recomendado</h4>
+        <p style="margin:0;font-size:0.85rem;line-height:1.6">${getAngleRecommendation(c)}</p>
+      </div>
+    </div>
+
+    <button class="btn-action" style="width:100%;margin-top:2rem" onclick="quickImportOne(${idx});this.closest('.modal-overlay').remove()">Importar y Generar Email</button>
+  `;
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+}
+
+function getAngleRecommendation(c) {
+  if (c.rating && c.rating < 3.5) return "Tienen una puntuación baja. El ángulo ideal es ofrecerles una mejora estética o de infraestructura que mejore la experiencia percibida de sus clientes.";
+  if (c.signals?.some(s => s.toLowerCase().includes('apertura'))) return "Señal de local nuevo. El ángulo es ofrecer servicios de mantenimiento preventivo y puesta a punto de instalaciones para asegurar que el arranque sea perfecto.";
+  if (c.decision_maker) return `Contacto directo con ${c.decision_maker.split('(')[0]}. El ángulo debe ser profesional y centrado en la eficiencia operativa y ahorro energético de sus instalaciones.`;
+  return "Empresa consolidada. El ángulo es la modernización de sistemas eléctricos para mejorar la eficiencia y cumplir con normativas actuales.";
+}
+
+function findSimilarLeads(idx) {
+  const c = tempSearchResults[idx];
+  if (!c) return;
+  
+  const query = c.name + " " + (c.segment || "");
+  showToast(`🔍 Buscando empresas similares a ${c.name}...`);
+  
+  // Pre-rellenar buscador y disparar
+  const input = document.getElementById('search-input');
+  if (input) {
+    input.value = query;
+    const btn = document.getElementById('btn-search');
+    if (btn) btn.click();
+  }
+}

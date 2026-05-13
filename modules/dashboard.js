@@ -10,6 +10,16 @@ function updateStats() {
   set('stat-waiting', emailHistory.filter(h => h.status === 'Visita').length);
 }
 
+// 🏛️ ARQUITECTURA: Escuchar cambios globales
+if (typeof VoltiumEvents !== 'undefined') {
+    VoltiumEvents.on('state:changed', () => {
+        updateStats();
+        renderDashboardCharts();
+        renderRecentActivity();
+        renderTopLeads();
+    });
+}
+
 // ============ DASHBOARD CHARTS + INTELIGENCIA ============
 
 function renderSegmentChart() {
@@ -367,7 +377,7 @@ function renderKanban() {
             <div class="kanban-card-co">${l.company}</div>
             ${nextBadge}
             ${l.notes ? `<div style="font-size:.62rem;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">📝 ${l.notes.slice(0,45)}${l.notes.length>45?'…':''}</div>` : ''}
-            ${l.email ? `<div style="display:flex;align-items:center;gap:3px;margin-top:3px"><span style="font-size:.62rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">✉️ ${l.email}</span><button onclick="copyEmail('${l.email}',event)" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:0 2px;font-size:.72rem;line-height:1;flex-shrink:0;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button></div>` : ''}
+            ${l.email ? `<div style="display:flex;align-items:center;gap:3px;margin-top:3px"><span style="font-size:.62rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">✉️ ${l.email}</span><button onclick="event.stopPropagation(); copyToClipboard('${l.email}', 'Email: ${l.email}')" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:0 2px;font-size:.72rem;line-height:1;flex-shrink:0;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button></div>` : ''}
             ${budgetHtml}
             <div class="kanban-card-foot">
               <span class="kanban-seg">${l.segment}</span>
@@ -492,7 +502,7 @@ function renderTracking() {
     tr.innerHTML = `
       <td style="font-size:.78rem">${new Date(e.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})}</td>
       <td><div class="lead-name">${e.company}</div></td>
-      <td style="color:var(--primary);font-size:.82rem"><span style="display:inline-flex;align-items:center;gap:.35rem">${e.email}<button onclick="copyEmail('${e.email}',event)" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 4px;font-size:.75rem;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button></span></td>
+      <td style="color:var(--primary);font-size:.82rem"><span style="display:inline-flex;align-items:center;gap:.35rem">${e.email}<button onclick="event.stopPropagation(); copyToClipboard('${e.email}', 'Email: ${e.email}')" title="Copiar email" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 4px;font-size:.75rem;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button></span></td>
       <td><span style="font-size:.75rem;background:var(--glass);padding:2px 8px;border-radius:5px;color:var(--text-muted)">${e.segment}</span></td>
       <td><span style="color:var(--success);font-size:.78rem">✅ ${e.status}</span></td>
       <td style="font-size:.78rem;color:var(--text-muted)">${e.notes||'—'}</td>`;

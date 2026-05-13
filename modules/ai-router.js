@@ -494,7 +494,7 @@ function openCtxMenu(e, leadId, source) {
     <div class="ctx-item" onclick="ctxOpenDetail('${leadId}')">👁️ Ver detalle</div>
     <div class="ctx-item" onclick="ctxQuickNote('${leadId}')">📝 Añadir nota</div>
     ${lead.email ? `<div class="ctx-item" onclick="openAiEmailModal('${leadId}');closeCtxMenu()">✨ Generar email IA</div>` : ''}
-    ${lead.email ? `<div class="ctx-item" onclick="copyEmail('${lead.email}',event);closeCtxMenu()">⧉ Copiar email</div>` : ''}
+    ${lead.email ? `<div class="ctx-item" onclick="event.stopPropagation(); copyToClipboard('${lead.email}', 'Email: ${lead.email}'); closeCtxMenu()">📋 Copiar email</div>` : ''}
     <div class="ctx-sep"></div>
     <div class="ctx-item" onclick="archiveLead('${leadId}');closeCtxMenu()" style="color:var(--danger)">📦 Archivar</div>
   `;
@@ -1588,7 +1588,7 @@ function copyReplyToClipboard() {
   const text = `Asunto: ${subj}
 
 ${editor ? editor.innerText : ''}`;
-  navigator.clipboard.writeText(text).then(() => showToast('📋 Respuesta copiada al portapapeles'));
+  copyToClipboard(text, 'Respuesta copiada al portapapeles');
 }
 
 function closeReplyModal() {

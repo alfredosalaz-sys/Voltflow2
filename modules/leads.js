@@ -38,7 +38,6 @@ function saveLead() {
   leads.unshift(lead);
   saveLeads();
   renderAll();
-  renderDashboardCharts();
   document.getElementById('lead-form').reset();
   clearLeadFormDraft();
   toggleLeadForm();
@@ -50,6 +49,10 @@ let _saveLeadsTimer = null;
 function saveLeads() {
   localStorage.setItem('gordi_leads', JSON.stringify(leads));
   _goldenProfile = null; // Invalidar cache lookalike
+
+  // 🏛️ ARQUITECTURA: Notificar cambio global
+  if (typeof notifyStateChange === 'function') notifyStateChange();
+
   // Debounce heavy network calls — batch multiple saves into one push
   if (_saveLeadsTimer) clearTimeout(_saveLeadsTimer);
   _saveLeadsTimer = setTimeout(() => {
@@ -286,7 +289,7 @@ function renderLeads() {
             onblur="saveInlineEmail(this)"
             onkeydown="if(event.key==='Enter'){this.blur();}"
           >
-          <button onclick="const v=this.previousElementSibling?.value||'';if(v){navigator.clipboard.writeText(v).catch(()=>{const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t)});showToast('📋 '+v)} else showToast('⚠️ Sin email')" title="Copiar email al portapapeles" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button>
+          <button onclick="event.stopPropagation(); const v=this.previousElementSibling?.value||''; if(v) copyToClipboard(v, 'Email: '+v); else showToast('⚠️ Sin email')" title="Copiar email al portapapeles" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button>
         </div>
         ${lead.phone ? `<div style="display:flex;align-items:center;gap:.35rem">📞 ${lead.phone}${lead.whatsapp ? ` <button onclick="openWhatsAppModal('${lead.id}',event)" title="Enviar WhatsApp" style="background:none;border:none;cursor:pointer;font-size:.85rem;padding:0;line-height:1;color:#25D366">💬</button>` : ''}</div>` : ''}
       </td>
@@ -305,34 +308,7 @@ function renderLeads() {
   });
 }
 
-function copyEmail(email, event) {
-  if (event) event.stopPropagation();
-  if (!email || !email.trim()) { showToast('⚠️ Este lead no tiene email'); return; }
-  navigator.clipboard.writeText(email.trim()).then(() => {
-    showToast('📋 Email copiado: ' + email.trim());
-    // Visual feedback on the button
-    const btn = document.getElementById('detail-email-copy-btn');
-    if (btn) {
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✅ Copiado';
-      btn.style.borderColor = 'var(--success)';
-      btn.style.color = 'var(--success)';
-      setTimeout(() => {
-        btn.innerHTML = orig;
-        btn.style.borderColor = 'var(--glass-border)';
-        btn.style.color = 'var(--text-muted)';
-      }, 1500);
-    }
-  }).catch(() => {
-    // Fallback para navegadores sin clipboard API
-    const ta = document.createElement('textarea');
-    ta.value = email.trim(); ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 Email copiado: ' + email.trim());
-  });
-}
+
 
 // Activa/desactiva el botón de copiar email en el modal de detalle
 // según si el input tiene contenido. Se llama desde oninput del campo email.
@@ -493,13 +469,13 @@ function saveInlineEmail(input) {
       copyBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s';
       copyBtn.onmouseover = () => copyBtn.style.color = 'var(--primary)';
       copyBtn.onmouseout  = () => copyBtn.style.color = 'var(--text-dim)';
-      copyBtn.onclick = (e) => copyEmail(val, e);
+      copyBtn.onclick = (e) => { e.stopPropagation(); copyToClipboard(val.trim(), 'Email: ' + val.trim()); };
       emailWrap?.appendChild(copyBtn);
     } else if (!val && oldCopyBtn) {
       oldCopyBtn.remove();
     } else if (val && oldCopyBtn) {
       // Update existing copy button with new email
-      oldCopyBtn.onclick = (e) => copyEmail(val, e);
+      oldCopyBtn.onclick = (e) => { e.stopPropagation(); copyToClipboard(val.trim(), 'Email: ' + val.trim()); };
     }
   }
   showToast(val ? 'Email guardado ✓' : 'Email eliminado');
@@ -550,12 +526,13 @@ function openLeadDetail(id) {
       </div>
       ${followupHtml}
       <div class="grid-form" style="grid-template-columns:1fr 1fr;gap:.75rem">
-        <div><label>Email</label><div style="display:flex;align-items:center;gap:.4rem"><input type="email" value="${lead.email||''}" id="detail-email" placeholder="email@empresa.com" style="flex:1" oninput="updateDetailEmailBtn(this)"><button id="detail-email-copy-btn" onclick="copyEmail(document.getElementById('detail-email').value, event)" title="Copiar email al portapapeles" style="background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:.78rem;white-space:nowrap;transition:all .15s;${lead.email && lead.email.trim() ? '' : 'opacity:.35;pointer-events:none'}" onmouseover="if(document.getElementById('detail-email').value){this.style.borderColor='var(--primary)';this.style.color='var(--primary)'}" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">⧉ Copiar</button></div></div>
+        <div><label>Email</label><div style="display:flex;align-items:center;gap:.4rem"><input type="email" value="${lead.email||''}" id="detail-email" placeholder="email@empresa.com" style="flex:1" oninput="updateDetailEmailBtn(this)"><button id="detail-email-copy-btn" onclick="copyToClipboard(document.getElementById('detail-email').value, 'Email copiado')" title="Copiar email al portapapeles" style="background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:.78rem;white-space:nowrap;transition:all .15s;${lead.email && lead.email.trim() ? '' : 'opacity:.35;pointer-events:none'}" onmouseover="if(document.getElementById('detail-email').value){this.style.borderColor='var(--primary)';this.style.color='var(--primary)'}" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">⧉ Copiar</button></div></div>
         <div><label>Teléfono</label><input type="text" value="${lead.phone||''}" id="detail-phone" placeholder="+34 600..."></div>
-        <div><label>Estado</label>
-          <select id="detail-status">
-            ${['Pendiente','Contactado','Respuesta del cliente','Visita','Entrega de presupuesto','Cerrado','No interesa'].map(s=>`<option${lead.status===s?' selected':''}>${s}</option>`).join('')}
-          </select>
+        <div style="grid-column: 1 / -1"><label>Estado del Pipeline</label>
+          <div id="status-pipeline-container">
+            ${renderStatusPipeline(lead.status, lead.id)}
+          </div>
+          <input type="hidden" id="detail-status" value="${lead.status}">
         </div>
         <div><label>Web</label><input type="text" value="${lead.website||''}" id="detail-web" placeholder="https://..."></div>
         <div><label>Próximo contacto</label><div class="date-input-wrap"><input type="text" value="${lead.next_contact||''}" id="detail-next-contact" placeholder="Selecciona o escribe una fecha"><button type="button" class="cal-icon-btn" onclick="var fp=document.getElementById('detail-next-contact')._flatpickr;if(fp)fp.open();" title="Abrir calendario"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button></div></div>
@@ -750,4 +727,4 @@ function generateEmail(id) {
 
 
 // restoreBackup está definida en modules/ui.js con soporte dual-format
-// (backup completo + datos portátiles del index.html antiguo)
+// (backup completo + datos portátiles del index.html antiguo)\n\n// ─── PIPELINE DE ESTADOS VISUAL ─────────────────────────────────────────────\n\nconst PIPELINE_STAGES = ['Pendiente', 'Contactado', 'Respuesta', 'Visita', 'Presupuesto', 'Cerrado'];\nconst STAGE_MAPPING = {\n  'Pendiente': 'Pendiente',\n  'Contactado': 'Contactado',\n  'Respuesta': 'Respuesta del cliente',\n  'Visita': 'Visita',\n  'Presupuesto': 'Entrega de presupuesto',\n  'Cerrado': 'Cerrado'\n};\nconst REVERSE_STAGE_MAPPING = {\n  'Pendiente': 'Pendiente',\n  'Contactado': 'Contactado',\n  'Respuesta del cliente': 'Respuesta',\n  'Visita': 'Visita',\n  'Entrega de presupuesto': 'Presupuesto',\n  'Cerrado': 'Cerrado',\n  'No interesa': 'Pendiente' // Fallback\n};\n\nfunction renderStatusPipeline(currentStatus, leadId) {\n  const currentMapped = REVERSE_STAGE_MAPPING[currentStatus] || 'Pendiente';\n  const currentIndex = PIPELINE_STAGES.indexOf(currentMapped);\n\n  return `<div class=\"status-pipeline\" style=\"display:flex;align-items:center;gap:0.3rem;margin-top:0.5rem;background:rgba(255,255,255,0.03);padding:0.4rem;border-radius:12px;border:1px solid var(--glass-border)\">\n    ${PIPELINE_STAGES.map((s, i) => {\n      const isActive = i <= currentIndex;\n      const isCurrent = i === currentIndex;\n      const color = isActive ? 'var(--primary)' : 'var(--text-dim)';\n      const opacity = isActive ? '1' : '0.4';\n      \n      return `\n        <div onclick=\"updateLeadStatusViaPipeline(${leadId}, '${s}')\" \n             style=\"flex:1;text-align:center;padding:0.6rem 0.3rem;cursor:pointer;position:relative;transition:all 0.3s\">\n          <div style=\"width:100%;height:4px;background:${isActive ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.1)'};border-radius:2px;margin-bottom:0.5rem\"></div>\n          <div style=\"font-size:0.65rem;font-weight:${isCurrent ? '700' : '500'};color:${color};opacity:${opacity}\">${s}</div>\n          ${isCurrent ? '<div style=\"position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--primary);border-radius:50%;box-shadow:0 0 10px var(--primary)\"></div>' : ''}\n        </div>\n        ${i < PIPELINE_STAGES.length - 1 ? '<div style=\"color:rgba(255,255,255,0.1);font-size:0.8rem\">›</div>' : ''}\n      `;\n    }).join('')}\n  </div>`;\n}\n\nfunction updateLeadStatusViaPipeline(leadId, stageName) {\n  const fullStatus = STAGE_MAPPING[stageName];\n  const input = document.getElementById('detail-status');\n  if (input) input.value = fullStatus;\n  \n  const container = document.getElementById('status-pipeline-container');\n  if (container) container.innerHTML = renderStatusPipeline(fullStatus, leadId);\n\n  // Guardado rápido visual\n  const lead = leads.find(l => l.id == leadId);\n  if (lead && lead.status !== fullStatus) {\n    showToast(\"Estado actualizado ✓ (No olvides Guardar)\");\n  }\n}\n

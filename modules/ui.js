@@ -7,6 +7,28 @@ function showToast(msg) {
   setTimeout(() => t.remove(), 2800);
 }
 
+// ============ CLIPBOARD ============
+async function copyToClipboard(text, message = 'Copiado al portapapeles') {
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(`📋 ${message}`);
+  } catch (err) {
+    // Fallback para navegadores antiguos o sin permisos
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showToast(`📋 ${message}`);
+    } catch (err) {
+      console.error('Error al copiar:', err);
+    }
+    document.body.removeChild(textArea);
+  }
+}
+
 // ============ LIGHT MODE ============
 function toggleLightMode() {
   const isLight = document.body.classList.toggle('light-mode');
@@ -131,6 +153,7 @@ function renderTodayPanel() {
         <div class="today-lead-row">
           <span class="today-lead-name" onclick="openLeadDetail('${l.id}')">${l.company}</span>
           <span style="font-size:.65rem;color:var(--text-dim)">${l.status}</span>
+          ${l.email ? `<button class="today-mini-btn" onclick="copyToClipboard('${l.email}', 'Email: ${l.email}')" title="Copiar email">⧉</button>` : ''}
           ${l.email ? `<button class="today-mini-btn success" onclick="generateEmail('${l.id}')">✉️ Email</button>` : ''}
           <button class="today-mini-btn" onclick="todayPostpone('${l.id}')">+1d</button>
           <button class="today-mini-btn" onclick="openLeadDetail('${l.id}')">Ver →</button>
@@ -147,6 +170,7 @@ function renderTodayPanel() {
         <div class="today-lead-row">
           <span class="today-lead-name" onclick="openLeadDetail('${l.id}')">${l.company}</span>
           <span style="font-size:.65rem;color:var(--warning)">${l.score}pts</span>
+          ${l.email ? `<button class="today-mini-btn" onclick="copyToClipboard('${l.email}', 'Email: ${l.email}')" title="Copiar email">⧉</button>` : ''}
           ${l.email ? `<button class="today-mini-btn success" onclick="generateEmail('${l.id}')">✉️ Email</button>` : ''}
           <button class="today-mini-btn" onclick="openAiEmailModal('${l.id}')">✨ IA</button>
           <button class="today-mini-btn danger" onclick="markNotInterested('${l.id}');renderTodayPanel()">✕</button>
@@ -1073,6 +1097,49 @@ function renderDailyStats() {
   container.innerHTML = html;
 }
 
+
+/**
+ * Popula dinámicamente todos los selectores de segmentos en la aplicación.
+ * Centraliza la fuente de verdad en SEGMENT_LABELS (email-templates.js).
+ */
+function populateSegmentDropdowns() {
+  const segments = Object.keys(SEGMENT_LABELS);
+  
+  // 1. Selector en formulario de nuevo lead
+  const leadSel = document.getElementById('lead-segment');
+  if (leadSel) {
+    const cur = leadSel.value;
+    leadSel.innerHTML = '<option value="" disabled selected>Selecciona sector...</option>' + 
+      segments.map(seg => `<option value="${seg}">${SEGMENT_LABELS[seg]}</option>`).join('');
+    if (cur && segments.includes(cur)) leadSel.value = cur;
+  }
+
+  // 2. Filtro en la vista de leads
+  const filterSel = document.getElementById('filter-segment');
+  if (filterSel) {
+    const cur = filterSel.value;
+    filterSel.innerHTML = '<option value="">Todos los sectores</option>' + 
+      segments.map(seg => `<option value="${seg}">${SEGMENT_LABELS[seg]}</option>`).join('');
+    if (cur && segments.includes(cur)) filterSel.value = cur;
+  }
+
+  // 3. Selector en plan de acción
+  const planSel = document.getElementById('plan-segment');
+  if (planSel) {
+    const cur = planSel.value;
+    planSel.innerHTML = segments.map(seg => `<option value="${seg}">${SEGMENT_LABELS[seg]}</option>`).join('');
+    if (cur && segments.includes(cur)) planSel.value = cur;
+  }
+
+  // 4. Selector en creación de campaña
+  const campSel = document.getElementById('camp-segment');
+  if (campSel) {
+    const cur = campSel.value;
+    campSel.innerHTML = '<option value="Todos">Todos los segmentos</option>' + 
+      segments.map(seg => `<option value="${seg}">${SEGMENT_LABELS[seg]}</option>`).join('');
+    if (cur && (cur === 'Todos' || segments.includes(cur))) campSel.value = cur;
+  }
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // GOOGLE MAPS AUTO-INIT
