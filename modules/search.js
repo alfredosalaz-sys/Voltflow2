@@ -951,13 +951,18 @@ async function enrichFromWeb(company) {
   // OPTIMIZACIÓN v2.1.1: Procesamos en paralelo para mayor velocidad
   if (!company.email || !company.decision_maker) {
     const baseUrl = company.website.replace(/\/$/, '');
-    const deepPaths = ['/contacto', '/contact', '/about', '/nosotros', '/equipo'];
+    // FIX-50+: Reducido a 3 rutas (mayor hit-rate comprobado) para evitar timeout
+    const deepPaths = ['/contacto', '/contact', '/about'];
     try {
-      const results = await Promise.allSettled(deepPaths.map(path => fetchWithProxy(baseUrl + path, 6000)));
-      results.forEach((result, idx) => {
-        if (result.status === 'fulfilled' && result.value && result.value.length > 200) {
-          const pageHtml = result.value;
-          const path = deepPaths[idx];
+      // FIX-SCRAPING: Loop secuencial en lugar de Promise.allSettled para evitar saturar proxies
+      for (const path of deepPaths) {
+        if (company.email && company.decision_maker) break; // Ya tenemos todo, parar
+        let pageHtml = null;
+        try {
+          pageHtml = await fetchWithProxy(baseUrl + path, 6000);
+        } catch(e) {}
+        
+        if (pageHtml && pageHtml.length > 200) {
           // Extracción de emails
           if (!company.email) {
             const deobf = pageHtml.replace(/\[at\]/gi,'@').replace(/\(at\)/gi,'@').replace(/ at /gi,'@')
@@ -983,7 +988,7 @@ async function enrichFromWeb(company) {
             else if (m2) company.decision_maker = `${m2[1]} (${m2[2]})`;
           }
         }
-      });
+      }
     } catch {}
   }
   // ─── 8b. Tech Stack Detection (Idea 5) ─────────────────────────────────
@@ -2261,6 +2266,19 @@ async function searchBusinesses() {
   const enrichMode = document.getElementById('plan-enrich').value;
 
   if (!location) { alert('Introduce una ciudad o zona.'); return; }
+
+  // WRAPPER: Verificar inicialización de Google Maps antes de iniciar la UI de búsqueda
+  if (typeof google === 'undefined' || !google.maps) {
+    document.getElementById('btn-search').textContent = '⏳ Iniciando Maps...';
+    try {
+      await waitForGoogleMaps(5000); // 5 segundos max
+    } catch (err) {
+      alert('Error al inicializar Google Maps. Revisa tu API Key en Configuración.\n' + err.message);
+      document.getElementById('btn-search').textContent = '🔍 Buscar y Enriquecer';
+      return;
+    }
+  }
+
   saveSearchHistory(segment, location);
 
   // UI: mostrar pipeline

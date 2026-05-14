@@ -521,7 +521,13 @@ Responde ÚNICAMENTE JSON válido:
 
 // ============ PIN PROTECTION ============
 function checkPin() {
-  const pin = localStorage.getItem('gordi_pin');
+  let pin;
+  try {
+    pin = localStorage.getItem('gordi_pin');
+  } catch (e) {
+    console.error('Error al acceder a localStorage para el PIN:', e);
+    return; // Fallback gracefully if localStorage is unavailable
+  }
   if (!pin) return;
   const input = prompt('🔒 Voltflow — Introduce tu PIN:');
   if (input !== pin) {

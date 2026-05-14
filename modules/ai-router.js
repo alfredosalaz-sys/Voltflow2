@@ -456,6 +456,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sheetsId = localStorage.getItem('gordi_sheets_id');
     const token    = localStorage.getItem('gordi_sheets_token');
     if (sheetsId && token) {
+      // FIX: No sobreescribir datos locales automáticamente en el inicio.
+      // Priorizamos localStorage como fuente principal.
+      /*
       showToast('🔄 Sincronizando datos desde Google Sheets...');
       loadFromSheets().then(() => {
         showToast('✅ Datos actualizados desde Google Sheets');
@@ -464,6 +467,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('🔄 Renovando acceso a Google Sheets...');
         initSheetsOAuth(true);
       });
+      */
+      showToast('☁️ Google Sheets enlazado. Usa el botón manual para importar o exportar si lo necesitas.');
     }
   }, 1200);
 });

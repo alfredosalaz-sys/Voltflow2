@@ -256,15 +256,37 @@ function tryAutoMigrate() {
 }
 
 function loadAllData() {
-  try { leads = JSON.parse(localStorage.getItem('gordi_leads')) || []; } catch { leads = []; }
-  try { emailHistory = JSON.parse(localStorage.getItem('gordi_email_history')) || []; } catch { emailHistory = []; }
-  try { campaigns = JSON.parse(localStorage.getItem('gordi_campaigns')) || []; } catch { campaigns = []; }
-  try { objectives = JSON.parse(localStorage.getItem('gordi_objectives')) || { leads: 20, emails: 10, replies: 3 }; } catch { objectives = { leads: 20, emails: 10, replies: 3 }; }
-  try { searchHistoryList = JSON.parse(localStorage.getItem('gordi_search_history')) || []; } catch { searchHistoryList = []; }
+  let corruptionDetected = false;
+  
+  const loadWithCatch = (key, defaultVal) => {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : defaultVal;
+    } catch (e) {
+      console.error(`Error parsing ${key}:`, e);
+      corruptionDetected = true;
+      return defaultVal;
+    }
+  };
+
+  leads = loadWithCatch('gordi_leads', []);
+  emailHistory = loadWithCatch('gordi_email_history', []);
+  campaigns = loadWithCatch('gordi_campaigns', []);
+  objectives = loadWithCatch('gordi_objectives', { leads: 20, emails: 10, replies: 3 });
+  searchHistoryList = loadWithCatch('gordi_search_history', []);
+  
   try {
-    const saved = JSON.parse(localStorage.getItem('gordi_templates'));
-    emailTemplates = saved ? { ...defaultTemplates, ...saved } : { ...defaultTemplates };
-  } catch { emailTemplates = { ...defaultTemplates }; }
+    const saved = localStorage.getItem('gordi_templates');
+    emailTemplates = saved ? { ...defaultTemplates, ...JSON.parse(saved) } : { ...defaultTemplates };
+  } catch (e) {
+    console.error('Error parsing templates:', e);
+    emailTemplates = { ...defaultTemplates };
+    corruptionDetected = true;
+  }
+
+  if (corruptionDetected) {
+    alert("⚠️ ALERTA DE DATOS: Se han detectado datos corruptos o incompatibles en tu base de datos local.\n\nPor seguridad, los datos afectados no se han cargado para evitar sobreescribirlos. Por favor, ve a 'Configuración' y utiliza la opción 'Exportar Datos' para generar un backup sin procesar, y contacta con soporte.");
+  }
 
   // Cargar keys y perfil
   const apiKey = localStorage.getItem('gordi_api_key');
