@@ -333,7 +333,17 @@
         </div>
         <div class="input-group">
           <label>Segmento / Sector</label>
-          <select id="lead-segment" required></select>
+          <select id="lead-segment" required>
+            <option value="Oficinas">Oficinas Corporativas</option>
+            <option value="Retail">Retail / Comercio</option>
+            <option value="Industrial">Industrial / Logística</option>
+            <option value="Hoteles">Inmobiliaria / Hotelería</option>
+            <option value="Cultural">Centros Culturales</option>
+            <option value="Deportivo">Centros Deportivos</option>
+            <option value="Comercial">Centros Comerciales</option>
+            <option value="Educativo">Educación</option>
+            <option value="Residencias">Residencias de Ancianos</option>
+          </select>
         </div>
         <div class="input-group">
           <label>Cargo del Decisor</label>
@@ -414,7 +424,18 @@
 
     <!-- Leads advanced filters panel -->
     <div class="sf-panel" id="leads-sf-panel">
-      <select id="filter-segment" onchange="renderLeads(); sfUpdateChips('leads')"></select>
+      <select id="filter-segment" onchange="renderLeads(); sfUpdateChips('leads')">
+        <option value="">Todos los sectores</option>
+        <option value="Oficinas">Oficinas</option>
+        <option value="Retail">Retail</option>
+        <option value="Industrial">Industrial</option>
+        <option value="Hoteles">Hotelería</option>
+        <option value="Cultural">Cultural</option>
+        <option value="Deportivo">Deportivo</option>
+        <option value="Comercial">Comercial</option>
+        <option value="Educativo">Educativo</option>
+        <option value="Residencias">Residencias</option>
+      </select>
       <select id="filter-status" onchange="renderLeads(); sfUpdateChips('leads')">
         <option value="">Todos los estados</option>
         <option value="Pendiente">Pendiente</option>
@@ -536,9 +557,6 @@
         <option value="Oficinas">Oficinas</option>
         <option value="Retail">Retail</option>
         <option value="Industrial">Industrial</option>
-        <option value="Dental">Dental</option>
-        <option value="Medico">Médico</option>
-        <option value="Estetico">Estético</option>
         <option value="Hoteles">Hotelería</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
@@ -616,7 +634,17 @@
       <div class="search-engine-bar">
         <div class="input-group" style="flex:1;min-width:160px">
           <label>Sector</label>
-          <select id="plan-segment" onchange="renderPlan()"></select>
+          <select id="plan-segment">
+            <option value="Industrial">🏭 Industrial / Naves</option>
+            <option value="Retail">🛍️ Retail / Tiendas</option>
+            <option value="Oficinas">🏢 Oficinas / Consultoras</option>
+            <option value="Hoteles">🏨 Hoteles / Hostelería</option>
+            <option value="Educativo">🎓 Educación / Colegios</option>
+            <option value="Deportivo">⚽ Deportivo / Gimnasios</option>
+            <option value="Cultural">🎭 Cultural / Museos</option>
+            <option value="Comercial">🏬 Centros Comerciales</option>
+            <option value="Residencias">🏠 Residencias de Ancianos</option>
+          </select>
         </div>
         <div class="input-group" style="flex:1.4;min-width:180px">
           <label>Ciudad / Zona / CP</label>
@@ -1023,9 +1051,6 @@
         <option value="Oficinas">Oficinas</option>
         <option value="Retail">Retail</option>
         <option value="Industrial">Industrial</option>
-        <option value="Dental">Dental</option>
-        <option value="Medico">Médico</option>
-        <option value="Estetico">Estético</option>
         <option value="Hoteles">Hotelería</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
@@ -1085,9 +1110,6 @@
         <option value="Oficinas">Oficinas</option>
         <option value="Retail">Retail</option>
         <option value="Industrial">Industrial</option>
-        <option value="Dental">Dental</option>
-        <option value="Medico">Médico</option>
-        <option value="Estetico">Estético</option>
         <option value="Hoteles">Hotelería</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
@@ -1703,7 +1725,18 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
       </div>
       <div class="input-group" style="margin-bottom:1rem">
         <label>Segmento objetivo</label>
-        <select id="camp-segment"></select>
+        <select id="camp-segment">
+          <option value="Todos">Todos los segmentos</option>
+          <option value="Oficinas">Oficinas</option>
+          <option value="Retail">Retail</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Hoteles">Hotelería</option>
+          <option value="Educativo">Educativo</option>
+          <option value="Deportivo">Deportivo</option>
+          <option value="Comercial">Comercial</option>
+          <option value="Cultural">Cultural</option>
+          <option value="Residencias">Residencias</option>
+        </select>
       </div>
       <div class="input-group" style="margin-bottom:1rem">
         <label>Secuencia de Emails</label>
@@ -2327,9 +2360,12 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
 </div>
 
 
+</body>
+</html>
+
+
 <!-- ═══════════════════════════════════════════════════════
      MÓDULOS JS — orden de dependencia
-     v2.1.1 (Production Ready)
 ═══════════════════════════════════════════════════════ -->
 <script src="modules/state.js"></script>
 <script src="modules/email-templates.js"></script>

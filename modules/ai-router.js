@@ -456,9 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sheetsId = localStorage.getItem('gordi_sheets_id');
     const token    = localStorage.getItem('gordi_sheets_token');
     if (sheetsId && token) {
-      // FIX: No sobreescribir datos locales automáticamente en el inicio.
-      // Priorizamos localStorage como fuente principal.
-      /*
       showToast('🔄 Sincronizando datos desde Google Sheets...');
       loadFromSheets().then(() => {
         showToast('✅ Datos actualizados desde Google Sheets');
@@ -467,8 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('🔄 Renovando acceso a Google Sheets...');
         initSheetsOAuth(true);
       });
-      */
-      showToast('☁️ Google Sheets enlazado. Usa el botón manual para importar o exportar si lo necesitas.');
     }
   }, 1200);
 });
@@ -499,7 +494,7 @@ function openCtxMenu(e, leadId, source) {
     <div class="ctx-item" onclick="ctxOpenDetail('${leadId}')">👁️ Ver detalle</div>
     <div class="ctx-item" onclick="ctxQuickNote('${leadId}')">📝 Añadir nota</div>
     ${lead.email ? `<div class="ctx-item" onclick="openAiEmailModal('${leadId}');closeCtxMenu()">✨ Generar email IA</div>` : ''}
-    ${lead.email ? `<div class="ctx-item" onclick="event.stopPropagation(); copyToClipboard('${lead.email}', 'Email: ${lead.email}'); closeCtxMenu()">📋 Copiar email</div>` : ''}
+    ${lead.email ? `<div class="ctx-item" onclick="copyEmail('${lead.email}',event);closeCtxMenu()">⧉ Copiar email</div>` : ''}
     <div class="ctx-sep"></div>
     <div class="ctx-item" onclick="archiveLead('${leadId}');closeCtxMenu()" style="color:var(--danger)">📦 Archivar</div>
   `;
@@ -861,7 +856,7 @@ const MAX_SAVED_SEARCHES = 10;
 const SAVED_SEARCHES_KEY = 'gordi_saved_searches';
 let ssCompareSelection = [];
 let ssCurrentFilter = '';
-const SEGMENT_ICONS = { Industrial:'🏭', Retail:'🛍️', Oficinas:'🏢', Hoteles:'🏨', Educativo:'🎓', Deportivo:'⚽', Cultural:'🎭', Comercial:'🏬', Dental:'🦷', Medico:'🏥', Estetico:'✨' };
+const SEGMENT_ICONS = { Industrial:'🏭', Retail:'🛍️', Oficinas:'🏢', Hoteles:'🏨', Educativo:'🎓', Deportivo:'⚽', Cultural:'🎭', Comercial:'🏬' };
 
 function getSavedSearches() {
   try { return JSON.parse(localStorage.getItem(SAVED_SEARCHES_KEY) || '[]'); } catch { return []; }
@@ -1593,7 +1588,7 @@ function copyReplyToClipboard() {
   const text = `Asunto: ${subj}
 
 ${editor ? editor.innerText : ''}`;
-  copyToClipboard(text, 'Respuesta copiada al portapapeles');
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Respuesta copiada al portapapeles'));
 }
 
 function closeReplyModal() {

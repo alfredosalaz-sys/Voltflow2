@@ -215,70 +215,6 @@ Puede ver proyectos similares en: https://www.voltiummadrid.es/galer%c3%Ada
 {{FIRMA}}`
   },
 
-  // ── DENTAL ───────────────────────────────────────────────────────────────────
-  "Dental": {
-    subjectA: "Una pregunta sobre la clínica {{Company}}",
-    subjectB: "{{Company}}: ¿sus instalaciones están ayudando a cerrar presupuestos?",
-    body: `{{SALUDO}},
-
-En el sector dental, la primera impresión es determinante. El paciente decide si confía en el profesional no solo por su currículum, sino por lo que ve al entrar: la sala de espera, la iluminación del gabinete o el estado general de las instalaciones.
-
-Una clínica que se siente antigua o descuidada genera una barrera psicológica que dificulta el cierre de grandes presupuestos.
-
-En Voltium Madrid nos especializamos en reformas de clínicas dentales con una premisa clara: que la obra no paralice su actividad. Planificamos la ejecución por fases — gabinete por gabinete — o en periodos vacacionales, con plazos garantizados por contrato y presupuesto cerrado.
-
-Además, nos encargamos de toda la adecuación a la normativa sanitaria vigente, iluminación técnica específica y optimización de espacios para mejorar el flujo de trabajo.
-
-Puede ver algunos de nuestros proyectos aquí: https://www.voltiummadrid.es/galer%c3%Ada
-
-¿Le parece bien que hablemos 15 minutos para ver cómo podríamos mejorar la imagen y funcionalidad de {{Company}}?
-
-{{FIRMA}}`
-  },
-
-  // ── MEDICO ───────────────────────────────────────────────────────────────────
-  "Medico": {
-    subjectA: "Cumplimiento normativo y confort en {{Company}}",
-    subjectB: "{{Company}}: reforma de centros sanitarios sin interrupción",
-    body: `{{SALUDO}},
-
-Gestionar un centro médico implica equilibrar dos prioridades críticas: el cumplimiento estricto de la normativa sanitaria y la creación de un entorno de confianza y confort para el paciente.
-
-Instalaciones obsoletas no solo afectan a la imagen del centro, sino que pueden suponer riesgos operativos o de cumplimiento que conviene atajar de forma planificada.
-
-En Voltium Madrid tenemos experiencia en la reforma de centros sanitarios. Sabemos cómo trabajar en entornos que requieren una higiene y orden máximos, y lo hacemos minimizando el impacto en su agenda de consultas. Ejecutamos las obras de forma limpia, por tramos horarios o por áreas, asegurando siempre el cumplimiento de los plazos.
-
-Desde la renovación de salas de espera hasta la adecuación técnica de consultas y mejora de la eficiencia energética.
-
-Puede consultar nuestros trabajos en: https://www.voltiummadrid.es/galer%c3%Ada
-
-¿Tienen prevista alguna actualización en las instalaciones de {{Company}} este año? Me gustaría conocer sus necesidades y ver si podemos colaborar.
-
-{{FIRMA}}`
-  },
-
-  // ── ESTETICO ─────────────────────────────────────────────────────────────────
-  "Estetico": {
-    subjectA: "{{Company}}: el espacio que rodea sus tratamientos importa tanto como el resultado",
-    subjectB: "Una propuesta para elevar el nivel de {{Company}}",
-    body: `{{SALUDO}},
-
-En el mundo de la estética, usted no vende solo un servicio; vende una aspiración de belleza y bienestar. Por eso, el local de {{Company}} es su principal herramienta de marketing.
-
-Si el entorno no transmite lujo, profesionalidad y exclusividad, es mucho más difícil posicionarse en el segmento premium y justificar tarifas altas. La iluminación, los materiales y la privacidad de las cabinas son elementos que afectan directamente a la recurrencia de sus clientes.
-
-En Voltium Madrid transformamos centros estéticos en espacios de alto impacto visual. Lo hacemos con un modelo de gestión integral: diseño, licencias y obra. Y lo más importante: planificamos la ejecución para que tenga que cerrar el mínimo tiempo posible, o incluso trabajando sin interferir en sus citas.
-
-Presupuesto cerrado, un único interlocutor y plazos de entrega que se cumplen por contrato.
-
-Puede ver algunos ejemplos de transformación en: https://www.voltiummadrid.es/galer%c3%Ada
-
-¿Le gustaría que hiciésemos una valoración de qué potencial tiene el local de {{Company}}? Es sin compromiso y le dará una visión clara de las posibilidades de mejora.
-
-{{FIRMA}}`
-  },
-
-
   // ── DEFAULT ──────────────────────────────────────────────────────────────────
   "Default": {
     subjectA: "Una propuesta para las instalaciones de {{Company}}",
@@ -367,21 +303,6 @@ const segmentQueries = {
     "nursing home elderly care", "centro día mayores",
     "geriátrico residencia asistida", "centro sociosanitario mayores",
     "residencia asistida dependencia", "centro de atención mayores"
-  ],
-  "Dental": [
-    "clínica dental dentista", "odontología clínica",
-    "dental clinic dentist", "ortodoncia clínica",
-    "centro odontológico especializada", "implantes dentales clínica"
-  ],
-  "Medico": [
-    "centro médico policlínica", "clínica médica privada",
-    "consultorio médico salud", "medical center clinic",
-    "centro de especialidades médicas", "centro de salud privado"
-  ],
-  "Estetico": [
-    "centro de estética belleza", "clínica estética corporal",
-    "salón de belleza estética", "aesthetic center beauty",
-    "medicina estética clínica", "centro bienestar estética"
   ]
 };
 
@@ -402,25 +323,7 @@ const SEGMENT_COLORS = {
   "Cultural": "#e879f9",
   "Comercial": "#38bdf8",
   "Residencias": "#f87171",
-  "Dental": "#0ea5e9",
-  "Medico": "#10b981",
-  "Estetico": "#f472b6",
   "Default": "#7a8ba0"
-};
-
-const SEGMENT_LABELS = {
-  "Industrial": "🏭 Industrial / Naves",
-  "Retail": "🛍️ Retail / Tiendas",
-  "Oficinas": "🏢 Oficinas / Consultoras",
-  "Hoteles": "🏨 Hoteles / Hostelería",
-  "Dental": "🦷 Clínicas Dentales",
-  "Medico": "🏥 Centros Médicos",
-  "Estetico": "✨ Centros Estéticos",
-  "Educativo": "🎓 Educación / Colegios",
-  "Deportivo": "⚽ Deportivo / Gimnasios",
-  "Cultural": "🎭 Cultural / Museos",
-  "Comercial": "🏬 Centros Comerciales",
-  "Residencias": "🏠 Residencias de Ancianos"
 };
 
 // ─── TONOS Y CONTEXTO POR SEGMENTO ───────────────────────────────────────────
@@ -479,25 +382,6 @@ const SEGMENT_TONE = {
     angle: "Voltium ejecuta la reforma habitación por habitación, sin alterar la rutina de los residentes. Accesibilidad, baños adaptados y zonas comunes renovadas que transmiten confianza en la primera visita.",
     forbidden: "nunca usar lenguaje frío o empresarial en exceso. No hablar de 'productividad' ni 'ROI' directamente — el argumento es humano primero, económico después."
   },
-  "Dental": {
-    tone: "profesional, higiénico y orientado a la confianza del paciente. Habla de 'clínica', 'pacientes', 'gabinete', 'primera impresión', 'cierre de presupuestos', 'normativa sanitaria'. El decisor es el odontólogo titular o gerente de la clínica.",
-    pain: "instalaciones que se ven antiguas o poco higiénicas generan desconfianza en el paciente y dificultan el cierre de tratamientos costosos (implantes, ortodoncia).",
-    angle: "reforma por fases (gabinete por gabinete) para no cerrar la clínica. Mejora de la imagen para aumentar el ratio de conversión de presupuestos.",
-    forbidden: "no usar lenguaje demasiado agresivo. El tono debe ser de socio tecnológico/constructivo que cuida la higiene."
-  },
-  "Medico": {
-    tone: "serio, institucional y enfocado en la normativa. Habla de 'centro médico', 'consultas', 'sala de espera', 'cumplimiento sanitario', 'confort del paciente'. El decisor es el director médico o gerente.",
-    pain: "incumplimiento de normativas sanitarias que pueden derivar en multas o cierres. Espacios poco optimizados que generan esperas innecesarias.",
-    angle: "experiencia en adecuación técnica de centros sanitarios. Reforma limpia y coordinada con la agenda de citas.",
-    forbidden: "no hablar de 'estética' como prioridad — aquí importa la funcionalidad y la norma."
-  },
-  "Estetico": {
-    tone: "sofisticado, premium y enfocado en el diseño. Habla de 'lujo', 'exclusividad', 'experiencia del cliente', 'cabinas', 'iluminación ambiental', 'percepción de valor'. El decisor es el dueño del centro o directora.",
-    pain: "un local que no transmite exclusividad impide cobrar precios altos. La falta de privacidad o una iluminación pobre arruinan la experiencia del tratamiento.",
-    angle: "transformación total del local para elevarlo al segmento premium. Diseño de iluminación y materiales que justifiquen tarifas más altas.",
-    forbidden: "no usar lenguaje técnico pesado. Foco en la belleza y el resultado final del espacio."
-  },
-
   "Default": {
     tone: "profesional y directo. Adapta el lenguaje al contexto del negocio.",
     pain: "el problema más recurrente que detectes en reseñas o en la web.",

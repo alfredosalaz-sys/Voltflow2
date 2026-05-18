@@ -30,7 +30,7 @@ const GUARDIAN = {
     'buildEmailThread','buildGoldenProfile','buildSearchGrid','buildSignalCorrelation',
     'callGeminiAPI','saveGroqKey','saveOpenRouterKey','refreshAiRouterStatus','calculateScore','cleanObsoleteLeads','clearAllLeads',
     'closeBriefingModal','closeDrawer','closeFocusMode','closeLead',
-    'closeScanModal','closeVoiceModal','copyToClipboard','copySubjectOption','createLeadFromInbox','openWhatsAppModal','closeWaModal','generateWhatsAppMessage','generateContactCalendar','applyContactCalendar','showPainPicker','confirmPainAndGenerate','skipPainPicker',
+    'closeScanModal','closeVoiceModal','copyEmail','copySubjectOption','createLeadFromInbox','openWhatsAppModal','closeWaModal','generateWhatsAppMessage','generateContactCalendar','applyContactCalendar','showPainPicker','confirmPainAndGenerate','skipPainPicker',
     'ctxSetStatus','deleteLead','dragStart','drawerNav',
     'dropLead','duplicateLead','enrichFromApollo','enrichFromBorme',
     'enrichFromHunter','enrichFromSocial','enrichFromStreetView','enrichFromWeb',
@@ -56,12 +56,12 @@ const GUARDIAN = {
     'showToast','showView','startVoiceRecording','stopVoiceRecording',
     'syncToSheets','loadFromSheets','renderSheetsStatus',
     'todayPostpone','toggleLeadForm','updateFollowupBadge',
-    'updateInboxBadge','updateStats','updateStreakData','populateSegmentDropdowns',
+    'updateInboxBadge','updateStats','updateStreakData',
   ],
 
   REQUIRED_TOKENS: [
     'SEQUENCE_RULES','SEGMENT_TONE','CITY_DISTRICTS','HUNTER_BATCH',
-    'SLASH_COMMANDS','segmentQueries','SHEETS_COLS','STATUS_LIST','SEGMENT_LABELS',
+    'SLASH_COMMANDS','segmentQueries','SHEETS_COLS','STATUS_LIST',
     't0Fetch','discard = false','buildEmailThread','registerInlineReply',
     'openVoiceModal','openScanModal','openFocusMode','initLeadsMap',
     'openBriefingModal','parseEmailsFromText','applySequenceRule',
