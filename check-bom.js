@@ -1,0 +1,6 @@
+const fs = require('fs');
+const files = ['app.html', 'modules/email-templates.js'];
+files.forEach(f => {
+  const buf = fs.readFileSync(f);
+  console.log(`${f}:`, buf.slice(0, 5));
+});

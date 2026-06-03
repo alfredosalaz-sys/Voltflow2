@@ -30,7 +30,7 @@ const GUARDIAN = {
     'buildEmailThread','buildGoldenProfile','buildSearchGrid','buildSignalCorrelation',
     'callGeminiAPI','saveGroqKey','saveOpenRouterKey','refreshAiRouterStatus','calculateScore','cleanObsoleteLeads','clearAllLeads',
     'closeBriefingModal','closeDrawer','closeFocusMode','closeLead',
-    'closeScanModal','closeVoiceModal','copyEmail','copySubjectOption','createLeadFromInbox','openWhatsAppModal','closeWaModal','generateWhatsAppMessage','generateContactCalendar','applyContactCalendar','showPainPicker','confirmPainAndGenerate','skipPainPicker',
+    'closeScanModal','closeVoiceModal','copyToClipboard','copySubjectOption','createLeadFromInbox','openWhatsAppModal','closeWaModal','generateWhatsAppMessage','generateContactCalendar','applyContactCalendar','showPainPicker','confirmPainAndGenerate','skipPainPicker',
     'ctxSetStatus','deleteLead','dragStart','drawerNav',
     'dropLead','duplicateLead','enrichFromApollo','enrichFromBorme',
     'enrichFromHunter','enrichFromSocial','enrichFromStreetView','enrichFromWeb',
@@ -56,12 +56,12 @@ const GUARDIAN = {
     'showToast','showView','startVoiceRecording','stopVoiceRecording',
     'syncToSheets','loadFromSheets','renderSheetsStatus',
     'todayPostpone','toggleLeadForm','updateFollowupBadge',
-    'updateInboxBadge','updateStats','updateStreakData',
+    'updateInboxBadge','updateStats','updateStreakData','populateSegmentDropdowns',
   ],
 
   REQUIRED_TOKENS: [
     'SEQUENCE_RULES','SEGMENT_TONE','CITY_DISTRICTS','HUNTER_BATCH',
-    'SLASH_COMMANDS','segmentQueries','SHEETS_COLS','STATUS_LIST',
+    'SLASH_COMMANDS','segmentQueries','SHEETS_COLS','STATUS_LIST','SEGMENT_LABELS',
     't0Fetch','discard = false','buildEmailThread','registerInlineReply',
     'openVoiceModal','openScanModal','openFocusMode','initLeadsMap',
     'openBriefingModal','parseEmailsFromText','applySequenceRule',
@@ -1057,3 +1057,429 @@ function applyVoltflowPayload(payload) {
   setTimeout(() => location.reload(), 1200);
 }
 
+// ============================================================
+// BRUTAL SALES UPGRADES
+// Radar, attack plan, competitive spy, lost opportunities, dossier
+// ============================================================
+
+function bfEscape(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function bfModal(title, html, maxWidth = 780) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay brutal-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = `
+    <div style="width:min(${maxWidth}px,96vw);max-height:90vh;overflow:auto;background:var(--bg-card);border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.5)">
+      <div style="position:sticky;top:0;background:var(--bg-card);z-index:1;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--glass-border)">
+        <h2 style="margin:0;font-size:1.05rem">${title}</h2>
+        <button class="btn-outline btn-sm" onclick="this.closest('.brutal-modal').remove()">Cerrar</button>
+      </div>
+      <div style="padding:1.2rem">${html}</div>
+    </div>`;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function bfLeadAgeDays(lead) {
+  return lead?.date ? Math.floor((Date.now() - new Date(lead.date)) / 86400000) : 0;
+}
+
+function bfLastActivityDays(lead) {
+  const dates = [
+    lead?.status_date,
+    lead?.first_contact_date,
+    ...(lead?.activity || []).map(a => a.date)
+  ].filter(Boolean).map(d => new Date(d).getTime()).filter(Boolean);
+  if (!dates.length) return bfLeadAgeDays(lead);
+  return Math.floor((Date.now() - Math.max(...dates)) / 86400000);
+}
+
+function bfSentEmailsForLead(lead) {
+  return (emailHistory || []).filter(e => e.leadId == lead.id || (lead.email && e.email === lead.email));
+}
+
+function bfLeadPainSignals(lead) {
+  const parts = [
+    lead.signal, lead.description, lead.reviewSummary, lead.fachadaAnalysis,
+    ...(lead.signals || []), ...(lead.reviewPain || []), ...(lead.techStack || [])
+  ].filter(Boolean).join(' ').toLowerCase();
+  const out = [];
+  if (/lento|velocidad|wordpress|wix|joomla|prestashop|web/i.test(parts)) out.push('web/captacion mejorable');
+  if (/reseñ|resen|queja|mal|espera|sucio|antigu|deterior|dolor/i.test(parts)) out.push('dolor visible en reputacion');
+  if (/reforma|obra|apertura|traslado|ampliac|nuevo local|nueva sede/i.test(parts)) out.push('momento de cambio');
+  if (!lead.website) out.push('sin web clara');
+  if (!lead.email) out.push('sin email directo');
+  if (lead.rating && lead.rating < 4) out.push('rating mejorable');
+  return [...new Set(out)].slice(0, 5);
+}
+
+function runOpportunityRadar() {
+  const saved = (() => {
+    try { return JSON.parse(localStorage.getItem('gordi_saved_searches') || '[]'); } catch { return []; }
+  })();
+  const seenCompanies = new Set((leads || []).filter(l => !l.archived).map(l => (l.company || '').toLowerCase().trim()));
+  const candidates = [];
+
+  saved.forEach(s => {
+    (s.results || []).forEach((r, idx) => {
+      const name = (r.name || r.company || '').trim();
+      if (!name || seenCompanies.has(name.toLowerCase())) return;
+      const score = r.opportunityScore || r.score || ((r.email ? 25 : 0) + (r.phone ? 10 : 0) + (r.website ? 10 : 0) + Math.min(r.ratingCount || 0, 100) / 4 + (r.rating || 0) * 8);
+      candidates.push({ ...r, _savedId: s.id, _savedLabel: s.label || `${s.segment || ''} ${s.location || ''}`.trim(), _idx: idx, _radarScore: Math.round(score) });
+    });
+  });
+
+  (tempSearchResults || []).forEach((r, idx) => {
+    const name = (r.name || '').trim();
+    if (!name || seenCompanies.has(name.toLowerCase())) return;
+    candidates.push({ ...r, _idx: idx, _savedLabel: 'busqueda actual', _radarScore: r.opportunityScore || r.score || 40 });
+  });
+
+  candidates.sort((a, b) => (b._radarScore || 0) - (a._radarScore || 0));
+  localStorage.setItem('gordi_radar_last_run', new Date().toISOString());
+
+  const html = `
+    <div style="font-size:.86rem;color:var(--text-muted);line-height:1.55;margin-bottom:1rem">
+      Revisa busquedas guardadas y resultados actuales para detectar empresas nuevas que aun no estan en el CRM.
+    </div>
+    <div style="display:grid;gap:.55rem">
+      ${candidates.slice(0, 30).map(c => `
+        <div style="display:flex;gap:.75rem;align-items:flex-start;justify-content:space-between;padding:.75rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+          <div style="min-width:0">
+            <strong>${bfEscape(c.name || c.company)}</strong>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">${bfEscape(c.address || c.website || c._savedLabel || '')}</div>
+            <div style="font-size:.72rem;color:var(--text-dim);margin-top:.25rem">${bfEscape((c.signals || []).slice(0, 2).join(' | ') || c.description || 'Sin senal ampliada')}</div>
+          </div>
+          <div style="display:flex;gap:.45rem;align-items:center;flex-shrink:0">
+            <strong style="color:${(c._radarScore || 0) >= 70 ? 'var(--success)' : 'var(--warning)'}">${c._radarScore || 0}</strong>
+            ${typeof c._idx === 'number' && c._savedLabel === 'busqueda actual' ? `<button class="btn-action" onclick="quickImportOne(${c._idx});this.closest('.brutal-modal')?.remove()">Volcar</button>` : ''}
+            ${c._savedId && typeof loadSavedSearch === 'function' ? `<button class="btn-action secondary" onclick="loadSavedSearch('${c._savedId}')">Cargar</button>` : ''}
+          </div>
+        </div>`).join('') || '<div style="color:var(--text-muted)">No hay oportunidades nuevas. Guarda busquedas o ejecuta una busqueda para alimentar el radar.</div>'}
+    </div>`;
+  bfModal('Radar de empresas calientes', html, 900);
+  showToast(`Radar: ${candidates.length} oportunidades detectadas`);
+}
+
+function buildLeadAttackPlan(lead) {
+  const pains = bfLeadPainSignals(lead);
+  const angle = lead.opportunityAngle || lead.signal || pains[0] || 'mejora comercial y operativa';
+  const saludo = typeof buildSaludo === 'function' ? buildSaludo(lead.name, lead.company) : `Hola ${lead.name || 'equipo'}`;
+  const email = `${saludo},\n\nHe revisado ${lead.company} y veo una oportunidad clara alrededor de ${angle}.\n\nLa idea no es venderte nada a ciegas: te propondria una revision rapida de 10 minutos para identificar donde se puede ganar mas captacion, confianza o eficiencia.\n\nSi tiene sentido, te paso 2-3 mejoras concretas para vuestro caso.\n\nUn saludo.`;
+  const whatsapp = `Hola ${lead.name || 'equipo'}, soy ${localStorage.getItem('gordi_user_name') || 'Hector'}. He visto ${lead.company} y creo que hay una mejora rapida en ${angle}. Te puedo pasar 2 ideas concretas sin compromiso?`;
+  return {
+    angle,
+    diagnosis: pains.length ? pains : ['lead con informacion suficiente para contacto consultivo'],
+    email,
+    whatsapp,
+    call: [
+      `Apertura: "He revisado ${lead.company} y queria contrastar una oportunidad concreta."`,
+      'Pregunta: "Ahora mismo que os pesa mas: captar mas clientes, mejorar conversion o resolver incidencias operativas?"',
+      'Cierre: "Si te encaja, preparo una mini auditoria y vemos si hay proyecto real."'
+    ],
+    objections: [
+      ['No tenemos tiempo', 'Por eso lo planteo en 10 minutos y con 2 mejoras ya filtradas.'],
+      ['Ya tenemos proveedor', 'Perfecto; mi propuesta es revisar si hay margen que vuestro proveedor no esta cubriendo.'],
+      ['Mandame informacion', 'Te mando algo breve, pero antes prefiero confirmar que el enfoque encaja con vuestra situacion.']
+    ],
+    next: lead.email ? 'Enviar email y programar seguimiento a 3 dias.' : lead.phone ? 'Llamar primero y pedir email directo.' : 'Buscar decisor/email antes de contactar.'
+  };
+}
+
+function openLeadAttackPlan(id) {
+  const lead = (leads || []).find(l => l.id == id);
+  if (!lead) return;
+  const plan = buildLeadAttackPlan(lead);
+  if (typeof addActivityLog === 'function') addActivityLog(lead.id, 'Plan de ataque generado');
+  if (typeof saveLeads === 'function') saveLeads();
+  const html = `
+    <div style="display:grid;gap:1rem">
+      <section style="padding:1rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+        <strong>Diagnostico</strong>
+        <ul style="margin:.6rem 0 0 1.1rem;color:var(--text-muted)">${plan.diagnosis.map(x => `<li>${bfEscape(x)}</li>`).join('')}</ul>
+      </section>
+      <section style="padding:1rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+        <strong>Email inicial</strong>
+        <textarea style="width:100%;min-height:150px;margin-top:.6rem;background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;color:var(--text);padding:.75rem">${bfEscape(plan.email)}</textarea>
+      </section>
+      <section style="padding:1rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+        <strong>WhatsApp</strong>
+        <textarea style="width:100%;min-height:75px;margin-top:.6rem;background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;color:var(--text);padding:.75rem">${bfEscape(plan.whatsapp)}</textarea>
+      </section>
+      <section style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div style="padding:1rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+          <strong>Llamada</strong>
+          <ol style="margin:.6rem 0 0 1.1rem;color:var(--text-muted)">${plan.call.map(x => `<li>${bfEscape(x)}</li>`).join('')}</ol>
+        </div>
+        <div style="padding:1rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+          <strong>Objeciones</strong>
+          ${plan.objections.map(([o, r]) => `<div style="margin-top:.55rem"><b>${bfEscape(o)}</b><br><span style="color:var(--text-muted);font-size:.84rem">${bfEscape(r)}</span></div>`).join('')}
+        </div>
+      </section>
+      <div style="padding:1rem;border:1px solid rgba(16,217,124,.25);border-radius:10px;background:rgba(16,217,124,.07)"><strong>Siguiente paso:</strong> ${bfEscape(plan.next)}</div>
+    </div>`;
+  bfModal(`Plan de ataque - ${bfEscape(lead.company)}`, html, 920);
+}
+
+function openCompetitiveSpyForLead(id) {
+  const lead = (leads || []).find(l => l.id == id);
+  if (!lead) return;
+  const pool = [
+    ...(leads || []).filter(l => l.id != id && !l.archived && (!lead.segment || l.segment === lead.segment)).map(l => ({ ...l, _kind: 'CRM', _name: l.company, _score: l.score || 0 })),
+    ...(tempSearchResults || []).filter(r => (r.name || '').toLowerCase() !== (lead.company || '').toLowerCase()).map(r => ({ ...r, _kind: 'Busqueda', _name: r.name, _score: r.opportunityScore || r.score || ((r.rating || 0) * 15) }))
+  ].sort((a, b) => (b._score || 0) - (a._score || 0)).slice(0, 5);
+  const html = `
+    <div style="font-size:.86rem;color:var(--text-muted);line-height:1.55;margin-bottom:1rem">Compara este lead con empresas parecidas del CRM y la busqueda actual.</div>
+    <div style="display:grid;gap:.65rem">
+      ${pool.map(c => {
+        const wins = [];
+        if ((c.rating || 0) > (lead.rating || 0)) wins.push('mejor rating');
+        if ((c.ratingCount || 0) > (lead.ratingCount || 0)) wins.push('mas resenas');
+        if (c.website && !lead.website) wins.push('web visible');
+        if ((c.score || c._score || 0) > (lead.score || 0)) wins.push('mayor score');
+        if ((c.signals || []).length > (lead.signals || []).length) wins.push('mas senales');
+        return `<div style="padding:.8rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+          <div style="display:flex;justify-content:space-between;gap:1rem"><strong>${bfEscape(c._name || c.company || c.name)}</strong><span style="color:var(--primary);font-size:.75rem">${bfEscape(c._kind)}</span></div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.35rem">Score ${Math.round(c._score || c.score || 0)} - Rating ${c.rating || '-'} - Resenas ${c.ratingCount || 0} - ${c.website ? 'web si' : 'web no'}</div>
+          <div style="margin-top:.45rem;color:${wins.length ? 'var(--warning)' : 'var(--text-dim)'};font-size:.8rem">${wins.length ? `Gana en: ${wins.join(', ')}` : 'No supera claramente al lead; usar como comparativa defensiva.'}</div>
+        </div>`;
+      }).join('') || '<div style="color:var(--text-muted)">No hay competidores comparables. Ejecuta una busqueda del mismo sector para alimentar este modulo.</div>'}
+    </div>`;
+  bfModal(`Espionaje competitivo - ${bfEscape(lead.company)}`, html, 860);
+}
+
+function openLostOpportunitiesPanel() {
+  const rows = (leads || []).filter(l => !l.archived && l.status !== 'Cerrado' && l.status !== 'No interesa').map(l => {
+    const reasons = [];
+    const lastDays = bfLastActivityDays(l);
+    if ((l.score || 0) >= 70 && !bfSentEmailsForLead(l).length) reasons.push('score alto sin email enviado');
+    if (!l.next_contact) reasons.push('sin proximo contacto');
+    if (lastDays >= 7) reasons.push(`${lastDays} dias sin actividad`);
+    if (l.status === 'Pendiente' && bfLeadAgeDays(l) >= 3) reasons.push('pendiente demasiado tiempo');
+    if (l.email && l.status === 'Pendiente') reasons.push('tiene email y aun no esta contactado');
+    return { lead: l, reasons, urgency: (l.score || 0) + reasons.length * 18 + lastDays };
+  }).filter(x => x.reasons.length).sort((a, b) => b.urgency - a.urgency);
+
+  const html = `
+    <div style="font-size:.86rem;color:var(--text-muted);line-height:1.55;margin-bottom:1rem">Lista priorizada de leads buenos que se estan enfriando por falta de accion, seguimiento o fecha de proximo contacto.</div>
+    <div style="display:grid;gap:.55rem">
+      ${rows.slice(0, 40).map(x => `<div style="display:flex;gap:.75rem;justify-content:space-between;align-items:flex-start;padding:.75rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+        <div>
+          <strong>${bfEscape(x.lead.company)}</strong>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem">${x.reasons.map(bfEscape).join(' - ')}</div>
+        </div>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <strong style="color:var(--warning)">${Math.round(x.urgency)}</strong>
+          <button class="btn-action" onclick="openLeadDetail('${x.lead.id}')">Ver</button>
+          <button class="btn-action secondary" onclick="openLeadAttackPlan('${x.lead.id}')">Plan</button>
+        </div>
+      </div>`).join('') || '<div style="color:var(--text-muted)">No hay oportunidades perdidas ahora mismo.</div>'}
+    </div>`;
+  bfModal('Bandeja de oportunidades perdidas', html, 920);
+}
+
+function openLeadDossier(id) {
+  const lead = (leads || []).find(l => l.id == id);
+  if (!lead) return;
+  const plan = buildLeadAttackPlan(lead);
+  const emails = bfSentEmailsForLead(lead);
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Dossier ${bfEscape(lead.company)}</title>
+    <style>body{font-family:Arial,sans-serif;color:#111;margin:32px;line-height:1.45}h1{margin-bottom:4px}.muted{color:#666}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.box{border:1px solid #ddd;border-radius:8px;padding:14px;margin:12px 0}ul{margin-top:8px}@media print{button{display:none}}</style></head>
+    <body>
+      <button onclick="window.print()" style="float:right;padding:10px 16px">Imprimir / guardar PDF</button>
+      <h1>${bfEscape(lead.company)}</h1>
+      <div class="muted">${bfEscape(lead.segment || '')} - Score ${lead.score || 0} - ${bfEscape(lead.website || '')}</div>
+      <div class="grid">
+        <div class="box"><h3>Contacto</h3><p>${bfEscape(lead.name || 'Responsable')}<br>${bfEscape(lead.email || 'Sin email')}<br>${bfEscape(lead.phone || 'Sin telefono')}</p></div>
+        <div class="box"><h3>Estado</h3><p>${bfEscape(lead.status || '')}<br>Proximo contacto: ${bfEscape(lead.next_contact || 'sin fecha')}<br>Emails enviados: ${emails.length}</p></div>
+      </div>
+      <div class="box"><h3>Diagnostico</h3><ul>${plan.diagnosis.map(x => `<li>${bfEscape(x)}</li>`).join('')}</ul></div>
+      <div class="box"><h3>Senal detectada</h3><p>${bfEscape(lead.signal || lead.description || 'Sin senal registrada')}</p></div>
+      <div class="box"><h3>Plan recomendado</h3><p><strong>Angulo:</strong> ${bfEscape(plan.angle)}</p><p><strong>Siguiente paso:</strong> ${bfEscape(plan.next)}</p></div>
+      <div class="box"><h3>Email sugerido</h3><pre style="white-space:pre-wrap;font-family:Arial">${bfEscape(plan.email)}</pre></div>
+      <div class="box"><h3>Notas internas</h3><p>${bfEscape(lead.notes || 'Sin notas')}</p></div>
+    </body></html>`;
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) {
+    bfModal('Dossier comercial', `<div style="color:var(--text-muted);margin-bottom:1rem">El navegador bloqueo la ventana. Usa este boton para abrir el dossier.</div><a class="btn-primary" href="${url}" target="_blank">Abrir dossier</a>`, 520);
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// ============================================================
+// FREE DAILY AUTONOMOUS COPILOT
+// Runs in-browser with local rules. Existing AI keys are optional.
+// ============================================================
+
+function dcGetSavedSearches() {
+  try { return JSON.parse(localStorage.getItem('gordi_saved_searches') || '[]'); } catch { return []; }
+}
+
+function dcDateKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dcLeadActionReason(lead) {
+  const reasons = [];
+  const lastDays = typeof bfLastActivityDays === 'function' ? bfLastActivityDays(lead) : 0;
+  if (lead.next_contact && new Date(lead.next_contact) <= new Date()) reasons.push('seguimiento vencido/hoy');
+  if ((lead.score || 0) >= 75 && lead.status === 'Pendiente') reasons.push('score alto sin contactar');
+  if (lead.email && lead.status === 'Pendiente') reasons.push('email disponible');
+  if (!lead.next_contact) reasons.push('sin proxima accion');
+  if (lastDays >= 7) reasons.push(`${lastDays} dias sin actividad`);
+  return reasons;
+}
+
+function buildDailyCopilotAgenda() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const activeLeads = (leads || []).filter(l => !l.archived && l.status !== 'Cerrado' && l.status !== 'No interesa');
+  const due = activeLeads.filter(l => l.next_contact && new Date(l.next_contact) <= today)
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+  const hot = activeLeads.filter(l => (l.score || 0) >= 70 && l.status === 'Pendiente')
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+  const coldRisk = activeLeads.map(l => ({ lead: l, reasons: dcLeadActionReason(l) }))
+    .filter(x => x.reasons.length)
+    .sort((a, b) => ((b.lead.score || 0) + b.reasons.length * 12) - ((a.lead.score || 0) + a.reasons.length * 12));
+
+  const saved = dcGetSavedSearches();
+  const staleSearches = saved
+    .map(s => ({ ...s, ageDays: s.date ? Math.floor((Date.now() - new Date(s.date)) / 86400000) : 999 }))
+    .filter(s => s.ageDays >= 2 || !s.date)
+    .sort((a, b) => b.ageDays - a.ageDays)
+    .slice(0, 5);
+
+  const knownCompanies = new Set((leads || []).map(l => (l.company || '').toLowerCase().trim()));
+  const radar = [];
+  saved.forEach(s => (s.results || []).forEach(r => {
+    const name = (r.name || r.company || '').trim();
+    if (!name || knownCompanies.has(name.toLowerCase())) return;
+    const score = r.opportunityScore || r.score || ((r.email ? 20 : 0) + (r.website ? 10 : 0) + (r.rating || 0) * 8 + Math.min(r.ratingCount || 0, 100) / 5);
+    radar.push({ ...r, sourceSearch: s.label || s.location || s.segment || 'busqueda guardada', score: Math.round(score) });
+  }));
+  radar.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  const actions = [
+    ...due.slice(0, 4).map(l => ({ type: 'followup', lead: l, title: `Seguir ${l.company}`, detail: 'Seguimiento pendiente o vencido', priority: 100 + (l.score || 0) })),
+    ...hot.slice(0, 4).map(l => ({ type: 'contact', lead: l, title: `Contactar ${l.company}`, detail: dcLeadActionReason(l).join(' - ') || 'Lead caliente', priority: 80 + (l.score || 0) })),
+    ...coldRisk.slice(0, 4).map(x => ({ type: 'rescue', lead: x.lead, title: `Rescatar ${x.lead.company}`, detail: x.reasons.join(' - '), priority: 50 + (x.lead.score || 0) + x.reasons.length * 8 })),
+    ...staleSearches.slice(0, 3).map(s => ({ type: 'search', search: s, title: `Relanzar ${s.label || s.location || s.segment}`, detail: `${s.ageDays} dias desde la ultima busqueda`, priority: 45 })),
+    ...radar.slice(0, 3).map(r => ({ type: 'radar', company: r, title: `Revisar ${r.name || r.company}`, detail: `${r.sourceSearch} - score ${r.score}`, priority: 40 + (r.score || 0) }))
+  ].sort((a, b) => b.priority - a.priority);
+
+  return {
+    date: dcDateKey(),
+    generatedAt: new Date().toISOString(),
+    summary: {
+      due: due.length,
+      hot: hot.length,
+      coldRisk: coldRisk.length,
+      staleSearches: staleSearches.length,
+      radar: radar.length,
+      activeLeads: activeLeads.length
+    },
+    actions: actions.slice(0, 12),
+    aiBriefing: ''
+  };
+}
+
+function dcSaveAgenda(agenda) {
+  localStorage.setItem('gordi_daily_copilot_agenda', JSON.stringify(agenda));
+  localStorage.setItem('gordi_daily_copilot_last_run', agenda.date);
+}
+
+function dcLoadAgenda() {
+  try { return JSON.parse(localStorage.getItem('gordi_daily_copilot_agenda') || 'null'); } catch { return null; }
+}
+
+function dcActionHtml(action, idx) {
+  const p = action.priority || 0;
+  const color = p >= 140 ? 'var(--danger)' : p >= 100 ? 'var(--warning)' : 'var(--primary)';
+  const leadBtns = action.lead ? `
+    <button class="btn-action" onclick="openLeadDetail('${action.lead.id}')">Ver</button>
+    <button class="btn-action secondary" onclick="openLeadAttackPlan('${action.lead.id}')">Plan</button>
+    ${action.lead.email ? `<button class="btn-action secondary" onclick="generateEmail('${action.lead.id}')">Email</button>` : ''}` : '';
+  const searchBtn = action.search && typeof loadSavedSearch === 'function'
+    ? `<button class="btn-action" onclick="loadSavedSearch('${action.search.id}')">Cargar</button>` : '';
+  const radarBtn = action.company
+    ? `<button class="btn-action secondary" onclick="runOpportunityRadar()">Radar</button>` : '';
+  return `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;padding:.75rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+      <div style="min-width:0">
+        <div style="display:flex;gap:.45rem;align-items:center;flex-wrap:wrap">
+          <strong>${idx + 1}. ${bfEscape(action.title)}</strong>
+          <span style="font-size:.68rem;color:${color};border:1px solid ${color}55;border-radius:999px;padding:1px 7px">${bfEscape(action.type)}</span>
+        </div>
+        <div style="font-size:.76rem;color:var(--text-muted);margin-top:.25rem">${bfEscape(action.detail || '')}</div>
+      </div>
+      <div style="display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0">${leadBtns}${searchBtn}${radarBtn}</div>
+    </div>`;
+}
+
+function renderDailyCopilotPanel(agenda = dcLoadAgenda()) {
+  const el = document.getElementById('daily-copilot-content');
+  if (!el) return;
+  if (!agenda) agenda = runDailyCopilot(false, true);
+  const s = agenda.summary || {};
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:.55rem">
+      ${[
+        ['Seguimientos', s.due || 0],
+        ['Hot leads', s.hot || 0],
+        ['En riesgo', s.coldRisk || 0],
+        ['Busquedas', s.staleSearches || 0],
+        ['Radar', s.radar || 0]
+      ].map(([k,v]) => `<div style="padding:.65rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)"><div style="font-weight:800;font-size:1.05rem">${v}</div><div style="font-size:.68rem;color:var(--text-dim)">${k}</div></div>`).join('')}
+    </div>
+    ${agenda.aiBriefing ? `<div style="padding:.85rem;border:1px solid rgba(99,102,241,.28);border-radius:10px;background:rgba(99,102,241,.08);white-space:pre-wrap;font-size:.84rem;line-height:1.55">${bfEscape(agenda.aiBriefing)}</div>` : ''}
+    <div style="display:grid;gap:.55rem">
+      ${(agenda.actions || []).map(dcActionHtml).join('') || '<div style="color:var(--text-muted)">No hay acciones criticas. Buen momento para lanzar una busqueda guardada.</div>'}
+    </div>
+    <div style="font-size:.7rem;color:var(--text-dim)">Generado: ${new Date(agenda.generatedAt || Date.now()).toLocaleString('es-ES')} · Todo funciona localmente; la IA solo se usa si pulsas "Mejorar con IA".</div>`;
+}
+
+function runDailyCopilot(manual = false, returnAgenda = false) {
+  const agenda = buildDailyCopilotAgenda();
+  dcSaveAgenda(agenda);
+  renderDailyCopilotPanel(agenda);
+  if (manual) showToast('Copiloto diario regenerado');
+  return returnAgenda ? agenda : undefined;
+}
+
+async function enhanceDailyCopilotWithAI() {
+  const agenda = dcLoadAgenda() || buildDailyCopilotAgenda();
+  const key = typeof getGeminiKey === 'function' ? getGeminiKey() : '';
+  const hasAnyAI = key || localStorage.getItem('gordi_groq_key') || localStorage.getItem('gordi_openrouter_key');
+  if (!hasAnyAI || typeof callGeminiAPI !== 'function') {
+    showToast('Configura Gemini, Groq u OpenRouter para mejorar con IA');
+    return;
+  }
+  const el = document.getElementById('daily-copilot-content');
+  if (el) el.insertAdjacentHTML('afterbegin', '<div id="dc-ai-loading" style="padding:.7rem;border:1px solid var(--glass-border);border-radius:10px;color:var(--text-muted)">Generando briefing IA...</div>');
+  const prompt = `Actua como director comercial. Resume esta agenda diaria en español, muy accionable, maximo 10 lineas. Prioriza llamadas, emails, busquedas y rescates. Agenda JSON:\n${JSON.stringify(agenda).slice(0, 12000)}`;
+  try {
+    agenda.aiBriefing = await callGeminiAPI(prompt, key);
+    agenda.generatedAt = new Date().toISOString();
+    dcSaveAgenda(agenda);
+    renderDailyCopilotPanel(agenda);
+    showToast('Briefing IA generado');
+  } catch (e) {
+    document.getElementById('dc-ai-loading')?.remove();
+    showToast('No se pudo generar el briefing IA');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const last = localStorage.getItem('gordi_daily_copilot_last_run');
+    const saved = dcLoadAgenda();
+    if (last !== dcDateKey() || !saved) runDailyCopilot(false);
+    else renderDailyCopilotPanel(saved);
+  }, 1200);
+});

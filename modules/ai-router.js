@@ -1,6 +1,6 @@
-// VOLTFLOW — ROUTER IA MULTI-PROVEEDOR v2
-// Gemini → Groq → OpenRouter (fallback automático al alcanzar límites)
-// ══════════════════════════════════════════════════════════════════
+// VOLTFLOW â€” ROUTER IA MULTI-PROVEEDOR v2
+// Gemini â†’ Groq â†’ OpenRouter (fallback automÃ¡tico al alcanzar lÃ­mites)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const AI_ROUTER = {
   // Estado de rate-limit por proveedor (se resetea cada hora)
@@ -13,16 +13,16 @@ const AI_ROUTER = {
     // Auto-recuperar en 62 minutos (ventana segura para todos los proveedores)
     this._limitTimers[provider] = setTimeout(() => {
       delete this._limited[provider];
-      console.log(`[AI Router] ${provider} recuperado — límites reseteados`);
+      console.log(`[AI Router] ${provider} recuperado â€” lÃ­mites reseteados`);
     }, 62 * 60 * 1000);
-    console.warn(`[AI Router] ${provider} marcado como limitado — usando siguiente proveedor`);
+    console.warn(`[AI Router] ${provider} marcado como limitado â€” usando siguiente proveedor`);
   },
 
   _isLimited(provider) {
     return !!this._limited[provider];
   },
 
-  // ── Proveedor 1: Gemini ──────────────────────────────────────
+  // â”€â”€ Proveedor 1: Gemini â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async _callGemini(prompt, key, model = 'gemini-2.0-flash') {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
@@ -37,7 +37,7 @@ const AI_ROUTER = {
     return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'Sin respuesta';
   },
 
-  // ── Proveedor 2: Groq (llama3 ultra-rápido, gratis) ─────────
+  // â”€â”€ Proveedor 2: Groq (llama3 ultra-rÃ¡pido, gratis) â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async _callGroq(prompt, key) {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -57,7 +57,7 @@ const AI_ROUTER = {
     return data.choices?.[0]?.message?.content?.trim() || 'Sin respuesta';
   },
 
-  // ── Proveedor 3: OpenRouter (50+ modelos gratuitos) ──────────
+  // â”€â”€ Proveedor 3: OpenRouter (50+ modelos gratuitos) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async _callOpenRouter(prompt, key) {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -80,14 +80,14 @@ const AI_ROUTER = {
     return data.choices?.[0]?.message?.content?.trim() || 'Sin respuesta';
   },
 
-  // ── ROUTER PRINCIPAL ─────────────────────────────────────────
+  // â”€â”€ ROUTER PRINCIPAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async call(prompt, geminiKey) {
     const groqKey       = localStorage.getItem('gordi_groq_key') || '';
     const openrouterKey = localStorage.getItem('gordi_openrouter_key') || '';
 
     const providers = [];
 
-    // Proveedor 1: Gemini (si tiene key y no está limitado)
+    // Proveedor 1: Gemini (si tiene key y no estÃ¡ limitado)
     if (geminiKey && !this._isLimited('gemini')) {
       providers.push({ name: 'gemini', fn: () => this._callGemini(prompt, geminiKey) });
     }
@@ -106,9 +106,9 @@ const AI_ROUTER = {
     for (const provider of providers) {
       try {
         const result = await provider.fn();
-        // Si no era el primero, mostrar notificación discreta
+        // Si no era el primero, mostrar notificaciÃ³n discreta
         if (providers[0].name !== provider.name) {
-          showToast(`⚡ IA activa: ${provider.name}`, 2500);
+          showToast(`âš¡ IA activa: ${provider.name}`, 2500);
         }
         return result;
       } catch (err) {
@@ -118,7 +118,7 @@ const AI_ROUTER = {
       }
     }
 
-    // Todos los proveedores fallaron o están limitados
+    // Todos los proveedores fallaron o estÃ¡n limitados
     const configured = [geminiKey && 'Gemini', groqKey && 'Groq', openrouterKey && 'OpenRouter'].filter(Boolean);
     if (!configured.length) {
       throw new Error('NO_KEY');
@@ -128,7 +128,7 @@ const AI_ROUTER = {
 
   // Estado visible para UI
   getStatus() {
-    const geminiKey     = localStorage.getItem('gordi_gemini_key') || '';
+    const geminiKey     = getGeminiKey();
     const groqKey       = localStorage.getItem('gordi_groq_key') || '';
     const openrouterKey = localStorage.getItem('gordi_openrouter_key') || '';
     return {
@@ -145,10 +145,10 @@ async function callGeminiAPI(prompt, geminiKey) {
     return await AI_ROUTER.call(prompt, geminiKey);
   } catch (err) {
     if (err.message === 'NO_KEY') {
-      throw new Error('NO_KEY: Configura al menos una API Key de IA en Configuración');
+      throw new Error('NO_KEY: Configura al menos una API Key de IA en ConfiguraciÃ³n');
     }
     if (err.message === 'ALL_LIMITED') {
-      showToast('⏳ Límite diario alcanzado en todos los proveedores IA. Se recuperarán automáticamente.', 5000);
+      showToast('â³ LÃ­mite diario alcanzado en todos los proveedores IA. Se recuperarÃ¡n automÃ¡ticamente.', 5000);
       throw new Error('ALL_LIMITED');
     }
     throw err;
@@ -178,34 +178,35 @@ document.addEventListener('DOMContentLoaded', () => {
 // MEJORAS DE RENDIMIENTO v2.3
 // ============================================================
 
-// ── MEJORA 2: Secuencias automáticas de seguimiento ───────────────────────────
+// â”€â”€ MEJORA 2: Secuencias automÃ¡ticas de seguimiento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SEQUENCE_RULES = {
-  'Contactado':             { days: 3,  msg: '🔔 Seguimiento en 3 días — sin respuesta aún' },
-  'Respuesta del cliente':  { days: 2,  msg: '🔔 Respuesta recibida — preparar propuesta de visita' },
-  'Visita':                 { days: 5,  msg: '🔔 Tras visita — enviar presupuesto esta semana' },
-  'Entrega de presupuesto': { days: 7,  msg: '🔔 Presupuesto enviado — llamada de seguimiento' },
+  'Contactado':             { days: 3,  msg: 'ðŸ”” Seguimiento en 3 dÃ­as â€” sin respuesta aÃºn' },
+  'Respuesta del cliente':  { days: 2,  msg: 'ðŸ”” Respuesta recibida â€” preparar propuesta de visita' },
+  'Visita':                 { days: 5,  msg: 'ðŸ”” Tras visita â€” enviar presupuesto esta semana' },
+  'Entrega de presupuesto': { days: 7,  msg: 'ðŸ”” Presupuesto enviado â€” llamada de seguimiento' },
 };
 
 function applySequenceRule(lead, newStatus) {
   const rule = SEQUENCE_RULES[newStatus];
   if (!rule) return;
-  // Solo asignar si next_contact está vacío — nunca pisar fecha manual
+  lead.notes = lead.notes || '';
+  // Solo asignar si next_contact estÃ¡ vacÃ­o â€” nunca pisar fecha manual
   if (lead.next_contact) return;
   const d = new Date();
   d.setDate(d.getDate() + rule.days);
   lead.next_contact = d.toISOString().slice(0, 10);
-  // Añadir nota de contexto si no existe ya
+  // AÃ±adir nota de contexto si no existe ya
   if (!lead.notes.includes(rule.msg)) {
     const ts = `[${new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}]`;
     lead.notes = (lead.notes ? lead.notes + '\n' : '') + `${ts} ${rule.msg}`;
   }
-  addActivityLog(lead.id, `📅 Seguimiento auto-programado: ${d.toLocaleDateString('es-ES',{day:'2-digit',month:'long'})}`);
+  addActivityLog(lead.id, `ðŸ“… Seguimiento auto-programado: ${d.toLocaleDateString('es-ES',{day:'2-digit',month:'long'})}`);
   updateFollowupBadge();
 }
 
-// ── MEJORA 4: Google Sheets Sync ──────────────────────────────────────────────
-// Usa el Google OAuth token implícito de la API key de Google ya configurada.
-// Estrategia: export manual + auto en backup. Sin conflictos de sync simultáneo.
+// â”€â”€ MEJORA 4: Google Sheets Sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Usa el Google OAuth token implÃ­cito de la API key de Google ya configurada.
+// Estrategia: export manual + auto en backup. Sin conflictos de sync simultÃ¡neo.
 
 const SHEETS_COLS = [
   'id','name','company','email','phone','status','score','budget',
@@ -227,17 +228,17 @@ async function syncToSheets() {
   const sheetsId = localStorage.getItem('gordi_sheets_id');
   const gToken   = localStorage.getItem('gordi_sheets_token');
   if (!sheetsId || !gToken) {
-    showToast('⚠️ Configura el Sheets ID y token en Ajustes');
+    showToast('âš ï¸ Configura el Sheets ID y token en Ajustes');
     return;
   }
   try {
     const headers = { Authorization: `Bearer ${gToken}`, 'Content-Type': 'application/json' };
 
-    // 1. Verificar/crear pestaña "Leads"
+    // 1. Verificar/crear pestaÃ±a "Leads"
     const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}`, { headers });
     if (!metaRes.ok) {
       const err = await metaRes.json().catch(() => ({}));
-      if (metaRes.status === 401) { showToast('❌ Token caducado. Vuelve a Autorizar Google.'); return; }
+      if (metaRes.status === 401) { showToast('âŒ Token caducado. Vuelve a Autorizar Google.'); return; }
       throw new Error(`HTTP ${metaRes.status}: ${err.error?.message || 'Error al acceder al Sheet'}`);
     }
     const meta = await metaRes.json();
@@ -248,7 +249,7 @@ async function syncToSheets() {
           body: JSON.stringify({ requests: [{ addSheet: { properties: { title: 'Leads' } } }] })
         }
       );
-      showToast('📋 Pestaña "Leads" creada automáticamente');
+      showToast('ðŸ“‹ PestaÃ±a "Leads" creada automÃ¡ticamente');
     }
 
     // 2. Limpiar y escribir datos
@@ -270,10 +271,10 @@ async function syncToSheets() {
     const data = await res.json();
     const updated = data.updatedRows || leads.length;
     localStorage.setItem('gordi_sheets_last_sync', new Date().toISOString());
-    showToast(`☁️ ${updated} leads sincronizados con Google Sheets ✓`);
+    showToast(`â˜ï¸ ${updated} leads sincronizados con Google Sheets âœ“`);
     renderSheetsStatus();
   } catch(err) {
-    showToast(`❌ Sync fallido: ${err.message}`);
+    showToast(`âŒ Sync fallido: ${err.message}`);
     console.error('Sheets sync error:', err);
   }
 }
@@ -281,7 +282,7 @@ async function syncToSheets() {
 async function loadFromSheets() {
   const sheetsId = localStorage.getItem('gordi_sheets_id');
   const gToken   = localStorage.getItem('gordi_sheets_token');
-  if (!sheetsId || !gToken) { showToast('⚠️ Configura el Sheets ID y token en Ajustes'); return; }
+  if (!sheetsId || !gToken) { showToast('âš ï¸ Configura el Sheets ID y token en Ajustes'); return; }
   try {
     const res = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}/values/Leads!A:Z`,
@@ -290,7 +291,7 @@ async function loadFromSheets() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const rows = data.values || [];
-    if (rows.length < 2) { showToast('Hoja vacía o sin datos'); return; }
+    if (rows.length < 2) { showToast('Hoja vacÃ­a o sin datos'); return; }
     const [headers, ...dataRows] = rows;
     const imported = dataRows.map(row => {
       const obj = {};
@@ -307,13 +308,13 @@ async function loadFromSheets() {
       obj.archived = false;
       return obj;
     });
-    if (confirm(`Importar ${imported.length} leads desde Google Sheets? (reemplazará los datos locales)`)) {
+    if (confirm(`Importar ${imported.length} leads desde Google Sheets? (reemplazarÃ¡ los datos locales)`)) {
       leads = imported;
       saveLeads(); renderLeads(); renderKanban(); renderDashboardCharts(); updateStats();
-      showToast(`☁️ ${imported.length} leads importados desde Sheets ✓`);
+      showToast(`â˜ï¸ ${imported.length} leads importados desde Sheets âœ“`);
     }
   } catch(err) {
-    showToast(`❌ Carga fallida: ${err.message}`);
+    showToast(`âŒ Carga fallida: ${err.message}`);
   }
 }
 
@@ -325,10 +326,10 @@ function renderSheetsStatus() {
   if (!sheetsId) { el.textContent = 'No configurado'; el.style.color = 'var(--text-dim)'; return; }
   if (lastSync) {
     const ago = Math.round((Date.now() - new Date(lastSync)) / 60000);
-    el.textContent = ago < 60 ? `Último sync: hace ${ago} min` : `Último sync: ${new Date(lastSync).toLocaleDateString('es-ES')}`;
+    el.textContent = ago < 60 ? `Ãšltimo sync: hace ${ago} min` : `Ãšltimo sync: ${new Date(lastSync).toLocaleDateString('es-ES')}`;
     el.style.color = 'var(--success)';
   } else {
-    el.textContent = 'Sin sincronizar aún';
+    el.textContent = 'Sin sincronizar aÃºn';
     el.style.color = 'var(--warning)';
   }
 }
@@ -344,7 +345,7 @@ if (_origAutoWeeklyBackup) {
   };
 }
 
-// ── MEJORA 5: Signal Correlation — qué señales predicen el cierre ────────────
+// â”€â”€ MEJORA 5: Signal Correlation â€” quÃ© seÃ±ales predicen el cierre â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function buildSignalCorrelation() {
   const closed   = leads.filter(l => l.status === 'Cerrado' && (l.signals?.length || l.signal));
   const notClosed = leads.filter(l => !['Cerrado','No interesa'].includes(l.status) && !l.archived && (l.signals?.length || l.signal));
@@ -355,7 +356,7 @@ function buildSignalCorrelation() {
   function countSigs(lead, isClosed) {
     const allSigs = [
       ...(lead.signals || []),
-      ...(lead.signal || '').split(' — ').filter(Boolean)
+      ...(lead.signal || '').split(' â€” ').filter(Boolean)
     ];
     allSigs.forEach(sig => {
       // Normalize: remove dynamic numbers, keep semantic meaning
@@ -390,8 +391,8 @@ function renderSignalCorrelation() {
   const closed = leads.filter(l => l.status === 'Cerrado').length;
   if (closed < 3) {
     el.innerHTML = `<p style="color:var(--text-muted);font-size:.83rem">
-      Cierra al menos <strong>3 leads</strong> para activar este análisis.
-      Ahora mismo tienes ${closed} cerrado${closed!==1?'s':''}. El sistema aprenderá automáticamente qué señales predicen el cierre en tu mercado específico.
+      Cierra al menos <strong>3 leads</strong> para activar este anÃ¡lisis.
+      Ahora mismo tienes ${closed} cerrado${closed!==1?'s':''}. El sistema aprenderÃ¡ automÃ¡ticamente quÃ© seÃ±ales predicen el cierre en tu mercado especÃ­fico.
     </p>`;
     if (panel) panel.style.display = 'block';
     return;
@@ -399,7 +400,7 @@ function renderSignalCorrelation() {
 
   const corr = buildSignalCorrelation();
   if (!corr || !corr.length) {
-    el.innerHTML = '<p style="color:var(--text-muted);font-size:.83rem">Sin suficientes señales para analizar.</p>';
+    el.innerHTML = '<p style="color:var(--text-muted);font-size:.83rem">Sin suficientes seÃ±ales para analizar.</p>';
     return;
   }
 
@@ -416,7 +417,7 @@ function renderSignalCorrelation() {
   el.innerHTML = `
     <div style="margin-bottom:.75rem;font-size:.78rem;color:var(--text-muted)">
       Basado en <strong>${closed} leads cerrados</strong> de tu historial real.
-      ${actionableLeads.length ? `<span style="color:var(--primary);margin-left:.5rem">💡 Hay <strong>${actionableLeads.length} lead${actionableLeads.length>1?'s':''}</strong> con la señal más predictiva sin contactar aún.</span>` : ''}
+      ${actionableLeads.length ? `<span style="color:var(--primary);margin-left:.5rem">ðŸ’¡ Hay <strong>${actionableLeads.length} lead${actionableLeads.length>1?'s':''}</strong> con la seÃ±al mÃ¡s predictiva sin contactar aÃºn.</span>` : ''}
     </div>
     ${corr.map(c => {
       const col = c.rate >= 60 ? '#10d97c' : c.rate >= 30 ? '#f59e0b' : '#7a8ba0';
@@ -432,7 +433,7 @@ function renderSignalCorrelation() {
       </div>`;
     }).join('')}
     <div style="font-size:.68rem;color:var(--text-dim);margin-top:.6rem">
-      % = tasa de cierre de leads que tenían esta señal · N/M = cerrados/total con esta señal
+      % = tasa de cierre de leads que tenÃ­an esta seÃ±al Â· N/M = cerrados/total con esta seÃ±al
     </div>`;
 }
 
@@ -444,26 +445,31 @@ renderDashboardCharts = function() {
   renderSheetsStatus();
 };
 
-// Init — auto-carga desde Sheets y programa renovación de token
+// Init â€” auto-carga desde Sheets y programa renovaciÃ³n de token
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     renderSheetsStatus();
-    // Programar renovación si el token ya existe
+    // Programar renovaciÃ³n si el token ya existe
     if (localStorage.getItem('gordi_sheets_token_expiry')) {
       scheduleTokenRenewal();
     }
-    // Auto-cargar desde Sheets si está configurado
+    // Auto-cargar desde Sheets si estÃ¡ configurado
     const sheetsId = localStorage.getItem('gordi_sheets_id');
     const token    = localStorage.getItem('gordi_sheets_token');
     if (sheetsId && token) {
-      showToast('🔄 Sincronizando datos desde Google Sheets...');
+      // FIX: No sobreescribir datos locales automÃ¡ticamente en el inicio.
+      // Priorizamos localStorage como fuente principal.
+      /*
+      showToast('ðŸ”„ Sincronizando datos desde Google Sheets...');
       loadFromSheets().then(() => {
-        showToast('✅ Datos actualizados desde Google Sheets');
+        showToast('âœ… Datos actualizados desde Google Sheets');
       }).catch(() => {
         // Si falla (token caducado), intentar renovar
-        showToast('🔄 Renovando acceso a Google Sheets...');
+        showToast('ðŸ”„ Renovando acceso a Google Sheets...');
         initSheetsOAuth(true);
       });
+      */
+      showToast('â˜ï¸ Google Sheets enlazado. Usa el botÃ³n manual para importar o exportar si lo necesitas.');
     }
   }, 1200);
 });
@@ -473,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // MEJORAS DE USABILIDAD v2.2
 // ============================================================
 
-// ── MEJORA 1: Menú contextual con clic derecho ────────────────────────────────
+// â”€â”€ MEJORA 1: MenÃº contextual con clic derecho â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const STATUS_LIST = ['Pendiente','Contactado','Respuesta del cliente','Visita','Entrega de presupuesto','Cerrado','No interesa'];
 
 function openCtxMenu(e, leadId, source) {
@@ -487,16 +493,16 @@ function openCtxMenu(e, leadId, source) {
     ${STATUS_LIST.map(s => `
       <div class="ctx-item ${lead.status===s?'ctx-active':''}" onclick="ctxSetStatus('${leadId}','${s}')">
         <span style="width:8px;height:8px;border-radius:50%;background:${s==='Cerrado'?'var(--success)':s==='No interesa'?'var(--text-dim)':s==='Pendiente'?'var(--warning)':s==='Contactado'?'var(--primary)':'var(--secondary)'};flex-shrink:0;display:inline-block"></span>
-        ${s} ${lead.status===s?'✓':''}
+        ${s} ${lead.status===s?'âœ“':''}
       </div>`).join('')}
     <div class="ctx-sep"></div>
     <div class="ctx-label">Acciones</div>
-    <div class="ctx-item" onclick="ctxOpenDetail('${leadId}')">👁️ Ver detalle</div>
-    <div class="ctx-item" onclick="ctxQuickNote('${leadId}')">📝 Añadir nota</div>
-    ${lead.email ? `<div class="ctx-item" onclick="openAiEmailModal('${leadId}');closeCtxMenu()">✨ Generar email IA</div>` : ''}
-    ${lead.email ? `<div class="ctx-item" onclick="copyEmail('${lead.email}',event);closeCtxMenu()">⧉ Copiar email</div>` : ''}
+    <div class="ctx-item" onclick="ctxOpenDetail('${leadId}')">ðŸ‘ï¸ Ver detalle</div>
+    <div class="ctx-item" onclick="ctxQuickNote('${leadId}')">ðŸ“ AÃ±adir nota</div>
+    ${lead.email ? `<div class="ctx-item" onclick="openAiEmailModal('${leadId}');closeCtxMenu()">âœ¨ Generar email IA</div>` : ''}
+    ${lead.email ? `<div class="ctx-item" onclick="event.stopPropagation(); copyToClipboard('${lead.email}', 'Email: ${lead.email}'); closeCtxMenu()">ðŸ“‹ Copiar email</div>` : ''}
     <div class="ctx-sep"></div>
-    <div class="ctx-item" onclick="archiveLead('${leadId}');closeCtxMenu()" style="color:var(--danger)">📦 Archivar</div>
+    <div class="ctx-item" onclick="archiveLead('${leadId}');closeCtxMenu()" style="color:var(--danger)">ðŸ“¦ Archivar</div>
   `;
 
   menu.style.display = 'block';
@@ -524,11 +530,11 @@ function ctxSetStatus(leadId, status) {
     const old = lead.status;
     lead.status = status;
     lead.status_date = new Date().toISOString();
-    addActivityLog(leadId, `Estado cambiado: ${old} → ${status}`);
+    addActivityLog(leadId, `Estado cambiado: ${old} â†’ ${status}`);
     applySequenceRule(lead, status);
     lead.score = recalculateLeadScore(lead);
     saveLeads(); renderAll();
-    showToast(`${lead.company} → ${status} ✓`);
+    showToast(`${lead.company} â†’ ${status} âœ“`);
   });
 }
 
@@ -544,13 +550,13 @@ function ctxQuickNote(leadId) {
   setTimeout(() => { const el = document.getElementById('drawer-notes'); if (el) el.focus(); }, 300);
 }
 
-// ── MEJORA 2: Lead Drawer — panel lateral con navegación ↑↓ ──────────────────
+// â”€â”€ MEJORA 2: Lead Drawer â€” panel lateral con navegaciÃ³n â†‘â†“ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let drawerLeadId = null;
 let drawerFilteredIds = [];
 
 function openLeadDrawer(id) {
   drawerLeadId = id;
-  // Build list of visible filtered leads for ↑↓ navigation
+  // Build list of visible filtered leads for â†‘â†“ navigation
   const tbody = document.getElementById('leads-body');
   if (tbody) {
     drawerFilteredIds = [...tbody.querySelectorAll('tr')].map(tr => {
@@ -570,7 +576,7 @@ function renderDrawer() {
   const idx = drawerFilteredIds.indexOf(String(drawerLeadId));
   const total = drawerFilteredIds.length;
 
-  document.getElementById('drawer-company-title').textContent = `${lead.company} — ${lead.name}`;
+  document.getElementById('drawer-company-title').textContent = `${lead.company} â€” ${lead.name}`;
   document.getElementById('drawer-pos').textContent = total > 1 ? `${idx+1}/${total}` : '';
   document.getElementById('drawer-prev').disabled = idx <= 0;
   document.getElementById('drawer-next').disabled = idx >= total - 1;
@@ -589,30 +595,33 @@ function renderDrawer() {
     </div>
     <div class="grid-form" style="grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.75rem">
       <div><label>Email</label><input type="email" id="drawer-email" value="${lead.email||''}" placeholder="email@empresa.com"></div>
-      <div><label>Teléfono</label><input type="text" id="drawer-phone" value="${lead.phone||''}" placeholder="+34 600..."></div>
+      <div><label>TelÃ©fono</label><input type="text" id="drawer-phone" value="${lead.phone||''}" placeholder="+34 600..."></div>
       <div><label>WhatsApp</label><div style="display:flex;align-items:center;gap:.4rem">
         <input type="text" id="drawer-whatsapp" value="${lead.whatsapp||''}" placeholder="+34 600 000 000" style="flex:1">
-        ${lead.whatsapp || lead.phone ? `<button onclick="openWhatsAppModal('${lead.id}',event)" class="btn-action" style="color:#25D366;border-color:rgba(37,211,102,.4);flex-shrink:0">💬 WA IA</button>` : ''}
+        ${lead.whatsapp || lead.phone ? `<button onclick="openWhatsAppModal('${lead.id}',event)" class="btn-action" style="color:#25D366;border-color:rgba(37,211,102,.4);flex-shrink:0">ðŸ’¬ WA IA</button>` : ''}
       </div></div>
       <div><label>Estado</label>
         <select id="drawer-status">
           ${STATUS_LIST.map(s=>`<option${lead.status===s?' selected':''}>${s}</option>`).join('')}
         </select>
       </div>
-      <div><label>Próximo contacto</label><input type="date" id="drawer-next-contact" value="${lead.next_contact||''}"></div>
-      <div><label>Presupuesto (€)</label><input type="number" id="drawer-budget" value="${lead.budget||''}" min="0" placeholder="25000"></div>
+      <div><label>PrÃ³ximo contacto</label><input type="date" id="drawer-next-contact" value="${lead.next_contact||''}"></div>
+      <div><label>Presupuesto (â‚¬)</label><input type="number" id="drawer-budget" value="${lead.budget||''}" min="0" placeholder="25000"></div>
       <div><label>Web</label><input type="text" id="drawer-web" value="${lead.website||''}" placeholder="https://..."></div>
     </div>
     <div style="margin-bottom:.75rem">
       <label>Notas internas</label>
-      <textarea id="drawer-notes" rows="4" placeholder="Escribe / para comandos rápidos...">${lead.notes||''}</textarea>
+      <textarea id="drawer-notes" rows="4" placeholder="Escribe / para comandos rÃ¡pidos...">${lead.notes||''}</textarea>
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
       <button class="btn-primary btn-sm" onclick="saveDrawerLead('${lead.id}')">Guardar</button>
-      ${lead.email ? `<button class="btn-outline btn-sm" onclick="openAiEmailModal('${lead.id}');closeDrawer()">✨ Email IA</button>` : ''}
-      <button class="btn-outline btn-sm" onclick="logCall('${lead.id}')">📞 Llamada</button>
-      <button class="btn-outline btn-sm" onclick="openBriefingModal('${lead.id}')" title="Briefing IA para visita">🧠 Briefing</button>
-      <button class="btn-outline btn-sm" onclick="markNotInterested('${lead.id}')" style="color:var(--danger)">🚫 No interesa</button>
+      <button class="btn-outline btn-sm" onclick="openLeadAttackPlan('${lead.id}')">Plan</button>
+      <button class="btn-outline btn-sm" onclick="openCompetitiveSpyForLead('${lead.id}')">Spy</button>
+      <button class="btn-outline btn-sm" onclick="openLeadDossier('${lead.id}')">PDF</button>
+      ${lead.email ? `<button class="btn-outline btn-sm" onclick="openAiEmailModal('${lead.id}');closeDrawer()">âœ¨ Email IA</button>` : ''}
+      <button class="btn-outline btn-sm" onclick="logCall('${lead.id}')">ðŸ“ž Llamada</button>
+      <button class="btn-outline btn-sm" onclick="openBriefingModal('${lead.id}')" title="Briefing IA para visita">ðŸ§  Briefing</button>
+      <button class="btn-outline btn-sm" onclick="markNotInterested('${lead.id}')" style="color:var(--danger)">ðŸš« No interesa</button>
     </div>
     <div style="border-top:1px solid var(--glass-border);padding-top:.75rem;margin-bottom:.75rem" id="drawer-thread-section">
       <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);font-weight:600;margin-bottom:.5rem">
@@ -625,8 +634,8 @@ function renderDrawer() {
         ondragleave="this.classList.remove('dragover')"
         ondrop="handleInlineDrop(event,'${lead.id}')"
         style="margin-top:.6rem">
-        <span style="font-size:1rem">📋</span>
-        <span id="drawer-paste-hint-${lead.id}">Pega aquí la respuesta recibida de Outlook</span>
+        <span style="font-size:1rem">ðŸ“‹</span>
+        <span id="drawer-paste-hint-${lead.id}">Pega aquÃ­ la respuesta recibida de Outlook</span>
         <textarea class="inline-paste-textarea" id="drawer-paste-ta-${lead.id}"
           placeholder="Pega el email de respuesta (Ctrl+V)..."
           oninput="onInlinePasteInput(this,'${lead.id}')"
@@ -635,7 +644,7 @@ function renderDrawer() {
         <button id="drawer-paste-btn-${lead.id}" class="btn-action btn-sm"
           style="display:none;flex-shrink:0"
           onclick="event.stopPropagation();registerInlineReply('${lead.id}')">
-          ✅ Registrar
+          âœ… Registrar
         </button>
       </div>
     </div>
@@ -668,12 +677,12 @@ function saveDrawerLead(id) {
   lead.budget = parseFloat(document.getElementById('drawer-budget')?.value) || 0;
   if (lead.status !== oldStatus) {
     lead.status_date = new Date().toISOString();
-    addActivityLog(id, `Estado cambiado: ${oldStatus} → ${lead.status}`);
+    addActivityLog(id, `Estado cambiado: ${oldStatus} â†’ ${lead.status}`);
     applySequenceRule(lead, lead.status); // MEJORA 2
   }
   lead.score = recalculateLeadScore(lead);
   saveLeads(); renderAll();
-  showToast('Lead guardado ✓');
+  showToast('Lead guardado âœ“');
   updateFollowupBadge();
 }
 
@@ -709,15 +718,15 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ── MEJORA 3: Slash commands en notas ─────────────────────────────────────────
+// â”€â”€ MEJORA 3: Slash commands en notas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SLASH_COMMANDS = [
-  { cmd: '/llamada',      icon: '📞', label: 'Registrar llamada',        action: (id) => { logCall(id); } },
-  { cmd: '/email',        icon: '✉️',  label: 'Email enviado',            action: (id, ta) => insertNoteText(ta, `[${hoy()}] ✉️ Email enviado`) },
-  { cmd: '/visita',       icon: '🤝', label: 'Visita agendada',           action: (id, ta) => insertNoteText(ta, `[${hoy()}] 🤝 Visita agendada`) },
-  { cmd: '/presupuesto',  icon: '💶', label: 'Presupuesto enviado',       action: (id, ta) => insertNoteText(ta, `[${hoy()}] 💶 Presupuesto enviado: `) },
-  { cmd: '/nocontesta',   icon: '📵', label: 'No contesta',               action: (id, ta) => insertNoteText(ta, `[${hoy()}] 📵 No contesta`) },
-  { cmd: '/seguimiento',  icon: '🔔', label: 'Seguimiento pendiente',     action: (id, ta) => insertNoteText(ta, `[${hoy()}] 🔔 Seguimiento: `) },
-  { cmd: '/cierre',       icon: '🏆', label: 'Cerrar lead',               action: (id) => { ctxSetStatus(id, 'Cerrado'); } },
+  { cmd: '/llamada',      icon: 'ðŸ“ž', label: 'Registrar llamada',        action: (id) => { logCall(id); } },
+  { cmd: '/email',        icon: 'âœ‰ï¸',  label: 'Email enviado',            action: (id, ta) => insertNoteText(ta, `[${hoy()}] âœ‰ï¸ Email enviado`) },
+  { cmd: '/visita',       icon: 'ðŸ¤', label: 'Visita agendada',           action: (id, ta) => insertNoteText(ta, `[${hoy()}] ðŸ¤ Visita agendada`) },
+  { cmd: '/presupuesto',  icon: 'ðŸ’¶', label: 'Presupuesto enviado',       action: (id, ta) => insertNoteText(ta, `[${hoy()}] ðŸ’¶ Presupuesto enviado: `) },
+  { cmd: '/nocontesta',   icon: 'ðŸ“µ', label: 'No contesta',               action: (id, ta) => insertNoteText(ta, `[${hoy()}] ðŸ“µ No contesta`) },
+  { cmd: '/seguimiento',  icon: 'ðŸ””', label: 'Seguimiento pendiente',     action: (id, ta) => insertNoteText(ta, `[${hoy()}] ðŸ”” Seguimiento: `) },
+  { cmd: '/cierre',       icon: 'ðŸ†', label: 'Cerrar lead',               action: (id) => { ctxSetStatus(id, 'Cerrado'); } },
 ];
 
 function hoy() { return new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'short'}); }
@@ -801,7 +810,7 @@ document.addEventListener('click', e => {
   if (!document.getElementById('slash-popup')?.contains(e.target)) closeSlashPopup();
 });
 
-// ── MEJORA 4: Badge de seguimientos pendientes en el sidebar ──────────────────
+// â”€â”€ MEJORA 4: Badge de seguimientos pendientes en el sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function updateFollowupBadge() {
   const today = new Date(); today.setHours(0,0,0,0);
   const overdue = leads.filter(l => {
@@ -844,19 +853,19 @@ function renderFollowupBanner() {
     const filterPanel = document.querySelector('#leads-view .glass-panel:first-of-type');
     if (filterPanel) filterPanel.after(banner);
   }
-  banner.innerHTML = `<span style="font-size:1.1rem">⚠️</span>
-    <span><strong>${overdue.length} seguimiento${overdue.length>1?'s':''} pendiente${overdue.length>1?'s':''}</strong> —
-      ${overdue.slice(0,3).map(l=>`<span style="color:var(--primary);cursor:pointer" onclick="openLeadDrawer('${l.id}')">${l.company}</span>`).join(', ')}${overdue.length>3?' y '+(overdue.length-3)+' más':''}
+  banner.innerHTML = `<span style="font-size:1.1rem">âš ï¸</span>
+    <span><strong>${overdue.length} seguimiento${overdue.length>1?'s':''} pendiente${overdue.length>1?'s':''}</strong> â€”
+      ${overdue.slice(0,3).map(l=>`<span style="color:var(--primary);cursor:pointer" onclick="openLeadDrawer('${l.id}')">${l.company}</span>`).join(', ')}${overdue.length>3?' y '+(overdue.length-3)+' mÃ¡s':''}
     </span>
     <button class="btn-action btn-sm" style="margin-left:auto" onclick="document.getElementById('sort-leads').value='next_contact';renderLeads()">Ver ordenados</button>`;
 }
 
-// ── MEJORA 5: Búsquedas guardadas v2 ──────────────────────────────────────────
+// â”€â”€ MEJORA 5: BÃºsquedas guardadas v2 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MAX_SAVED_SEARCHES = 10;
 const SAVED_SEARCHES_KEY = 'gordi_saved_searches';
 let ssCompareSelection = [];
 let ssCurrentFilter = '';
-const SEGMENT_ICONS = { Industrial:'🏭', Retail:'🛍️', Oficinas:'🏢', Hoteles:'🏨', Educativo:'🎓', Deportivo:'⚽', Cultural:'🎭', Comercial:'🏬' };
+const SEGMENT_ICONS = { Industrial:'ðŸ­', Retail:'ðŸ›ï¸', Oficinas:'ðŸ¢', Hoteles:'ðŸ¨', Educativo:'ðŸŽ“', Deportivo:'âš½', Cultural:'ðŸŽ­', Comercial:'ðŸ¬', Dental:'ðŸ¦·', Medico:'ðŸ¥', Estetico:'âœ¨' };
 
 function getSavedSearches() {
   try { return JSON.parse(localStorage.getItem(SAVED_SEARCHES_KEY) || '[]'); } catch { return []; }
@@ -899,7 +908,7 @@ function renderSavedSearches(filter) {
   const q = (ssCurrentFilter||'').toLowerCase().trim();
   const searches = q ? sorted.filter(s => (s.label||s.segment+' '+s.location).toLowerCase().includes(q)) : sorted;
   const countEl = document.getElementById('ss-count-label');
-  if (countEl) countEl.textContent = searches.length + ' búsqueda' + (searches.length!==1?'s':'');
+  if (countEl) countEl.textContent = searches.length + ' bÃºsqueda' + (searches.length!==1?'s':'');
   const cmpBtn = document.getElementById('ss-compare-btn');
   const cmpHint = document.getElementById('ss-compare-hint');
   if (cmpBtn) cmpBtn.style.display = ssCompareSelection.length === 2 ? 'inline-block' : 'none';
@@ -910,43 +919,43 @@ function renderSavedSearches(filter) {
     const badge  = getSearchBadge(s);
     const isCmpSel = ssCompareSelection.includes(String(s.id));
     const dateStr = new Date(s.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-    const displayName = s.label || (s.segment + ' · ' + s.location);
+    const displayName = s.label || (s.segment + ' Â· ' + s.location);
     const enrichPct = s.count > 0 ? Math.round((s.enriched||0)/s.count*100) : 0;
     const previews = (s.results||[]).slice(0,3).map(r =>
-      `<div class="ss-preview-item"><span style="opacity:.5">🏢</span><span style="overflow:hidden;text-overflow:ellipsis">${r.name||'—'}</span>${r.email?'<span style="margin-left:auto;opacity:.5;font-size:.65rem">✉</span>':''}</div>`
+      `<div class="ss-preview-item"><span style="opacity:.5">ðŸ¢</span><span style="overflow:hidden;text-overflow:ellipsis">${r.name||'â€”'}</span>${r.email?'<span style="margin-left:auto;opacity:.5;font-size:.65rem">âœ‰</span>':''}</div>`
     ).join('');
     return `<div class="ss-accordion${isOpen?' ss-open':''}${s.pinned?' ss-pinned':''}${isCmpSel?' ss-compare-sel':''}" id="ss-acc-${s.id}">
-      ${s.pinned ? '<div class="ss-pin-star">⭐</div>' : ''}
+      ${s.pinned ? '<div class="ss-pin-star">â­</div>' : ''}
       <div class="ss-header" onclick="toggleSavedSearch('${s.id}')">
-        <span style="font-size:.95rem">${SEGMENT_ICONS[s.segment]||'🔍'}</span>
+        <span style="font-size:.95rem">${SEGMENT_ICONS[s.segment]||'ðŸ”'}</span>
         <div style="flex:1;min-width:0;overflow:hidden">
           <div class="ss-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${displayName}</div>
           <div class="ss-meta">${dateStr}</div>
         </div>
         <span class="ss-badge ${badge.cls}">${badge.label}</span>
-        <span class="ss-chevron">▼</span>
+        <span class="ss-chevron">â–¼</span>
       </div>
       <div class="ss-body"><div class="ss-body-inner">
         <div class="ss-stat-row">
-          <span class="ss-stat">🏢 ${s.count}</span>
-          <span class="ss-stat green">✅ ${s.imported} imp.</span>
-          <span class="ss-stat grey">⚡ ${enrichPct}% enriq.</span>
+          <span class="ss-stat">ðŸ¢ ${s.count}</span>
+          <span class="ss-stat green">âœ… ${s.imported} imp.</span>
+          <span class="ss-stat grey">âš¡ ${enrichPct}% enriq.</span>
         </div>
         ${previews ? `<div class="ss-preview-list">${previews}</div>` : ''}
         <div class="ss-rename-wrap" id="ss-rename-${s.id}">
           <input class="ss-rename-input" id="ss-rename-input-${s.id}" type="text" value="${s.label||displayName}" placeholder="Nombre personalizado..." onkeydown="if(event.key==='Enter')saveSsLabel('${s.id}')">
-          <button class="ss-rename-save" onclick="saveSsLabel('${s.id}')">✓</button>
+          <button class="ss-rename-save" onclick="saveSsLabel('${s.id}')">âœ“</button>
         </div>
         <div class="ss-actions">
-          <button class="ss-btn ss-btn-load" onclick="loadSavedSearch('${s.id}')">▶ Cargar</button>
-          <button class="ss-btn ss-btn-rerun" onclick="rerunSavedSearch('${s.id}')">🔄 Re-lanzar</button>
-          <button class="ss-btn ss-btn-csv" onclick="exportSavedSearchCSV('${s.id}',event)">⬇ CSV</button>
-          <button class="ss-btn ss-btn-pin" onclick="togglePin('${s.id}',event)">${s.pinned?'📌 Fijada':'📌 Fijar'}</button>
+          <button class="ss-btn ss-btn-load" onclick="loadSavedSearch('${s.id}')">â–¶ Cargar</button>
+          <button class="ss-btn ss-btn-rerun" onclick="rerunSavedSearch('${s.id}')">ðŸ”„ Re-lanzar</button>
+          <button class="ss-btn ss-btn-csv" onclick="exportSavedSearchCSV('${s.id}',event)">â¬‡ CSV</button>
+          <button class="ss-btn ss-btn-pin" onclick="togglePin('${s.id}',event)">${s.pinned?'ðŸ“Œ Fijada':'ðŸ“Œ Fijar'}</button>
         </div>
         <div class="ss-actions" style="margin-top:.25rem">
-          <button class="ss-btn ss-btn-csv" onclick="toggleSsRename('${s.id}')" style="flex:none;min-width:auto">✏ Renombrar</button>
-          <button class="ss-btn" style="flex:none;min-width:auto;background:${isCmpSel?'rgba(167,139,250,.2)':'var(--glass)'};color:${isCmpSel?'#a78bfa':'var(--text-dim)'};border:1px solid ${isCmpSel?'#a78bfa':'var(--glass-border)'}" onclick="toggleCompareSelect('${s.id}')">⚖ ${isCmpSel?'Quitar':'Comparar'}</button>
-          <button class="ss-btn ss-btn-del" onclick="deleteSavedSearch('${s.id}',event)" style="flex:none;min-width:auto">🗑</button>
+          <button class="ss-btn ss-btn-csv" onclick="toggleSsRename('${s.id}')" style="flex:none;min-width:auto">âœ Renombrar</button>
+          <button class="ss-btn" style="flex:none;min-width:auto;background:${isCmpSel?'rgba(167,139,250,.2)':'var(--glass)'};color:${isCmpSel?'#a78bfa':'var(--text-dim)'};border:1px solid ${isCmpSel?'#a78bfa':'var(--glass-border)'}" onclick="toggleCompareSelect('${s.id}')">âš– ${isCmpSel?'Quitar':'Comparar'}</button>
+          <button class="ss-btn ss-btn-del" onclick="deleteSavedSearch('${s.id}',event)" style="flex:none;min-width:auto">ðŸ—‘</button>
         </div>
       </div></div>
     </div>`;
@@ -963,25 +972,25 @@ function filterSavedSearches(val) { renderSavedSearches(val); }
 function loadSavedSearch(id) {
   const s = getSavedSearches().find(x => x.id == id);
   if (!s) return;
-  if (!s.results?.length) { showToast('⚠️ Esta búsqueda no tiene resultados guardados'); return; }
+  if (!s.results?.length) { showToast('âš ï¸ Esta bÃºsqueda no tiene resultados guardados'); return; }
   tempSearchResults = s.results;
   document.getElementById('plan-segment').value = s.segment;
   document.getElementById('plan-location').value = s.location;
   renderSearchCards(); showResultsPanel(); updateEnrichStats();
-  showToast(`📂 Cargada: ${s.count} empresas de ${s.location} ⚡`);
+  showToast(`ðŸ“‚ Cargada: ${s.count} empresas de ${s.location} âš¡`);
 }
 function rerunSavedSearch(id) {
   const s = getSavedSearches().find(x => x.id == id);
   if (!s) return;
   document.getElementById('plan-segment').value = s.segment;
   document.getElementById('plan-location').value = s.location;
-  showToast(`🔄 Relanzando: ${s.segment} en ${s.location}...`);
+  showToast(`ðŸ”„ Relanzando: ${s.segment} en ${s.location}...`);
   setTimeout(() => { if (typeof searchBusinesses === 'function') searchBusinesses(); }, 300);
 }
 function exportSavedSearchCSV(id, e) {
   e && e.stopPropagation();
   const s = getSavedSearches().find(x => x.id == id);
-  if (!s || !s.results?.length) { showToast('⚠️ Sin datos para exportar'); return; }
+  if (!s || !s.results?.length) { showToast('âš ï¸ Sin datos para exportar'); return; }
   const prev = window.tempSearchResults;
   tempSearchResults = s.results;
   exportSearchCSV();
@@ -995,7 +1004,7 @@ function togglePin(id, e) {
   s.pinned = !s.pinned;
   saveSavedSearches(searches);
   renderSavedSearches();
-  showToast(s.pinned ? '📌 Búsqueda fijada' : '📌 Búsqueda desfijada');
+  showToast(s.pinned ? 'ðŸ“Œ BÃºsqueda fijada' : 'ðŸ“Œ BÃºsqueda desfijada');
 }
 function toggleSsRename(id) {
   const wrap = document.getElementById('ss-rename-' + id);
@@ -1012,14 +1021,14 @@ function saveSsLabel(id) {
   s.label = input.value.trim() || null;
   saveSavedSearches(searches);
   renderSavedSearches();
-  showToast('✏ Nombre guardado');
+  showToast('âœ Nombre guardado');
 }
 function toggleCompareSelect(id) {
   const sid = String(id);
   const idx = ssCompareSelection.indexOf(sid);
   if (idx >= 0) { ssCompareSelection.splice(idx, 1); }
   else {
-    if (ssCompareSelection.length >= 2) { showToast('⚠️ Solo puedes comparar 2 búsquedas'); return; }
+    if (ssCompareSelection.length >= 2) { showToast('âš ï¸ Solo puedes comparar 2 bÃºsquedas'); return; }
     ssCompareSelection.push(sid);
   }
   renderSavedSearches();
@@ -1033,15 +1042,15 @@ function openCompareModal() {
     const enrichPct = s.count > 0 ? Math.round((s.enriched||0)/s.count*100) : 0;
     const emailCount = (s.results||[]).filter(r => r.email).length;
     const phoneCount = (s.results||[]).filter(r => r.phone).length;
-    const topCompanies = (s.results||[]).slice(0,5).map(r => `<div class="ss-compare-company">🏢 ${r.name||'—'}${r.rating?' ★'+r.rating:''}</div>`).join('');
+    const topCompanies = (s.results||[]).slice(0,5).map(r => `<div class="ss-compare-company">ðŸ¢ ${r.name||'â€”'}${r.rating?' â˜…'+r.rating:''}</div>`).join('');
     return `<div class="ss-compare-col">
-      <h3>${SEGMENT_ICONS[s.segment]||'🔍'} ${s.label||s.segment+' · '+s.location}</h3>
-      <div class="ss-compare-stat"><span>📍 Zona</span><span class="ss-compare-val">${s.location}</span></div>
-      <div class="ss-compare-stat"><span>🏢 Empresas</span><span class="ss-compare-val">${s.count}</span></div>
-      <div class="ss-compare-stat"><span>✉ Con email</span><span class="ss-compare-val">${emailCount}</span></div>
-      <div class="ss-compare-stat"><span>📞 Con teléfono</span><span class="ss-compare-val">${phoneCount}</span></div>
-      <div class="ss-compare-stat"><span>⚡ Enriquecidas</span><span class="ss-compare-val">${enrichPct}%</span></div>
-      <div class="ss-compare-stat"><span>✅ Importadas</span><span class="ss-compare-val">${s.imported}</span></div>
+      <h3>${SEGMENT_ICONS[s.segment]||'ðŸ”'} ${s.label||s.segment+' Â· '+s.location}</h3>
+      <div class="ss-compare-stat"><span>ðŸ“ Zona</span><span class="ss-compare-val">${s.location}</span></div>
+      <div class="ss-compare-stat"><span>ðŸ¢ Empresas</span><span class="ss-compare-val">${s.count}</span></div>
+      <div class="ss-compare-stat"><span>âœ‰ Con email</span><span class="ss-compare-val">${emailCount}</span></div>
+      <div class="ss-compare-stat"><span>ðŸ“ž Con telÃ©fono</span><span class="ss-compare-val">${phoneCount}</span></div>
+      <div class="ss-compare-stat"><span>âš¡ Enriquecidas</span><span class="ss-compare-val">${enrichPct}%</span></div>
+      <div class="ss-compare-stat"><span>âœ… Importadas</span><span class="ss-compare-val">${s.imported}</span></div>
       <div style="margin-top:.75rem;font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:.3rem">TOP EMPRESAS</div>
       ${topCompanies}
     </div>`;
@@ -1049,8 +1058,8 @@ function openCompareModal() {
   document.getElementById('ss-compare-content').innerHTML = `
     <div class="ss-compare-grid">${col(a)}${col(b)}</div>
     <div style="padding:.85rem 1.25rem;display:flex;gap:.5rem;border-top:1px solid var(--glass-border)">
-      <button class="ss-btn ss-btn-load" style="max-width:200px" onclick="loadSavedSearch('${a.id}');closeCompareModal()">▶ Cargar ${a.label||a.location}</button>
-      <button class="ss-btn ss-btn-load" style="max-width:200px" onclick="loadSavedSearch('${b.id}');closeCompareModal()">▶ Cargar ${b.label||b.location}</button>
+      <button class="ss-btn ss-btn-load" style="max-width:200px" onclick="loadSavedSearch('${a.id}');closeCompareModal()">â–¶ Cargar ${a.label||a.location}</button>
+      <button class="ss-btn ss-btn-load" style="max-width:200px" onclick="loadSavedSearch('${b.id}');closeCompareModal()">â–¶ Cargar ${b.label||b.location}</button>
     </div>`;
   document.getElementById('ss-compare-modal').classList.add('open');
 }
@@ -1063,14 +1072,14 @@ function deleteSavedSearch(id, e) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════════════
-// ██  MÓDULO: INIT
-// ──  Inicialización de la aplicación al cargar la página
-// ──  Funciones: Llamadas de arranque: loadLeads, detectOAuthToken, checkMobileLayout, etc.
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â–ˆâ–ˆ  MÃ“DULO: INIT
+// â”€â”€  InicializaciÃ³n de la aplicaciÃ³n al cargar la pÃ¡gina
+// â”€â”€  Funciones: Llamadas de arranque: loadLeads, detectOAuthToken, checkMobileLayout, etc.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 
-// Hook: guardar búsqueda automáticamente al terminar el scraping
+// Hook: guardar bÃºsqueda automÃ¡ticamente al terminar el scraping
 const _origResetSearchBtn = resetSearchBtn;
 resetSearchBtn = function() {
   _origResetSearchBtn();
@@ -1093,9 +1102,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// ══════════════════════════════════════════════════════════════════════════
-// ██  QR SYNC — Genera un QR con la config cifrada para otros dispositivos
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â–ˆâ–ˆ  QR SYNC â€” Genera un QR con la config cifrada para otros dispositivos
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let _qrExpireTimer = null;
 
@@ -1144,23 +1153,23 @@ function collectQRPayload() {
   return payload;
 }
 
-// URL pública de la app — el QR apunta siempre aquí
+// URL pÃºblica de la app â€” el QR apunta siempre aquÃ­
 const VOLTFLOW_PUBLIC_URL = 'https://alfredosalaz-sys.github.io/Voltflow/index.html';
 
 function generateQR() {
   const payload = collectQRPayload();
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 
-  // Construir URL directa: el móvil escanea, abre la app en GitHub Pages
-  // y detectAndApplySync() lee ?vfsync= y aplica la configuración automáticamente
+  // Construir URL directa: el mÃ³vil escanea, abre la app en GitHub Pages
+  // y detectAndApplySync() lee ?vfsync= y aplica la configuraciÃ³n automÃ¡ticamente
   const syncUrl = VOLTFLOW_PUBLIC_URL + '?vfsync=' + encodeURIComponent(encoded);
 
   const statusEl = document.getElementById('qr-status');
 
   if (syncUrl.length > 2953) {
     statusEl.innerHTML =
-      '⚠️ Demasiados datos para un QR.<br>' +
-      '<span style="font-size:.75rem;color:var(--text-dim)">Desmarca "Plantillas" o "Perfil" e inténtalo de nuevo.</span>';
+      'âš ï¸ Demasiados datos para un QR.<br>' +
+      '<span style="font-size:.75rem;color:var(--text-dim)">Desmarca "Plantillas" o "Perfil" e intÃ©ntalo de nuevo.</span>';
     return;
   }
 
@@ -1173,8 +1182,8 @@ function generateQR() {
   if (document.getElementById('qr-inc-templates')?.checked) parts.push('plantillas');
 
   statusEl.innerHTML =
-    '✅ <strong>QR listo.</strong> Incluye: ' + parts.join(', ') + '<br>' +
-    '<span style="font-size:.75rem;color:var(--text-dim)">Escanea con la cámara del móvil — se abrirá la app con todo configurado automáticamente.</span>';
+    'âœ… <strong>QR listo.</strong> Incluye: ' + parts.join(', ') + '<br>' +
+    '<span style="font-size:.75rem;color:var(--text-dim)">Escanea con la cÃ¡mara del mÃ³vil â€” se abrirÃ¡ la app con todo configurado automÃ¡ticamente.</span>';
 }
 
 function _drawQR(text) {
@@ -1229,11 +1238,11 @@ function _renderQRCanvas(text) {
     if (document.getElementById('qr-inc-templates')?.checked) parts.push('plantillas');
 
     document.getElementById('qr-status').innerHTML =
-      '✅ <strong>QR listo.</strong> Escanéalo con el dispositivo nuevo.<br>' +
+      'âœ… <strong>QR listo.</strong> EscanÃ©alo con el dispositivo nuevo.<br>' +
       '<span style="color:var(--text-dim)">Incluye: ' + parts.join(', ') + '</span>';
 
   } catch(err) {
-    document.getElementById('qr-status').textContent = '⚠️ Error generando QR: ' + err.message;
+    document.getElementById('qr-status').textContent = 'âš ï¸ Error generando QR: ' + err.message;
   }
 }
 
@@ -1250,7 +1259,7 @@ function _renderQRFallback(text) {
   document.getElementById('qr-refresh-btn').style.display = 'inline-flex';
   document.getElementById('qr-expire-info').style.display = 'block';
   _startQRCountdown(5 * 60);
-  document.getElementById('qr-status').innerHTML = '✅ <strong>QR listo</strong> (modo alternativo). Escanéalo ahora.';
+  document.getElementById('qr-status').innerHTML = 'âœ… <strong>QR listo</strong> (modo alternativo). EscanÃ©alo ahora.';
 }
 
 function _startQRCountdown(seconds) {
@@ -1261,9 +1270,9 @@ function _startQRCountdown(seconds) {
     if (remaining <= 0) {
       clearInterval(_qrExpireTimer);
       document.getElementById('qr-status').innerHTML =
-        '⏰ <strong>QR caducado.</strong> Genera uno nuevo.';
+        'â° <strong>QR caducado.</strong> Genera uno nuevo.';
       document.getElementById('qr-container').innerHTML =
-        '<div style="text-align:center;padding:1rem"><div style="font-size:2rem">⏰</div><div style="font-size:.72rem;color:var(--text-dim)">Caducado</div></div>';
+        '<div style="text-align:center;padding:1rem"><div style="font-size:2rem">â°</div><div style="font-size:.72rem;color:var(--text-dim)">Caducado</div></div>';
       document.getElementById('qr-download-btn').style.display = 'none';
       document.getElementById('qr-expire-info').style.display = 'none';
       return;
@@ -1279,16 +1288,16 @@ function _startQRCountdown(seconds) {
 
 function downloadQR() {
   const img = document.querySelector('#qr-container img');
-  if (!img) { showToast('⚠️ Primero genera el QR'); return; }
+  if (!img) { showToast('âš ï¸ Primero genera el QR'); return; }
   const a = document.createElement('a');
   a.href = img.src;
   a.download = 'voltflow-sync-qr.png';
   a.click();
 }
 
-// ── AUTO-ACTIVACIÓN al escanear el QR ─────────────────────────────────────
+// â”€â”€ AUTO-ACTIVACIÃ“N al escanear el QR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 (function detectAndApplySync() {
-  // Soporte legacy: parámetro ?vfsync= en URL (app en servidor)
+  // Soporte legacy: parÃ¡metro ?vfsync= en URL (app en servidor)
   const params = new URLSearchParams(location.search);
   const raw = params.get('vfsync');
   if (!raw) return;
@@ -1300,7 +1309,7 @@ function downloadQR() {
 
     // Check expiry
     if (payload.exp && Date.now() > payload.exp) {
-      setTimeout(() => showToast('⚠️ Este QR ha caducado. Genera uno nuevo desde el dispositivo original.'), 1000);
+      setTimeout(() => showToast('âš ï¸ Este QR ha caducado. Genera uno nuevo desde el dispositivo original.'), 1000);
       return;
     }
 
@@ -1317,7 +1326,7 @@ function downloadQR() {
       Object.entries(payload.keys).forEach(([k, v]) => {
         if (v && map[k]) localStorage.setItem(map[k], v);
       });
-      applied.push('🔑 API keys');
+      applied.push('ðŸ”‘ API keys');
     }
 
     if (payload.profile) {
@@ -1332,28 +1341,28 @@ function downloadQR() {
       Object.entries(payload.profile).forEach(([k, v]) => {
         if (v && map[k]) localStorage.setItem(map[k], v);
       });
-      applied.push('👤 perfil');
+      applied.push('ðŸ‘¤ perfil');
     }
 
     if (payload.sheets) {
       if (payload.sheets.id)  localStorage.setItem('gordi_sheets_id', payload.sheets.id);
       if (payload.sheets.cid) localStorage.setItem('gordi_sheets_client_id', payload.sheets.cid);
-      applied.push('📊 Sheets config');
+      applied.push('ðŸ“Š Sheets config');
     }
 
     if (payload.templates) {
-      try { localStorage.setItem('gordi_templates', payload.templates); applied.push('✉ plantillas'); } catch {}
+      try { localStorage.setItem('gordi_templates', payload.templates); applied.push('âœ‰ plantillas'); } catch {}
     }
 
     // Show success banner + auto-launch Sheets OAuth if cid present
     setTimeout(async () => {
-      showToast('✅ ¡Sincronización aplicada! ' + applied.join(', '));
+      showToast('âœ… Â¡SincronizaciÃ³n aplicada! ' + applied.join(', '));
       // If JSONBin was restored, auto-pull all data immediately
       if (payload.jsonbin?.k) {
         setTimeout(async () => {
-          showToast('🔄 Descargando datos de la nube...');
+          showToast('ðŸ”„ Descargando datos de la nube...');
           await jsonbinPull(false);
-          showToast('✅ Datos sincronizados');
+          showToast('âœ… Datos sincronizados');
         }, 1200);
       }
 
@@ -1366,15 +1375,15 @@ function downloadQR() {
         'font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:.75rem;max-width:90vw'
       ].join(';');
       banner.innerHTML = [
-        '<span style="font-size:1.3rem">📱</span>',
+        '<span style="font-size:1.3rem">ðŸ“±</span>',
         '<div>',
-        '  <div>¡Sincronización completada!</div>',
-        '  <div style="font-weight:400;font-size:.75rem;opacity:.85">' + applied.join(' · ') + '</div>',
+        '  <div>Â¡SincronizaciÃ³n completada!</div>',
+        '  <div style="font-weight:400;font-size:.75rem;opacity:.85">' + applied.join(' Â· ') + '</div>',
         '</div>',
         payload.sheets?.cid
-          ? '<button onclick="initSheetsOAuth();this.parentElement.parentElement.remove()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.35rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap">🔑 Autorizar Sheets</button>'
+          ? '<button onclick="initSheetsOAuth();this.parentElement.parentElement.remove()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:.35rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap">ðŸ”‘ Autorizar Sheets</button>'
           : '',
-        '<button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;margin-left:.5rem">✕</button>'
+        '<button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;margin-left:.5rem">âœ•</button>'
       ].join('');
       document.body.appendChild(banner);
 
@@ -1384,7 +1393,7 @@ function downloadQR() {
       // If sheets cid present and no valid token, offer OAuth
       if (payload.sheets?.cid && !isTokenValid()) {
         setTimeout(() => {
-          if (confirm('¿Autorizar Google Sheets ahora para sincronización completa?')) {
+          if (confirm('Â¿Autorizar Google Sheets ahora para sincronizaciÃ³n completa?')) {
             initSheetsOAuth();
           }
         }, 1500);
@@ -1392,15 +1401,15 @@ function downloadQR() {
     }, 800);
 
   } catch(e) {
-    setTimeout(() => showToast('⚠️ Error al leer el QR de sincronización'), 800);
+    setTimeout(() => showToast('âš ï¸ Error al leer el QR de sincronizaciÃ³n'), 800);
   }
 })();
 
 
 
-// ══════════════════════════════════════════════════════════════════════════
-// ██  REPLY MODAL — Respuesta inteligente a emails recibidos
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â–ˆâ–ˆ  REPLY MODAL â€” Respuesta inteligente a emails recibidos
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let _replyCurrentIdx = -1;
 let _replyCurrentTone = 'profesional';
@@ -1420,28 +1429,28 @@ function openReplyModal(idx) {
 
   const lead = em.lead;
   document.getElementById('reply-modal-title').textContent =
-    `✨ Responder a ${em.name || em.email}`;
+    `âœ¨ Responder a ${em.name || em.email}`;
   document.getElementById('reply-modal-sub').textContent =
-    lead ? `Lead: ${lead.company} · ${lead.status}` : 'Contacto sin lead asociado';
+    lead ? `Lead: ${lead.company} Â· ${lead.status}` : 'Contacto sin lead asociado';
 
   // Show received email context
   document.getElementById('reply-received-ctx').innerHTML =
-    `<strong style="color:var(--text)">📨 Email recibido:</strong><br>
+    `<strong style="color:var(--text)">ðŸ“¨ Email recibido:</strong><br>
      <span style="color:var(--text-dim)">De: ${em.name} &lt;${em.email}&gt;</span><br>
-     <span style="color:var(--text-dim)">Asunto: ${em.subject || '—'}</span><br>
+     <span style="color:var(--text-dim)">Asunto: ${em.subject || 'â€”'}</span><br>
      <div style="margin-top:.4rem;padding:.5rem;background:rgba(255,255,255,.04);border-radius:6px">
-       ${(em.body || 'Sin cuerpo detectado').slice(0, 300)}${em.body?.length > 300 ? '…' : ''}
+       ${(em.body || 'Sin cuerpo detectado').slice(0, 300)}${em.body?.length > 300 ? 'â€¦' : ''}
      </div>`;
 
   generateReplyEmail(em, lead, _replyCurrentTone);
 }
 
 async function generateReplyEmail(em, lead, tone) {
-  const key = localStorage.getItem('gordi_claude_key') || localStorage.getItem('gordi_gemini_key');
+  const key = getGeminiKey();
   if (!key) {
     document.getElementById('reply-loading').style.display = 'none';
     document.getElementById('reply-error').style.display = 'block';
-    document.getElementById('reply-error').textContent = '⚠️ Configura la API Key de Gemini en Configuración.';
+    document.getElementById('reply-error').textContent = 'âš ï¸ Configura la API Key de Gemini en ConfiguraciÃ³n.';
     return;
   }
 
@@ -1457,9 +1466,9 @@ async function generateReplyEmail(em, lead, tone) {
 
   const toneMap = {
     'profesional': 'Formal y confiable. Serio pero amable.',
-    'cercano':     'Cálido y personal. Como si ya os conocieseis.',
-    'urgente':     'Directo y con sentido de oportunidad. Sin presión pero con claridad.',
-    'conciso':     'Ultracorto. Máximo 3 frases. Solo lo esencial.'
+    'cercano':     'CÃ¡lido y personal. Como si ya os conocieseis.',
+    'urgente':     'Directo y con sentido de oportunidad. Sin presiÃ³n pero con claridad.',
+    'conciso':     'Ultracorto. MÃ¡ximo 3 frases. Solo lo esencial.'
   };
 
   const prompt = `Eres el responsable de ventas de Voltium Madrid. Has recibido este email y debes responder de forma profesional y persuasiva para avanzar la venta.
@@ -1472,9 +1481,9 @@ Cuerpo: "${em.body || 'sin cuerpo'}"
 ${lead ? `CONTEXTO DEL LEAD:
 - Empresa: ${lead.company} | Sector: ${lead.segment}
 - Estado: ${lead.status} | Score: ${lead.score || '?'}
-- Dirección: ${lead.address || 'Madrid'}
+- DirecciÃ³n: ${lead.address || 'Madrid'}
 - Rating Google: ${lead.rating ? lead.rating + '/5' : 'sin datos'}
-- Señales: ${(lead.signals||[]).slice(0,3).join(', ') || 'ninguna'}
+- SeÃ±ales: ${(lead.signals||[]).slice(0,3).join(', ') || 'ninguna'}
 ${lead.decision_maker ? '- Decisor: ' + lead.decision_maker : ''}` : ''}
 
 ${historialStr ? `HISTORIAL DE CONTACTO PREVIO:
@@ -1485,25 +1494,25 @@ PERFIL DEL SECTOR: ${segTone.tone}
 PROHIBIDO: ${segTone.forbidden}
 
 INSTRUCCIONES:
-1. Analiza EXACTAMENTE qué dice el email recibido (objeción, interés, duda, solicitud de info, rechazo)
-2. Clasifica la intención: [INTERESADO / DUDA / OBJECIÓN / SOLICITUD_PRECIO / RECHAZO_SUAVE / OTRO]
-3. Responde directamente a lo que dice — no ignores el contenido del email
-4. Si hay una objeción, neutralízala con un argumento concreto de Voltium
-5. Si pide precio/presupuesto, no des cifras — invita a una llamada/visita para valorar correctamente
-6. Firma: usa la firma corporativa que te paso más abajo
+1. Analiza EXACTAMENTE quÃ© dice el email recibido (objeciÃ³n, interÃ©s, duda, solicitud de info, rechazo)
+2. Clasifica la intenciÃ³n: [INTERESADO / DUDA / OBJECIÃ“N / SOLICITUD_PRECIO / RECHAZO_SUAVE / OTRO]
+3. Responde directamente a lo que dice â€” no ignores el contenido del email
+4. Si hay una objeciÃ³n, neutralÃ­zala con un argumento concreto de Voltium
+5. Si pide precio/presupuesto, no des cifras â€” invita a una llamada/visita para valorar correctamente
+6. Firma: usa la firma corporativa que te paso mÃ¡s abajo
 7. Asunto: empieza con "Re: " y adapta el asunto original
 
 FIRMA CORPORATIVA:
 ${firma}
 
-VOLTIUM MADRID — DIFERENCIALES:
-- Un único responsable técnico (no subcontratan)
-- Presupuesto cerrado desde el primer día
+VOLTIUM MADRID â€” DIFERENCIALES:
+- Un Ãºnico responsable tÃ©cnico (no subcontratan)
+- Presupuesto cerrado desde el primer dÃ­a
 - Trabajan sin interrumpir la actividad del cliente
-- Documentación digital en tiempo real
+- DocumentaciÃ³n digital en tiempo real
 
-Responde ÚNICAMENTE en JSON válido:
-{"subject":"Re: asunto adaptado","body":"HTML de la respuesta con <br><br> entre párrafos y <strong> en máx 2 puntos clave","intent":"INTERESADO|DUDA|OBJECIÓN|SOLICITUD_PRECIO|RECHAZO_SUAVE|OTRO","tactic":"en 1 frase: qué detectaste en el email y cómo lo abordaste"}`;
+Responde ÃšNICAMENTE en JSON vÃ¡lido:
+{"subject":"Re: asunto adaptado","body":"HTML de la respuesta con <br><br> entre pÃ¡rrafos y <strong> en mÃ¡x 2 puntos clave","intent":"INTERESADO|DUDA|OBJECIÃ“N|SOLICITUD_PRECIO|RECHAZO_SUAVE|OTRO","tactic":"en 1 frase: quÃ© detectaste en el email y cÃ³mo lo abordaste"}`;
 
   try {
     const res = await fetch(
@@ -1525,12 +1534,12 @@ Responde ÚNICAMENTE en JSON válido:
 
     // Show intent badge + tactic
     const intentColors = {
-      INTERESADO:'#34c759', DUDA:'#ff9500', OBJECIÓN:'#ef4444',
+      INTERESADO:'#34c759', DUDA:'#ff9500', 'OBJECIÃ“N':'#ef4444',
       SOLICITUD_PRECIO:'#007aff', RECHAZO_SUAVE:'#a78bfa', OTRO:'#7a8ba0'
     };
     const intentLabels = {
-      INTERESADO:'✅ Interesado', DUDA:'❓ Tiene una duda', OBJECIÓN:'⚡ Objeción',
-      SOLICITUD_PRECIO:'💰 Pide precio', RECHAZO_SUAVE:'😐 Rechazo suave', OTRO:'📝 Otro'
+      INTERESADO:'âœ… Interesado', DUDA:'â“ Tiene una duda', 'OBJECIÃ“N':'âš¡ ObjeciÃ³n',
+      SOLICITUD_PRECIO:'ðŸ’° Pide precio', RECHAZO_SUAVE:'ðŸ˜ Rechazo suave', OTRO:'ðŸ“ Otro'
     };
     const ic = intentColors[result.intent] || '#7a8ba0';
     const il = intentLabels[result.intent] || result.intent;
@@ -1540,15 +1549,15 @@ Responde ÚNICAMENTE en JSON válido:
         `<span style="display:inline-block;padding:.1rem .45rem;border-radius:5px;
           font-size:.68rem;font-weight:700;margin-right:.5rem;
           background:${ic}22;color:${ic}">${il}</span>
-         <strong>Táctica:</strong> ${result.tactic}`;
+         <strong>TÃ¡ctica:</strong> ${result.tactic}`;
       document.getElementById('reply-tactic').style.display = 'block';
     }
-    document.getElementById('reply-modal-sub').textContent = '✅ Respuesta generada — revisa y ajusta antes de enviar';
+    document.getElementById('reply-modal-sub').textContent = 'âœ… Respuesta generada â€” revisa y ajusta antes de enviar';
 
   } catch(e) {
     document.getElementById('reply-loading').style.display = 'none';
     document.getElementById('reply-error').style.display = 'block';
-    document.getElementById('reply-error').textContent = '⚠️ Error: ' + e.message;
+    document.getElementById('reply-error').textContent = 'âš ï¸ Error: ' + e.message;
   }
 }
 
@@ -1577,7 +1586,7 @@ function sendReplyEmail() {
   const editor = document.getElementById('reply-body-editor');
   const body = editor ? editor.innerText : '';
   const em = _inboxMatched[_replyCurrentIdx];
-  if (!em?.email) { showToast('⚠️ Sin email del remitente'); return; }
+  if (!em?.email) { showToast('âš ï¸ Sin email del remitente'); return; }
   window.location.href = `mailto:${em.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
   closeReplyModal();
 }
@@ -1588,7 +1597,7 @@ function copyReplyToClipboard() {
   const text = `Asunto: ${subj}
 
 ${editor ? editor.innerText : ''}`;
-  navigator.clipboard.writeText(text).then(() => showToast('📋 Respuesta copiada al portapapeles'));
+  copyToClipboard(text, 'Respuesta copiada al portapapeles');
 }
 
 function closeReplyModal() {
@@ -1596,9 +1605,9 @@ function closeReplyModal() {
   _replyCurrentIdx = -1;
 }
 
-// ══════════════════════════════════════════════════════════════════════════
-// ██  AI RANKING — TOP 5 oportunidades al acabar la búsqueda
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â–ˆâ–ˆ  AI RANKING â€” TOP 5 oportunidades al acabar la bÃºsqueda
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function showAndRunAiRanking() {
   const panel = document.getElementById('ai-ranking-panel');
@@ -1608,57 +1617,57 @@ function showAndRunAiRanking() {
 }
 
 async function runAiRanking() {
-  const key = localStorage.getItem('gordi_claude_key') || localStorage.getItem('gordi_gemini_key');
-  if (!key) { showToast('⚠️ Configura la API Key de Gemini'); return; }
-  if (!tempSearchResults.length) { showToast('⚠️ Primero realiza una búsqueda'); return; }
+  const key = getGeminiKey();
+  if (!key) { showToast('âš ï¸ Configura la API Key de Gemini'); return; }
+  if (!tempSearchResults.length) { showToast('âš ï¸ Primero realiza una bÃºsqueda'); return; }
 
   const btn = document.getElementById('ai-ranking-btn');
-  if (btn) { btn.textContent = '⏳ Analizando...'; btn.disabled = true; }
-  document.getElementById('ai-ranking-sub').textContent = 'Gemini está evaluando todas las empresas...';
+  if (btn) { btn.textContent = 'â³ Analizando...'; btn.disabled = true; }
+  document.getElementById('ai-ranking-sub').textContent = 'Gemini estÃ¡ evaluando todas las empresas...';
   document.getElementById('ai-ranking-content').innerHTML =
     '<div style="text-align:center;padding:1.5rem;font-size:.82rem;color:var(--text-dim)">' +
-    '<div style="font-size:1.5rem;margin-bottom:.5rem;animation:spin 1s linear infinite">⚙️</div>' +
+    '<div style="font-size:1.5rem;margin-bottom:.5rem;animation:spin 1s linear infinite">âš™ï¸</div>' +
     'Analizando ' + tempSearchResults.length + ' empresas...' +
     '</div>';
 
   // Prepare compact summary of all results for Gemini
   const segment = document.getElementById('plan-segment')?.value || 'desconocido';
-  const location = document.getElementById('plan-location')?.value || 'España';
+  const location = document.getElementById('plan-location')?.value || 'EspaÃ±a';
 
   const companiesSummary = tempSearchResults.slice(0, 50).map((c, i) => {
     const signals = (c.signals || []).slice(0, 3).join(' | ');
-    return `${i+1}. ${c.name} | ⭐${c.rating||'?'}(${c.ratingCount||0}) | Email:${c.email?'SÍ':'NO'} | Decisor:${c.decision_maker?'SÍ':'NO'} | Web:${c.website?'SÍ':'NO'} | Dist:${c.distance||'?'} | Señales:${signals||'ninguna'} | Desc:${(c.description||'').slice(0,80)}`;
+    return `${i+1}. ${c.name} | â­${c.rating||'?'}(${c.ratingCount||0}) | Email:${c.email?'SÃ':'NO'} | Decisor:${c.decision_maker?'SÃ':'NO'} | Web:${c.website?'SÃ':'NO'} | Dist:${c.distance||'?'} | SeÃ±ales:${signals||'ninguna'} | Desc:${(c.description||'').slice(0,80)}`;
   }).join('\n');
 
   const segTone = SEGMENT_TONE[segment] || SEGMENT_TONE['Default'];
 
-  const prompt = `Eres un experto en ventas B2B para Voltium Madrid (empresa de reformas y eficiencia energética en Madrid).
+  const prompt = `Eres un experto en ventas B2B para Voltium Madrid (empresa de reformas y eficiencia energÃ©tica en Madrid).
 
 CONTEXTO:
 - Sector buscado: ${segment}
 - Zona: ${location}
 - Dolor principal del sector: ${segTone.pain}
-- Ángulo de venta más efectivo: ${segTone.angle}
+- Ãngulo de venta mÃ¡s efectivo: ${segTone.angle}
 
-EMPRESAS ENCONTRADAS (${tempSearchResults.length} en total, aquí las primeras 50):
+EMPRESAS ENCONTRADAS (${tempSearchResults.length} en total, aquÃ­ las primeras 50):
 ${companiesSummary}
 
-TAREA: Identifica las 5 empresas con MAYOR potencial de conversión para Voltium Madrid.
+TAREA: Identifica las 5 empresas con MAYOR potencial de conversiÃ³n para Voltium Madrid.
 
-CRITERIOS DE PUNTUACIÓN (razona con estos factores):
-1. SEÑALES DE NECESIDAD: ¿Tiene señales de problemas (ruido, antigüedad, sin HTTPS, web lenta, rating bajo)?
-2. CAPACIDAD DE COMPRA: ¿Tiene muchas reseñas (negocio activo)? ¿Lleva años en el sector?
-3. CONTACTABILIDAD: ¿Tiene email y/o decisor identificado?
-4. URGENCIA: ¿Hay señales de reforma en curso, apertura reciente, expansión?
-5. FIT CON VOLTIUM: ¿El tipo de negocio encaja bien con los servicios de Voltium?
+CRITERIOS DE PUNTUACIÃ“N (razona con estos factores):
+1. SEÃ‘ALES DE NECESIDAD: Â¿Tiene seÃ±ales de problemas (ruido, antigÃ¼edad, sin HTTPS, web lenta, rating bajo)?
+2. CAPACIDAD DE COMPRA: Â¿Tiene muchas reseÃ±as (negocio activo)? Â¿Lleva aÃ±os en el sector?
+3. CONTACTABILIDAD: Â¿Tiene email y/o decisor identificado?
+4. URGENCIA: Â¿Hay seÃ±ales de reforma en curso, apertura reciente, expansiÃ³n?
+5. FIT CON VOLTIUM: Â¿El tipo de negocio encaja bien con los servicios de Voltium?
 
 Para cada empresa del TOP 5 explica:
-- Por qué es una oportunidad (máx 2 frases, muy concretas)
-- Cuál es el ángulo de apertura más efectivo para contactarla
-- Qué nivel de urgencia tiene: ALTA / MEDIA / BAJA
+- Por quÃ© es una oportunidad (mÃ¡x 2 frases, muy concretas)
+- CuÃ¡l es el Ã¡ngulo de apertura mÃ¡s efectivo para contactarla
+- QuÃ© nivel de urgencia tiene: ALTA / MEDIA / BAJA
 
-Responde ÚNICAMENTE en JSON válido:
-{"ranking":[{"position":1,"name":"nombre exacto","score":85,"reason":"por qué es top oportunidad","angle":"cómo abrir el contacto","urgency":"ALTA|MEDIA|BAJA"},...],"summary":"1 frase: patrón general que observas en los mejores leads de esta búsqueda"}`;
+Responde ÃšNICAMENTE en JSON vÃ¡lido:
+{"ranking":[{"position":1,"name":"nombre exacto","score":85,"reason":"por quÃ© es top oportunidad","angle":"cÃ³mo abrir el contacto","urgency":"ALTA|MEDIA|BAJA"},...],"summary":"1 frase: patrÃ³n general que observas en los mejores leads de esta bÃºsqueda"}`;
 
   try {
     const res = await fetch(
@@ -1674,13 +1683,13 @@ Responde ÚNICAMENTE en JSON válido:
     const result = JSON.parse(raw);
 
     renderAiRanking(result);
-    if (btn) { btn.textContent = '🔄 Re-analizar'; btn.disabled = false; }
+    if (btn) { btn.textContent = 'ðŸ”„ Re-analizar'; btn.disabled = false; }
     document.getElementById('ai-ranking-sub').textContent = 'TOP 5 identificadas por Gemini IA';
 
   } catch(e) {
     document.getElementById('ai-ranking-content').innerHTML =
-      '<div style="padding:1rem;color:var(--danger);font-size:.82rem">⚠️ Error: ' + e.message + '</div>';
-    if (btn) { btn.textContent = '⚡ Reintentar'; btn.disabled = false; }
+      '<div style="padding:1rem;color:var(--danger);font-size:.82rem">âš ï¸ Error: ' + e.message + '</div>';
+    if (btn) { btn.textContent = 'âš¡ Reintentar'; btn.disabled = false; }
   }
 }
 
@@ -1721,7 +1730,7 @@ function renderAiRanking(result) {
         <div style="font-size:.73rem;padding:.3rem .6rem;border-radius:6px;
           background:rgba(0,150,255,.08);border:1px solid rgba(0,150,255,.15);
           color:var(--primary);line-height:1.4">
-          💡 <strong>Ángulo:</strong> ${item.angle}
+          ðŸ’¡ <strong>Ãngulo:</strong> ${item.angle}
         </div>
       </div>
     </div>`;
@@ -1730,9 +1739,11 @@ function renderAiRanking(result) {
   const summary = result.summary
     ? `<div style="font-size:.75rem;color:var(--text-dim);padding:.6rem .8rem;
         border-top:1px solid var(--glass-border);margin-top:.5rem;font-style:italic">
-        📊 ${result.summary}</div>`
+        ðŸ“Š ${result.summary}</div>`
     : '';
 
   document.getElementById('ai-ranking-content').innerHTML = cards + summary;
 }
+
+
 

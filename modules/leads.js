@@ -10,6 +10,12 @@
 
 function saveLead() {
   const g = id => document.getElementById(id).value;
+  const name = g('lead-name').trim();
+  const company = g('lead-company').trim();
+  if (!name || !company) {
+    showToast('⚠️ Nombre y empresa son obligatorios');
+    return;
+  }
   const role = g('lead-role'), size = g('lead-size'), signal = g('lead-signal');
   const tagsRaw = g('lead-tags');
   const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -17,7 +23,7 @@ function saveLead() {
   const nextContact = g('lead-next-contact') || '';
   const lead = {
     id: Date.now(),
-    name: g('lead-name'), company: g('lead-company'),
+    name, company,
     email: g('lead-email'), phone: g('lead-phone'),
     segment: g('lead-segment'), website: g('lead-website'),
     signal, role, size,
@@ -32,7 +38,6 @@ function saveLead() {
   leads.unshift(lead);
   saveLeads();
   renderAll();
-  renderDashboardCharts();
   document.getElementById('lead-form').reset();
   clearLeadFormDraft();
   toggleLeadForm();
@@ -42,8 +47,41 @@ function saveLead() {
 
 let _saveLeadsTimer = null;
 function saveLeads() {
-  localStorage.setItem('gordi_leads', JSON.stringify(leads));
+  const currentLeads = Array.isArray(leads) ? leads : [];
+  if (currentLeads.length > 0 && typeof createCriticalRescueSnapshot === 'function') {
+    createCriticalRescueSnapshot('before_leads_save', { throttleMs: 5 * 60 * 1000 });
+  }
+  if (currentLeads.length === 0) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('gordi_leads') || '[]');
+      if (Array.isArray(stored) && stored.length > 0 && typeof createSafetySnapshot === 'function') {
+        createSafetySnapshot('before_empty_leads_save');
+        console.warn('Snapshot creado antes de guardar cero leads sobre un almacenamiento con datos.');
+      }
+      if (Array.isArray(stored) && stored.length > 0 && typeof createCriticalRescueSnapshot === 'function') {
+        createCriticalRescueSnapshot('before_empty_leads_save');
+      }
+    } catch (e) {
+      if (typeof createSafetySnapshot === 'function') createSafetySnapshot('before_empty_leads_save_unparsed');
+      if (typeof createCriticalRescueSnapshot === 'function') createCriticalRescueSnapshot('before_empty_leads_save_unparsed');
+    }
+  }
+  try {
+    localStorage.setItem('gordi_local_last_modified', new Date().toISOString());
+    localStorage.setItem('gordi_leads', JSON.stringify(currentLeads));
+  } catch (e) {
+    console.error('No se pudieron guardar los leads en localStorage:', e);
+    if (typeof createCriticalRescueSnapshot === 'function') {
+      try { createCriticalRescueSnapshot('localstorage_save_failed', { throttleMs: 0 }); } catch {}
+    }
+    showToast('No se pudieron guardar los leads. Revisa espacio del navegador y exporta una copia de seguridad.');
+    return;
+  }
   _goldenProfile = null; // Invalidar cache lookalike
+
+  // 🏛️ ARQUITECTURA: Notificar cambio global
+  if (typeof notifyStateChange === 'function') notifyStateChange();
+
   // Debounce heavy network calls — batch multiple saves into one push
   if (_saveLeadsTimer) clearTimeout(_saveLeadsTimer);
   _saveLeadsTimer = setTimeout(() => {
@@ -51,7 +89,9 @@ function saveLeads() {
     if (localStorage.getItem('gordi_gh_auto') === 'true' && localStorage.getItem('gordi_gh_token')) {
       githubPush(false); // silent GitHub push
     }
-
+    if (localStorage.getItem('gordi_jsonbin_auto') === 'true') {
+      if (typeof jsonbinPush === 'function') jsonbinPush(false);
+    }
   }, 2000); // wait 2s after last save before pushing to cloud
 }
 
@@ -150,6 +190,34 @@ function resetLeadsFilters() {
   renderLeads();
 }
 
+function getActiveLeadFilterCount() {
+  return [
+    document.getElementById('lead-search')?.value || '',
+    document.getElementById('filter-segment')?.value || '',
+    document.getElementById('filter-status')?.value || '',
+    document.getElementById('filter-source')?.value || '',
+    document.getElementById('filter-score-min')?.value || '',
+    document.getElementById('filter-date-range')?.value || '',
+    document.getElementById('filter-next-contact')?.value || ''
+  ].filter(Boolean).length;
+}
+
+function showLeadEmptyState(empty, activeCount, totalLeads) {
+  if (!empty) return;
+  empty.style.display = 'flex';
+  if (totalLeads > 0 && activeCount > 0) {
+    empty.innerHTML = `
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <p>Hay ${totalLeads} leads cargados, pero los filtros actuales no muestran ninguno.</p>
+      <button class="btn-primary" onclick="resetLeadsFilters()">Limpiar filtros y ver leads</button>`;
+    return;
+  }
+  empty.innerHTML = `
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <p>No hay leads que mostrar</p>
+    <button class="btn-primary" onclick="showView('planner')">Buscar empresas</button>`;
+}
+
 function renderLeads() {
   saveFilters();
   const tbody = document.getElementById('leads-body');
@@ -157,20 +225,25 @@ function renderLeads() {
   if (!tbody) return;
   const list = getFilteredLeads();
   tbody.innerHTML = '';
-  if (!list.length) { empty.style.display = 'flex'; return; }
+  if (!list.length) {
+    document.getElementById('no-email-banner')?.remove();
+    const paginationEl = document.getElementById('leads-pagination');
+    if (paginationEl) paginationEl.style.display = 'none';
+    const totalActive = leads.filter(l => !l.archived).length;
+    showLeadEmptyState(empty, getActiveLeadFilterCount(), totalActive);
+    return;
+  }
   empty.style.display = 'none';
 
-  // Check for no-email leads
+  // Check for no-email leads — always remove stale banner first to prevent duplicates
+  document.getElementById('no-email-banner')?.remove();
   const noEmail = leads.filter(l => !l.archived && !l.email);
-  const noEmailBanner = document.getElementById('no-email-banner');
   if (noEmail.length >= 5) {
-    if (!noEmailBanner) {
-      const banner = document.createElement('div');
-      banner.id = 'no-email-banner';
-      banner.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:.6rem 1rem;margin-bottom:.75rem;font-size:.78rem;display:flex;align-items:center;gap:.75rem;';
-      banner.innerHTML = `⚠️ <span style="color:var(--danger)">${noEmail.length} leads sin email</span> — sin email no se puede generar el email IA. <button class="btn-action" onclick="filterNoEmail()">Ver</button> <button onclick="this.parentNode.remove()" style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer">✕</button>`;
-      tbody.parentNode.parentNode.insertBefore(banner, tbody.parentNode);
-    }
+    const banner = document.createElement('div');
+    banner.id = 'no-email-banner';
+    banner.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:.6rem 1rem;margin-bottom:.75rem;font-size:.78rem;display:flex;align-items:center;gap:.75rem;';
+    banner.innerHTML = `⚠️ <span style="color:var(--danger)">${noEmail.length} leads sin email</span> — sin email no se puede generar el email IA. <button class="btn-action" onclick="filterNoEmail()">Ver</button> <button onclick="this.parentNode.remove()" style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer">✕</button>`;
+    tbody.parentNode.parentNode.insertBefore(banner, tbody.parentNode);
   }
 
   // Pagination — show LEADS_PAGE_SIZE leads per page for performance
@@ -208,7 +281,7 @@ function renderLeads() {
     const tr = document.createElement('tr');
     tr.setAttribute('data-lead-id', lead.id);
     const bc = lead.score >= 70 ? 'badge-high' : (lead.score >= 40 ? 'badge-mid' : 'badge-low');
-    const sc = (lead.status || 'pendiente').toLowerCase().replace(' ', '-');
+    const sc = (lead.status || 'pendiente').toLowerCase().replace(/\s+/g, '-');
     const scoreColor = lead.score >= 70 ? '#10d97c' : (lead.score >= 40 ? '#f59e0b' : '#ef4444');
     const isSelected = selectedLeadIds.has(String(lead.id));
 
@@ -280,13 +353,16 @@ function renderLeads() {
             onblur="saveInlineEmail(this)"
             onkeydown="if(event.key==='Enter'){this.blur();}"
           >
-          <button onclick="const v=this.previousElementSibling?.value||'';if(v){navigator.clipboard.writeText(v).catch(()=>{const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t)});showToast('📋 '+v)} else showToast('⚠️ Sin email')" title="Copiar email al portapapeles" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button>
+          <button onclick="event.stopPropagation(); const v=this.previousElementSibling?.value||''; if(v) copyToClipboard(v, 'Email: '+v); else showToast('⚠️ Sin email')" title="Copiar email al portapapeles" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">⧉</button>
         </div>
         ${lead.phone ? `<div style="display:flex;align-items:center;gap:.35rem">📞 ${lead.phone}${lead.whatsapp ? ` <button onclick="openWhatsAppModal('${lead.id}',event)" title="Enviar WhatsApp" style="background:none;border:none;cursor:pointer;font-size:.85rem;padding:0;line-height:1;color:#25D366">💬</button>` : ''}</div>` : ''}
       </td>
       <td>
         <div class="td-actions">
           <button class="btn-action" onclick="openLeadDetail('${lead.id}')">Ver</button>
+          <button class="btn-action secondary" onclick="openLeadAttackPlan('${lead.id}')" title="Plan de ataque">Plan</button>
+          <button class="btn-action secondary" onclick="openCompetitiveSpyForLead('${lead.id}')" title="Espionaje competitivo">Spy</button>
+          <button class="btn-action secondary" onclick="openLeadDossier('${lead.id}')" title="Dossier PDF">PDF</button>
           ${lead.email ? `<button class="btn-action" onclick="generateEmail('${lead.id}')">✉️</button>` : ''}
           <button class="btn-action ai-btn" onclick="openAiEmailModal('${lead.id}')" title="Email IA">✨</button>
           ${lead.whatsapp || lead.phone ? `<button class="btn-action" onclick="openWhatsAppModal('${lead.id}',event)" title="WhatsApp IA" style="color:#25D366">💬</button>` : ''}
@@ -299,34 +375,7 @@ function renderLeads() {
   });
 }
 
-function copyEmail(email, event) {
-  if (event) event.stopPropagation();
-  if (!email || !email.trim()) { showToast('⚠️ Este lead no tiene email'); return; }
-  navigator.clipboard.writeText(email.trim()).then(() => {
-    showToast('📋 Email copiado: ' + email.trim());
-    // Visual feedback on the button
-    const btn = document.getElementById('detail-email-copy-btn');
-    if (btn) {
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✅ Copiado';
-      btn.style.borderColor = 'var(--success)';
-      btn.style.color = 'var(--success)';
-      setTimeout(() => {
-        btn.innerHTML = orig;
-        btn.style.borderColor = 'var(--glass-border)';
-        btn.style.color = 'var(--text-muted)';
-      }, 1500);
-    }
-  }).catch(() => {
-    // Fallback para navegadores sin clipboard API
-    const ta = document.createElement('textarea');
-    ta.value = email.trim(); ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 Email copiado: ' + email.trim());
-  });
-}
+
 
 // Activa/desactiva el botón de copiar email en el modal de detalle
 // según si el input tiene contenido. Se llama desde oninput del campo email.
@@ -371,6 +420,7 @@ function undoDelete() {
 }
 
 function duplicateLead(id) {
+  closeLead();
   const lead = leads.find(l => l.id == id);
   if (!lead) return;
   const copy = { ...lead, id: Date.now(), status: 'Pendiente', date: new Date().toISOString(),
@@ -394,6 +444,7 @@ function archiveLead(id) {
 }
 
 function bulkArchive() {
+  const count = selectedLeadIds.size;
   selectedLeadIds.forEach(id => {
     const l = leads.find(x => x.id == id);
     if (l) l.archived = true;
@@ -401,7 +452,7 @@ function bulkArchive() {
   saveLeads();
   clearBulkSelection();
   renderAll();
-  showToast(`${selectedLeadIds.size} leads archivados`);
+  showToast(`${count} leads archivados`);
 }
 
 function filterNoEmail() {
@@ -435,7 +486,7 @@ function editLeadEmail(id) {
   const lead = leads.find(l => l.id == id);
   if (!lead) return;
   const email = prompt(`Introduce el email de ${lead.company}:`);
-  if (email && email.includes('@')) {
+  if (email && isValidEmail(email.trim())) {
     lead.email = email.trim();
     saveLeads();
     renderLeads();
@@ -450,7 +501,7 @@ function saveInlineEmail(input) {
   if (!lead) return;
   const val = input.value.trim();
   if (val === (lead.email || '')) return; // no change
-  if (val && !val.includes('@')) {
+  if (val && !isValidEmail(val)) {
     showToast('⚠️ Email no válido');
     input.value = lead.email || '';
     return;
@@ -477,21 +528,21 @@ function saveInlineEmail(input) {
   // Also update the copy button in the same row
   if (row) {
     const emailWrap = input.parentElement;
-    const oldCopyBtn = emailWrap?.querySelector('button[title="Copiar email"]');
+    const oldCopyBtn = emailWrap?.querySelector('button[title="Copiar email al portapapeles"]');
     if (val && !oldCopyBtn) {
       const copyBtn = document.createElement('button');
-      copyBtn.title = 'Copiar email';
+      copyBtn.title = 'Copiar email al portapapeles';
       copyBtn.textContent = '⧉';
       copyBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--text-dim);padding:1px 3px;border-radius:4px;flex-shrink:0;line-height:1;transition:color .15s';
       copyBtn.onmouseover = () => copyBtn.style.color = 'var(--primary)';
       copyBtn.onmouseout  = () => copyBtn.style.color = 'var(--text-dim)';
-      copyBtn.onclick = (e) => copyEmail(val, e);
+      copyBtn.onclick = (e) => { e.stopPropagation(); copyToClipboard(val.trim(), 'Email: ' + val.trim()); };
       emailWrap?.appendChild(copyBtn);
     } else if (!val && oldCopyBtn) {
       oldCopyBtn.remove();
     } else if (val && oldCopyBtn) {
       // Update existing copy button with new email
-      oldCopyBtn.onclick = (e) => copyEmail(val, e);
+      oldCopyBtn.onclick = (e) => { e.stopPropagation(); copyToClipboard(val.trim(), 'Email: ' + val.trim()); };
     }
   }
   showToast(val ? 'Email guardado ✓' : 'Email eliminado');
@@ -517,7 +568,7 @@ function openLeadDetail(id) {
   // Psych profile placeholder
   const psychHtml = `<div id="psych-profile-${lead.id}" class="psych-profile">
     ${lead.psychProfile
-      ? '<div style=\"font-size:.72rem;color:var(--text-dim)\">Cargando perfil...</div>'
+      ? '<div style=\"font-size:.72rem;color:var(--text-dim)\">Ver perfil IA</div>'
       : '<div style=\"font-size:.72rem;color:var(--text-dim)\">Sin perfil generado</div>'}
     <button onclick="generateLeadProfile(${lead.id})" style="margin-top:.4rem;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:.2rem .55rem;font-size:.7rem;color:var(--primary);cursor:pointer">🧬 ${lead.psychProfile ? 'Ver perfil IA' : 'Generar perfil IA'}</button>
   </div>`;
@@ -525,8 +576,8 @@ function openLeadDetail(id) {
   // Follow-up suggestion
   const daysInStatus = lead.status_date ? Math.floor((Date.now()-new Date(lead.status_date))/86400000) : 0;
   let followupHtml = '';
-  if (lead.status === 'Visita' && daysInStatus >= 5) {
-    followupHtml = `<div class="followup-box"><span>💡</span><span>Llevan <strong>${daysInStatus} días</strong> en "Enviado". Es buen momento para un email de seguimiento breve. <button class="btn-action" style="margin-left:.5rem" onclick="generateFollowupEmail('${lead.id}')">Generar seguimiento IA</button></span></div>`;
+  if (lead.status === 'Contactado' && daysInStatus >= 5) {
+    followupHtml = `<div class="followup-box"><span>💡</span><span>Llevan <strong>${daysInStatus} días</strong> en "Contactado". Es buen momento para un email de seguimiento breve. <button class="btn-action" style="margin-left:.5rem" onclick="generateFollowupEmail('${lead.id}')">Generar seguimiento IA</button></span></div>`;
   }
 
   const tagsVal = (lead.tags || []).join(', ');
@@ -542,12 +593,13 @@ function openLeadDetail(id) {
       </div>
       ${followupHtml}
       <div class="grid-form" style="grid-template-columns:1fr 1fr;gap:.75rem">
-        <div><label>Email</label><div style="display:flex;align-items:center;gap:.4rem"><input type="email" value="${lead.email||''}" id="detail-email" placeholder="email@empresa.com" style="flex:1" oninput="updateDetailEmailBtn(this)"><button id="detail-email-copy-btn" onclick="copyEmail(document.getElementById('detail-email').value, event)" title="Copiar email al portapapeles" style="background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:.78rem;white-space:nowrap;transition:all .15s;${lead.email && lead.email.trim() ? '' : 'opacity:.35;pointer-events:none'}" onmouseover="if(document.getElementById('detail-email').value){this.style.borderColor='var(--primary)';this.style.color='var(--primary)'}" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">⧉ Copiar</button></div></div>
+        <div><label>Email</label><div style="display:flex;align-items:center;gap:.4rem"><input type="email" value="${lead.email||''}" id="detail-email" placeholder="email@empresa.com" style="flex:1" oninput="updateDetailEmailBtn(this)"><button id="detail-email-copy-btn" onclick="copyToClipboard(document.getElementById('detail-email').value, 'Email copiado')" title="Copiar email al portapapeles" style="background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:.78rem;white-space:nowrap;transition:all .15s;${lead.email && lead.email.trim() ? '' : 'opacity:.35;pointer-events:none'}" onmouseover="if(document.getElementById('detail-email').value){this.style.borderColor='var(--primary)';this.style.color='var(--primary)'}" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">⧉ Copiar</button></div></div>
         <div><label>Teléfono</label><input type="text" value="${lead.phone||''}" id="detail-phone" placeholder="+34 600..."></div>
-        <div><label>Estado</label>
-          <select id="detail-status">
-            ${['Pendiente','Contactado','Respuesta del cliente','Visita','Entrega de presupuesto','Cerrado','No interesa'].map(s=>`<option${lead.status===s?' selected':''}>${s}</option>`).join('')}
-          </select>
+        <div style="grid-column: 1 / -1"><label>Estado del Pipeline</label>
+          <div id="status-pipeline-container">
+            ${renderStatusPipeline(lead.status, lead.id)}
+          </div>
+          <input type="hidden" id="detail-status" value="${lead.status}">
         </div>
         <div><label>Web</label><input type="text" value="${lead.website||''}" id="detail-web" placeholder="https://..."></div>
         <div><label>Próximo contacto</label><div class="date-input-wrap"><input type="text" value="${lead.next_contact||''}" id="detail-next-contact" placeholder="Selecciona o escribe una fecha"><button type="button" class="cal-icon-btn" onclick="var fp=document.getElementById('detail-next-contact')._flatpickr;if(fp)fp.open();" title="Abrir calendario"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button></div></div>
@@ -565,6 +617,9 @@ function openLeadDetail(id) {
       </div>
       <div style="display:flex;gap:.75rem;flex-wrap:wrap">
         <button class="btn-primary" onclick="saveLeadDetail('${lead.id}')">Guardar Cambios</button>
+        <button class="btn-outline" onclick="openLeadAttackPlan('${lead.id}')">Plan de ataque</button>
+        <button class="btn-outline" onclick="openCompetitiveSpyForLead('${lead.id}')">Espionaje competitivo</button>
+        <button class="btn-outline" onclick="openLeadDossier('${lead.id}')">Dossier PDF</button>
         ${lead.email ? `<button class="btn-outline" onclick="openAiEmailModal('${lead.id}');closeLead()">✨ Email IA</button>` : ''}
         <button class="btn-outline" onclick="duplicateLead('${lead.id}');closeLead()">⎘ Duplicar</button>
         <button class="btn-outline" onclick="closeLead()">Cancelar</button>
@@ -693,6 +748,80 @@ function buildSaludo(name, company) {
   //          buildLeadContext, buildGoldenProfile, saveTemplate, enrichSingleCard
 // ══════════════════════════════════════════════════════════════════════════
 
+const PIPELINE_STAGES = ['Pendiente', 'Contactado', 'Respuesta', 'Visita', 'Presupuesto', 'Cerrado'];
+const STAGE_MAPPING = {
+  'Pendiente': 'Pendiente',
+  'Contactado': 'Contactado',
+  'Respuesta': 'Respuesta del cliente',
+  'Visita': 'Visita',
+  'Presupuesto': 'Entrega de presupuesto',
+  'Cerrado': 'Cerrado'
+};
+const REVERSE_STAGE_MAPPING = {
+  'Pendiente': 'Pendiente',
+  'Contactado': 'Contactado',
+  'Respuesta del cliente': 'Respuesta',
+  'Visita': 'Visita',
+  'Entrega de presupuesto': 'Presupuesto',
+  'Cerrado': 'Cerrado',
+  'No interesa': 'Pendiente'
+};
+
+function renderStatusPipeline(currentStatus, leadId) {
+  const currentMapped = REVERSE_STAGE_MAPPING[currentStatus] || 'Pendiente';
+  const currentIndex = Math.max(0, PIPELINE_STAGES.indexOf(currentMapped));
+  const safeLeadId = JSON.stringify(String(leadId));
+  return `<div class="status-pipeline" style="display:flex;align-items:center;gap:0.3rem;margin-top:0.5rem;background:rgba(255,255,255,0.03);padding:0.4rem;border-radius:12px;border:1px solid var(--glass-border)">
+    ${PIPELINE_STAGES.map((s, i) => {
+      const isActive = i <= currentIndex;
+      const isCurrent = i === currentIndex;
+      const color = isActive ? 'var(--primary)' : 'var(--text-dim)';
+      const opacity = isActive ? '1' : '0.4';
+      return `
+        <div onclick="updateLeadStatusViaPipeline(${safeLeadId}, '${s}')" style="flex:1;text-align:center;padding:0.6rem 0.3rem;cursor:pointer;position:relative;transition:all 0.3s">
+          <div style="width:100%;height:4px;background:${isActive ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.1)'};border-radius:2px;margin-bottom:0.5rem"></div>
+          <div style="font-size:0.65rem;font-weight:${isCurrent ? '700' : '500'};color:${color};opacity:${opacity}">${s}</div>
+          ${isCurrent ? '<div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--primary);border-radius:50%;box-shadow:0 0 10px var(--primary)"></div>' : ''}
+        </div>
+        ${i < PIPELINE_STAGES.length - 1 ? '<div style="color:rgba(255,255,255,0.1);font-size:0.8rem">›</div>' : ''}
+      `;
+    }).join('')}
+  </div>`;
+}
+
+function updateLeadStatusViaPipeline(leadId, stageName) {
+  const fullStatus = STAGE_MAPPING[stageName];
+  if (!fullStatus) return;
+  const input = document.getElementById('detail-status');
+  if (input) input.value = fullStatus;
+  const container = document.getElementById('status-pipeline-container');
+  if (container) container.innerHTML = renderStatusPipeline(fullStatus, leadId);
+  const lead = leads.find(l => String(l.id) === String(leadId));
+  if (lead && lead.status !== fullStatus) showToast('Estado actualizado ✓ (No olvides Guardar)');
+}
+
+function updateLeadStatusViaPipelineSaved(leadId, stageName) {
+  const fullStatus = STAGE_MAPPING[stageName];
+  if (!fullStatus) return;
+  const input = document.getElementById('detail-status');
+  if (input) input.value = fullStatus;
+  const container = document.getElementById('status-pipeline-container');
+  if (container) container.innerHTML = renderStatusPipeline(fullStatus, leadId);
+  const lead = leads.find(l => String(l.id) === String(leadId));
+  if (!lead || lead.status === fullStatus) return;
+  const oldStatus = lead.status || 'Pendiente';
+  lead.status = fullStatus;
+  lead.status_date = new Date().toISOString();
+  addActivityLog(lead.id, `Pipeline: ${oldStatus} -> ${fullStatus}`);
+  saveLeads();
+  renderLeads();
+  renderKanban();
+  if (typeof renderTracking === 'function') renderTracking();
+  if (typeof updateStats === 'function') updateStats();
+  showToast('Estado actualizado y guardado');
+}
+updateLeadStatusViaPipeline = updateLeadStatusViaPipelineSaved;
+
 function generateEmail(id) {
   const lead = leads.find(l => l.id == id);
   if (!lead) return;
@@ -731,15 +860,15 @@ function generateEmail(id) {
   }
   const oldStatus = lead.status;
   const _applyVisita = () => {
-    lead.status = 'Visita';
+    lead.status = 'Contactado';
     lead.status_date = new Date().toISOString();
     addActivityLog(lead.id, `✉️ Email plantilla enviado: "${subject}"`);
     saveLeads(); renderAll(); renderTracking(); renderRecentActivity(); updateStreakData();
   };
-  confirmStatusChange(lead, 'Visita', _applyVisita);
+  confirmStatusChange(lead, 'Contactado', _applyVisita);
 }
 
 
 
 // restoreBackup está definida en modules/ui.js con soporte dual-format
-// (backup completo + datos portátiles del index.html antiguo)
+// (backup completo + datos portátiles del index.html antiguo)\n\n// ─── PIPELINE DE ESTADOS VISUAL ─────────────────────────────────────────────\n\nconst PIPELINE_STAGES = ['Pendiente', 'Contactado', 'Respuesta', 'Visita', 'Presupuesto', 'Cerrado'];\nconst STAGE_MAPPING = {\n  'Pendiente': 'Pendiente',\n  'Contactado': 'Contactado',\n  'Respuesta': 'Respuesta del cliente',\n  'Visita': 'Visita',\n  'Presupuesto': 'Entrega de presupuesto',\n  'Cerrado': 'Cerrado'\n};\nconst REVERSE_STAGE_MAPPING = {\n  'Pendiente': 'Pendiente',\n  'Contactado': 'Contactado',\n  'Respuesta del cliente': 'Respuesta',\n  'Visita': 'Visita',\n  'Entrega de presupuesto': 'Presupuesto',\n  'Cerrado': 'Cerrado',\n  'No interesa': 'Pendiente' // Fallback\n};\n\nfunction renderStatusPipeline(currentStatus, leadId) {\n  const currentMapped = REVERSE_STAGE_MAPPING[currentStatus] || 'Pendiente';\n  const currentIndex = PIPELINE_STAGES.indexOf(currentMapped);\n\n  return `<div class=\"status-pipeline\" style=\"display:flex;align-items:center;gap:0.3rem;margin-top:0.5rem;background:rgba(255,255,255,0.03);padding:0.4rem;border-radius:12px;border:1px solid var(--glass-border)\">\n    ${PIPELINE_STAGES.map((s, i) => {\n      const isActive = i <= currentIndex;\n      const isCurrent = i === currentIndex;\n      const color = isActive ? 'var(--primary)' : 'var(--text-dim)';\n      const opacity = isActive ? '1' : '0.4';\n      \n      return `\n        <div onclick=\"updateLeadStatusViaPipeline(${leadId}, '${s}')\" \n             style=\"flex:1;text-align:center;padding:0.6rem 0.3rem;cursor:pointer;position:relative;transition:all 0.3s\">\n          <div style=\"width:100%;height:4px;background:${isActive ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.1)'};border-radius:2px;margin-bottom:0.5rem\"></div>\n          <div style=\"font-size:0.65rem;font-weight:${isCurrent ? '700' : '500'};color:${color};opacity:${opacity}\">${s}</div>\n          ${isCurrent ? '<div style=\"position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--primary);border-radius:50%;box-shadow:0 0 10px var(--primary)\"></div>' : ''}\n        </div>\n        ${i < PIPELINE_STAGES.length - 1 ? '<div style=\"color:rgba(255,255,255,0.1);font-size:0.8rem\">›</div>' : ''}\n      `;\n    }).join('')}\n  </div>`;\n}\n\nfunction updateLeadStatusViaPipeline(leadId, stageName) {\n  const fullStatus = STAGE_MAPPING[stageName];\n  const input = document.getElementById('detail-status');\n  if (input) input.value = fullStatus;\n  \n  const container = document.getElementById('status-pipeline-container');\n  if (container) container.innerHTML = renderStatusPipeline(fullStatus, leadId);\n\n  // Guardado rápido visual\n  const lead = leads.find(l => l.id == leadId);\n  if (lead && lead.status !== fullStatus) {\n    showToast(\"Estado actualizado ✓ (No olvides Guardar)\");\n  }\n}\n

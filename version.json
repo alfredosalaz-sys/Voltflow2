@@ -1,11 +1,26 @@
 {
-  "version": "2.1.0",
-  "date": "2024-05-13",
+  "version": "2.4.0",
+  "date": "2026-05-19",
   "changelog": [
-    { "title": "🔥 Termómetro de Leads", "desc": "Clasificación automática por temperatura (Hirviendo, Templado, Gélido) basada en señales de mercado." },
-    { "title": "📋 Micro-Auditorías", "desc": "Informes de diagnóstico instantáneos con ángulos de venta recomendados para cada lead." },
-    { "title": "🔍 Buscador de Similares", "desc": "Encuentra empresas parecidas a tus mejores leads con un solo clic." },
-    { "title": "🏢 Panel Lateral", "desc": "Vista rápida de detalles del lead sin perder el contexto de tu búsqueda." },
-    { "title": "🛣️ Pipeline Visual", "desc": "Gestión de estados del CRM mediante una línea de progreso intuitiva." }
+    {
+      "title": "Copiloto autonomo diario gratuito",
+      "desc": "Nuevo panel diario que crea una agenda comercial automaticamente con reglas locales, sin backend ni coste adicional."
+    },
+    {
+      "title": "Priorizacion de acciones",
+      "desc": "Detecta seguimientos vencidos, leads calientes, oportunidades en riesgo, busquedas antiguas y empresas nuevas de radar."
+    },
+    {
+      "title": "IA opcional con las claves existentes",
+      "desc": "El briefing diario puede mejorarse usando Gemini, Groq u OpenRouter si ya estan configurados en la herramienta."
+    },
+    {
+      "title": "Continuidad entre sesiones",
+      "desc": "El copiloto se regenera al abrir la app una vez al dia y guarda la agenda en la memoria local del navegador."
+    },
+    {
+      "title": "Acciones directas",
+      "desc": "Desde cada recomendacion puedes abrir el lead, generar plan de ataque, enviar email, cargar busquedas guardadas o lanzar el radar."
+    }
   ]
 }

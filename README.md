@@ -1,47 +1,76 @@
 # Voltium CRM
 
-Aplicación web CRM modular servida via GitHub Pages.
+Aplicacion web CRM modular. El proyecto puede estar en GitHub para distribuir y actualizar el codigo, pero el trabajo diario debe hacerse en local desde la misma URL del navegador para conservar los datos guardados.
 
 ## Estructura
 
-```
+```text
 voltium/
-├── index.html              # HTML limpio (~2.500 líneas)
+├── app.html
+├── index.html
 ├── styles/
-│   └── main.css            # Todo el CSS (~3.400 líneas)
+│   └── main.css
 └── modules/
-    ├── state.js            # Estado global compartido
-    ├── email-templates.js  # Plantillas de email
-    ├── scoring.js          # Motor de scoring de leads
-    ├── init.js             # Inicialización, navegación, perfil, API keys
-    ├── search.js           # Motor de búsqueda 3 capas + scraping
-    ├── leads.js            # CRUD leads + modal detalle
-    ├── dashboard.js        # Dashboard, kanban, tracking, campañas
-    ├── ai-email.js         # Motor email IA + utils
-    ├── chat.js             # VoltFlow Assistant (chat IA)
-    ├── ui.js               # Toast, light mode, bulk, backup, PIN
-    ├── inbox.js            # Bandeja entrada + hilo emails
-    ├── ai-router.js        # Router IA multi-proveedor v2
-    └── misc.js             # Mejoras de usabilidad y rendimiento
+    ├── state.js
+    ├── email-templates.js
+    ├── scoring.js
+    ├── init.js
+    ├── search.js
+    ├── leads.js
+    ├── dashboard.js
+    ├── ai-email.js
+    ├── chat.js
+    ├── ui.js
+    ├── inbox.js
+    ├── ai-router.js
+    ├── misc.js
+    └── smart-import.js
 ```
 
-## Deploy en GitHub Pages
+## Flujo Correcto
 
-1. Sube este repo a GitHub
-2. Ve a **Settings → Pages**
-3. En *Source* selecciona `main` branch, carpeta `/` (root)
-4. Guarda — en ~1 minuto estará en `https://tuusuario.github.io/voltium`
+GitHub debe ser el canal de actualizacion del codigo. El usuario no debe trabajar un dia en GitHub Pages y otro dia en local si espera ver los mismos leads.
 
-## Desarrollo local
+El navegador guarda `localStorage` por URL exacta. Estas direcciones no comparten datos entre si:
 
-Necesitas un servidor local (no funciona abriendo el HTML directamente por CORS):
+```text
+https://usuario.github.io/proyecto/app.html
+http://localhost:8765/app.html
+http://127.0.0.1:8765/app.html
+file:///C:/.../app.html
+```
+
+## Uso Local Estable
+
+Desde la carpeta del proyecto:
 
 ```bash
-# Python
-python3 -m http.server 8080
-
-# Node
-npx serve .
+python -m http.server 8765 --bind 127.0.0.1
 ```
 
-Luego abre `http://localhost:8080`
+Abrir siempre:
+
+```text
+http://127.0.0.1:8765/app.html
+```
+
+## Actualizar Sin Perder Datos
+
+1. Cerrar la herramienta.
+2. Actualizar los archivos desde GitHub en la misma carpeta local.
+3. Arrancar el servidor con el mismo host y puerto.
+4. Abrir exactamente `http://127.0.0.1:8765/app.html`.
+
+La app conserva leads, scraping, seguimiento, campanas, memoria comercial y API keys en el navegador bajo esa URL. Tambien crea snapshots y rescates criticos automaticos antes de actualizaciones, importaciones y guardados peligrosos.
+
+## Recuperacion
+
+En `Configuracion -> Gestion de Datos` hay herramientas para:
+
+- Diagnosticar almacenamiento.
+- Ver rescates criticos.
+- Exportar rescate critico.
+- Restaurar backup.
+- Pegar backup JSON.
+- Exportar datos portatiles.
+

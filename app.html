@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
+<!-- encoding fix -->
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -202,6 +203,20 @@
       <div id="today-content" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem"></div>
     </div>
 
+    <div class="glass-panel" id="daily-copilot-panel" style="margin-top:1rem">
+      <div class="panel-header">
+        <div>
+          <h3>Copiloto autonomo diario</h3>
+          <span style="font-size:.72rem;color:var(--text-muted)">Gratis: reglas locales + IAs ya configuradas si existen</span>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="runDailyCopilot(true)">Regenerar</button>
+          <button class="btn-outline btn-sm" onclick="enhanceDailyCopilotWithAI()">Mejorar con IA</button>
+        </div>
+      </div>
+      <div id="daily-copilot-content" style="display:grid;gap:.75rem;margin-top:.75rem"></div>
+    </div>
+
     <!-- Alerta inteligente de scoring -->
     <div id="smart-alert" style="display:none;margin-bottom:1.5rem"></div>
 
@@ -333,17 +348,7 @@
         </div>
         <div class="input-group">
           <label>Segmento / Sector</label>
-          <select id="lead-segment" required>
-            <option value="Oficinas">Oficinas Corporativas</option>
-            <option value="Retail">Retail / Comercio</option>
-            <option value="Industrial">Industrial / Logística</option>
-            <option value="Hoteles">Inmobiliaria / Hotelería</option>
-            <option value="Cultural">Centros Culturales</option>
-            <option value="Deportivo">Centros Deportivos</option>
-            <option value="Comercial">Centros Comerciales</option>
-            <option value="Educativo">Educación</option>
-            <option value="Residencias">Residencias de Ancianos</option>
-          </select>
+          <select id="lead-segment" required></select>
         </div>
         <div class="input-group">
           <label>Cargo del Decisor</label>
@@ -419,23 +424,13 @@
         <span class="sf-badge" id="leads-sf-badge">0</span>
       </button>
       <button onclick="exportFilteredData()" style="margin-left:auto;background:none;border:1px solid var(--glass-border);border-radius:7px;padding:.3rem .65rem;font-size:.75rem;color:var(--text-muted);cursor:pointer" title="Exportar vista filtrada">⬇</button>
+      <button onclick="openLostOpportunitiesPanel()" style="background:none;border:1px solid var(--glass-border);border-radius:7px;padding:.3rem .65rem;font-size:.75rem;color:var(--warning);cursor:pointer" title="Oportunidades perdidas">Perdidas</button>
       <span class="sf-count" id="leads-count-bar"></span>
     </div>
 
     <!-- Leads advanced filters panel -->
     <div class="sf-panel" id="leads-sf-panel">
-      <select id="filter-segment" onchange="renderLeads(); sfUpdateChips('leads')">
-        <option value="">Todos los sectores</option>
-        <option value="Oficinas">Oficinas</option>
-        <option value="Retail">Retail</option>
-        <option value="Industrial">Industrial</option>
-        <option value="Hoteles">Hotelería</option>
-        <option value="Cultural">Cultural</option>
-        <option value="Deportivo">Deportivo</option>
-        <option value="Comercial">Comercial</option>
-        <option value="Educativo">Educativo</option>
-        <option value="Residencias">Residencias</option>
-      </select>
+      <select id="filter-segment" onchange="renderLeads(); sfUpdateChips('leads')"></select>
       <select id="filter-status" onchange="renderLeads(); sfUpdateChips('leads')">
         <option value="">Todos los estados</option>
         <option value="Pendiente">Pendiente</option>
@@ -557,6 +552,9 @@
         <option value="Oficinas">Oficinas</option>
         <option value="Retail">Retail</option>
         <option value="Industrial">Industrial</option>
+        <option value="Dental">Dental</option>
+        <option value="Medico">Médico</option>
+        <option value="Estetico">Estético</option>
         <option value="Hoteles">Hotelería</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
@@ -634,17 +632,7 @@
       <div class="search-engine-bar">
         <div class="input-group" style="flex:1;min-width:160px">
           <label>Sector</label>
-          <select id="plan-segment">
-            <option value="Industrial">🏭 Industrial / Naves</option>
-            <option value="Retail">🛍️ Retail / Tiendas</option>
-            <option value="Oficinas">🏢 Oficinas / Consultoras</option>
-            <option value="Hoteles">🏨 Hoteles / Hostelería</option>
-            <option value="Educativo">🎓 Educación / Colegios</option>
-            <option value="Deportivo">⚽ Deportivo / Gimnasios</option>
-            <option value="Cultural">🎭 Cultural / Museos</option>
-            <option value="Comercial">🏬 Centros Comerciales</option>
-            <option value="Residencias">🏠 Residencias de Ancianos</option>
-          </select>
+          <select id="plan-segment" onchange="renderPlan()"></select>
         </div>
         <div class="input-group" style="flex:1.4;min-width:180px">
           <label>Ciudad / Zona / CP</label>
@@ -685,6 +673,23 @@
           <button class="btn-primary" onclick="searchBusinesses()" id="btn-search" style="height:38px;white-space:nowrap">
             🔍 Buscar y Enriquecer
           </button>
+        </div>
+      </div>
+      <div id="multi-sector-toolbar" style="margin-top:.9rem;padding:.8rem .9rem;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.03)">
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text);cursor:pointer">
+          <input type="checkbox" id="plan-multi-toggle" onchange="toggleMultiSectorSearch(this.checked)" style="accent-color:var(--primary)">
+          Buscar varios sectores en el mismo CP/zona
+        </label>
+        <div id="multi-sector-panel" style="display:none;margin-top:.75rem">
+          <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.55rem">
+            <div style="font-size:.72rem;color:var(--text-muted)">Marca los sectores que quieres lanzar contra la misma ciudad, zona o codigo postal.</div>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+              <button class="btn-outline btn-sm" onclick="setAllMultiSectors(true)">Todos</button>
+              <button class="btn-outline btn-sm" onclick="setAllMultiSectors(false)">Limpiar</button>
+            </div>
+          </div>
+          <div id="multi-sector-list" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
+          <div id="multi-sector-summary" style="margin-top:.65rem;font-size:.75rem;color:var(--text-muted)"></div>
         </div>
       </div>
       <!-- MEJORA 5: Búsquedas guardadas -->
@@ -791,6 +796,12 @@
       <div id="session-intel-box" style="display:none;margin-bottom:1rem;padding:1rem 1.25rem;border-radius:12px;border:1px solid rgba(10,132,255,.25);background:linear-gradient(135deg,rgba(10,132,255,.06),rgba(94,92,230,.06));backdrop-filter:blur(8px)">
       </div>
 
+      <div id="autoprospect-panel" style="display:none;margin-bottom:1rem;padding:1rem 1.25rem;border-radius:12px;border:1px solid rgba(16,217,124,.22);background:rgba(16,217,124,.06)">
+      </div>
+
+      <div id="scraping-quality-panel" style="display:none;margin-bottom:1rem;padding:1rem 1.25rem;border-radius:12px;border:1px solid rgba(245,158,11,.22);background:rgba(245,158,11,.06)">
+      </div>
+
       <!-- Vista cards / tabla toggle -->
       <div class="glass-panel">
         <div class="panel-header">
@@ -807,6 +818,9 @@
               Todos
             </label>
             <button class="btn-outline btn-sm" onclick="exportSearchCSV()">Exportar CSV</button>
+            <button class="btn-outline btn-sm" onclick="runOpportunityRadar()">Radar</button>
+            <button class="btn-outline btn-sm" id="autoprospect-btn" onclick="runAutonomousProspecting()">Prospeccion autonoma</button>
+            <button class="btn-outline btn-sm" onclick="toggleScrapingQualityPanel()">Calidad scraping</button>
             <button class="btn-outline btn-sm" onclick="showAndRunAiRanking()" style="border-color:rgba(99,102,241,.5);color:#a78bfa">🏆 Ranking IA</button>
             <button class="btn-primary btn-sm" onclick="importSelectedSearch()">Volcar a Leads →</button>
           </div>
@@ -845,6 +859,7 @@
               <option value="social">📱 Con redes</option>
               <option value="decision">👤 Con decisor</option>
               <option value="whatsapp">💬 Con WhatsApp</option>
+              <option value="pain">⚡ Con dolores web</option>
             </select>
             <button onclick="resetSearchResultsFilters()" class="sf-more-btn" style="color:var(--danger);border-color:rgba(239,68,68,.3)">✕ Limpiar</button>
           </div>
@@ -861,6 +876,7 @@
             <button class="rfilt" onclick="filterResults('noemail',this)">⚠️ Sin email</button>
             <button class="rfilt" onclick="filterResults('decision',this)">👤 Con decisor</button>
             <button class="rfilt" onclick="filterResults('signals',this)">🔥 Con señales</button>
+            <button class="rfilt" onclick="filterResults('pain',this)">⚡ Dolores web</button>
             <button class="rfilt" onclick="filterResults('new_domain',this)">🆕 Dominio reciente</button>
             <button class="rfilt" onclick="filterResults('verified',this)">✅ Verificada</button>
           </div>
@@ -1051,6 +1067,9 @@
         <option value="Oficinas">Oficinas</option>
         <option value="Retail">Retail</option>
         <option value="Industrial">Industrial</option>
+        <option value="Dental">Dental</option>
+        <option value="Medico">Médico</option>
+        <option value="Estetico">Estético</option>
         <option value="Hoteles">Hotelería</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
@@ -1110,6 +1129,9 @@
         <option value="Oficinas">Oficinas</option>
         <option value="Retail">Retail</option>
         <option value="Industrial">Industrial</option>
+        <option value="Dental">Dental</option>
+        <option value="Medico">Médico</option>
+        <option value="Estetico">Estético</option>
         <option value="Hoteles">Hotelería</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
@@ -1654,14 +1676,20 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
     <div class="glass-panel">
       <div class="panel-header"><h3>Gestión de Datos</h3></div>
       <div style="font-size:.8rem;color:var(--text-muted);padding:.6rem .8rem;background:rgba(10,132,255,.05);border:1px solid rgba(10,132,255,.15);border-radius:8px;margin-top:.75rem;line-height:1.6">
-        💡 <strong>Cambio de versión:</strong> Los datos se migran automáticamente al abrir una versión nueva en la misma carpeta.<br>
-        Si los datos no aparecen, usa <strong>Exportar datos portátiles</strong> en la versión antigua e <strong>Importar</strong> en la nueva.
+        💡 <strong>Actualizaciones desde GitHub:</strong> GitHub debe usarse para actualizar los archivos, pero el trabajo diario debe abrirse siempre desde la misma URL local.<br>
+        URL recomendada: <strong>http://127.0.0.1:8765/app.html</strong>. Si trabajas desde GitHub Pages, localhost, file:// u otro puerto, el navegador usará otro almacén.
       </div>
       <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
         <button class="btn-outline" onclick="exportFilteredData()">Exportar leads (CSV)</button>
         <button class="btn-outline" onclick="exportTracking()">Exportar historial (CSV)</button>
         <button class="btn-outline" onclick="exportFullBackup()">💾 Backup completo (JSON)</button>
         <button class="btn-outline" onclick="exportPortableData()" title="Genera un archivo que puedes importar en cualquier versión de Voltflow2">📦 Exportar datos portátiles</button>
+        <button class="btn-outline" onclick="openSafetySnapshotsModal()" title="Ver puntos de recuperación automáticos antes de importaciones, restauraciones y sincronizaciones">🛡️ Snapshots de seguridad</button>
+        <button class="btn-outline" onclick="createSafetySnapshot('manual', { download: true })" title="Crea un snapshot ahora y descarga una copia fuera del navegador">⬇ Snapshot manual</button>
+        <button class="btn-outline" onclick="showStorageDiagnostics()" title="Muestra la URL y los datos visibles para este navegador">Diagnosticar almacenamiento</button>
+        <button class="btn-outline" onclick="showCriticalRescueDiagnostics()" title="Muestra las copias críticas automáticas disponibles">Ver rescates críticos</button>
+        <button class="btn-outline" onclick="exportLatestCriticalRescue()" title="Descarga la mejor copia crítica automática">Exportar rescate crítico</button>
+        <button class="btn-outline" onclick="openPasteRecoveryModal()" title="Pega un JSON exportado desde otra versión o URL">Pegar backup JSON</button>
         <input type="file" id="import-portable-file" accept=".json" style="display:none" onchange="restoreBackup(event)">
         <button class="btn-primary" onclick="openImportFromLocalStorage()" title="Lee los datos de Voltflow2 guardados en este navegador" style="display:flex;align-items:center;gap:.4rem">📥 Importar desde versión anterior</button>
         <button class="btn-outline" onclick="document.getElementById('restore-file').click()">📂 Restaurar backup</button>
@@ -1725,18 +1753,7 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
       </div>
       <div class="input-group" style="margin-bottom:1rem">
         <label>Segmento objetivo</label>
-        <select id="camp-segment">
-          <option value="Todos">Todos los segmentos</option>
-          <option value="Oficinas">Oficinas</option>
-          <option value="Retail">Retail</option>
-          <option value="Industrial">Industrial</option>
-          <option value="Hoteles">Hotelería</option>
-          <option value="Educativo">Educativo</option>
-          <option value="Deportivo">Deportivo</option>
-          <option value="Comercial">Comercial</option>
-          <option value="Cultural">Cultural</option>
-          <option value="Residencias">Residencias</option>
-        </select>
+        <select id="camp-segment"></select>
       </div>
       <div class="input-group" style="margin-bottom:1rem">
         <label>Secuencia de Emails</label>
@@ -1931,7 +1948,25 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
     <button class="chat-sug" onclick="sendManualAlert('overdue')">📧 Alertar vencidos</button>
   </div>
 
+  <div id="chat-command-panel" style="display:none;padding:.65rem .75rem;border-top:1px solid var(--glass-border);background:rgba(255,255,255,.025)">
+    <div id="chat-context-actions" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem"></div>
+    <div id="chat-diagnostic-panel" style="display:none;margin-bottom:.5rem"></div>
+    <div id="chat-history-panel" style="display:none;margin-bottom:.5rem"></div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <button class="chat-sug" onclick="chatRunCommand('diagnostics')">Diagnostico</button>
+      <button class="chat-sug" onclick="chatRunCommand('history')">Historial</button>
+      <button class="chat-sug" onclick="chatRunCommand('search')">Buscar</button>
+      <button class="chat-sug" onclick="chatRunCommand('email')">Email IA</button>
+      <button class="chat-sug" onclick="chatRunCommand('funnel')">Embudo</button>
+      <button class="chat-sug" onclick="chatRunCommand('clean')">Limpiar DB</button>
+    </div>
+  </div>
+
   <div class="chat-input-row">
+    <button id="chat-command-btn" onclick="chatToggleCommands()" title="Acciones del asistente"
+      style="width:34px;height:34px;border-radius:8px;flex-shrink:0;background:var(--glass);
+      border:1px solid var(--glass-border);cursor:pointer;display:flex;align-items:center;
+      justify-content:center;font-size:.9rem;transition:all .2s;color:var(--text-muted)">/</button>
     <button id="chat-mic-btn" onclick="toggleChatVoice()" title="Hablar con el asistente"
       style="width:34px;height:34px;border-radius:8px;flex-shrink:0;background:var(--glass);
       border:1px solid var(--glass-border);cursor:pointer;display:flex;align-items:center;
@@ -2002,127 +2037,6 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
     </div>
   </div>
 </div>
-
-
-<!-- SIDEBAR -->
-<!-- ── MÓVIL: overlay del sidebar ── -->
-<div id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
-
-<!-- ── MÓVIL: botón hamburguesa ── -->
-<button id="mobile-menu-btn" onclick="openMobileSidebar()" aria-label="Menú">☰</button>
-
-<!-- ── MÓVIL: barra de navegación inferior ── -->
-<nav id="mobile-bottom-nav" style="display:none">
-  <button class="mob-nav-btn active" onclick="showView('dashboard');setMobileNav(this)" data-view="dashboard">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    Dashboard
-  </button>
-  <button class="mob-nav-btn" onclick="showView('leads');setMobileNav(this)" data-view="leads">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    Leads
-  </button>
-  <button class="mob-nav-btn" onclick="showView('planner');setMobileNav(this)" data-view="planner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    Buscar
-  </button>
-  <button class="mob-nav-btn" onclick="showView('kanban');setMobileNav(this)" data-view="kanban">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="12"/><rect x="17" y="3" width="5" height="8"/></svg>
-    Kanban
-  </button>
-  <button class="mob-nav-btn" onclick="openMobileSidebar()" data-view="more">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-    Más
-  </button>
-</nav>
-
-
-
-
-<!-- ══ CHAT DE AYUDA — Voltflow2 ASSISTANT ══ -->
-<button id="chat-bubble" onclick="toggleChat()" title="Ayuda con Voltflow2">
-  🤖
-  <div class="chat-notif" id="chat-notif"></div>
-</button>
-
-<div id="chat-window">
-  <div class="chat-header">
-    <div class="chat-avatar">🤖</div>
-    <div class="chat-header-info">
-      <strong>Voltflow2 Assistant</strong>
-      <span>● Online — Listo para ayudarte</span>
-    </div>
-    <button onclick="toggleChat()">✕</button>
-  </div>
-
-  <div id="chat-messages"></div>
-
-  <div class="chat-suggestions" id="chat-suggestions">
-    <button class="chat-sug" onclick="chatAsk('Dame el briefing del día')">📅 Briefing hoy</button>
-    <button class="chat-sug" onclick="chatExecute('topLeads')">🔥 Leads prioritarios</button>
-    <button class="chat-sug" onclick="generateWeeklyPlan()">🗓️ Plan semanal</button>
-    <button class="chat-sug" onclick="toggleAgentMode()">🤖 Modo agente</button>
-    <button class="chat-sug" onclick="runAutoMaintenance(false)">🧹 Limpiar DB</button>
-    <button class="chat-sug" onclick="sendManualAlert('overdue')">📧 Alertar vencidos</button>
-  </div>
-
-  <div class="chat-input-row">
-    <textarea id="chat-input" placeholder="Pregunta, habla o di qué mejorar..." rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"></textarea>
-    <button id="chat-send" onclick="chatSend()">➤</button>
-  </div>
-</div>
-
-<div id="map-helper" style="display:none"></div>
-
-<!-- UNDO TOAST -->
-<div id="undo-toast">
-  <span id="undo-msg">Lead eliminado</span>
-  <button onclick="undoDelete()">Deshacer</button>
-</div>
-
-<!-- OBJECTIVES MODAL -->
-<div id="objectives-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeObjectivesModal()">
-  <div class="modal-box" style="max-width:420px">
-    <div class="modal-header">
-      <h3>🎯 Objetivos Semanales</h3>
-      <button class="btn-icon" onclick="closeObjectivesModal()">✕</button>
-    </div>
-    <div style="padding:1.5rem;display:grid;gap:1rem">
-      <div class="input-group">
-        <label>Leads nuevos por semana</label>
-        <input type="number" id="obj-leads" min="0" placeholder="Ej: 20">
-      </div>
-      <div class="input-group">
-        <label>Emails enviados por semana</label>
-        <input type="number" id="obj-emails" min="0" placeholder="Ej: 10">
-      </div>
-      <div class="input-group">
-        <label>Respuestas objetivo por semana</label>
-        <input type="number" id="obj-replies" min="0" placeholder="Ej: 3">
-      </div>
-      <div style="display:flex;gap:.75rem">
-        <button class="btn-primary" onclick="saveObjectives()">Guardar</button>
-        <button class="btn-outline" onclick="closeObjectivesModal()">Cancelar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TUTORIAL OVERLAY -->
-<div id="tutorial-overlay" style="display:none">
-  <div class="tutorial-card">
-    <div id="tutorial-icon" style="font-size:3rem;margin-bottom:1rem">⚡</div>
-    <h2 id="tutorial-title" style="margin-bottom:.5rem">Bienvenido a Voltflow2</h2>
-    <p id="tutorial-body" style="color:var(--text-muted);font-size:.88rem;line-height:1.6;margin-bottom:1.25rem"></p>
-    <div class="tutorial-steps-dots" id="tutorial-dots"></div>
-    <div style="display:flex;gap:.75rem;justify-content:center">
-      <button class="btn-outline" onclick="prevTutorial()" id="tutorial-prev" style="display:none">← Anterior</button>
-      <button class="btn-primary" onclick="nextTutorial()" id="tutorial-next">Siguiente →</button>
-      <button class="btn-outline" onclick="closeTutorial()" id="tutorial-skip" style="font-size:.78rem">Saltar tutorial</button>
-    </div>
-  </div>
-</div>
-</script>
 
 <!-- MODAL IMPORTACIÓN MANUAL ENTRE VERSIONES -->
 <div id="import-modal-overlay" onclick="if(event.target===this)closeImportModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;padding:1rem">
@@ -2273,7 +2187,6 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
     </div>
   </div>
 </div>
-</script>
 
 <!-- ══ REPLY MODAL ══════════════════════════════════════════════ -->
 <div id="reply-modal-overlay" onclick="if(event.target===this)closeReplyModal()"
@@ -2360,27 +2273,24 @@ Y cruzará los remitentes con tus leads para actualizar el CRM."
 </div>
 
 
-</body>
-</html>
-
-
 <!-- ═══════════════════════════════════════════════════════
      MÓDULOS JS — orden de dependencia
+     v2.1.1 (Production Ready)
 ═══════════════════════════════════════════════════════ -->
-<script src="modules/state.js"></script>
-<script src="modules/email-templates.js"></script>
-<script src="modules/scoring.js"></script>
-<script src="modules/init.js"></script>
-<script src="modules/search.js"></script>
-<script src="modules/leads.js"></script>
-<script src="modules/dashboard.js"></script>
-<script src="modules/ai-email.js"></script>
-<script src="modules/chat.js"></script>
-<script src="modules/ui.js"></script>
-<script src="modules/inbox.js"></script>
-<script src="modules/ai-router.js"></script>
-<script src="modules/misc.js"></script>
-<script src="modules/smart-import.js"></script>
+<script src="modules/state.js?v=2" charset="UTF-8"></script>
+<script src="modules/email-templates.js?v=2" charset="UTF-8"></script>
+<script src="modules/scoring.js?v=2" charset="UTF-8"></script>
+<script src="modules/init.js?v=7" charset="UTF-8"></script>
+<script src="modules/search.js?v=16" charset="UTF-8"></script>
+<script src="modules/leads.js?v=7" charset="UTF-8"></script>
+<script src="modules/dashboard.js?v=6" charset="UTF-8"></script>
+<script src="modules/ai-email.js?v=3" charset="UTF-8"></script>
+<script src="modules/chat.js?v=5" charset="UTF-8"></script>
+<script src="modules/ui.js?v=7" charset="UTF-8"></script>
+<script src="modules/inbox.js?v=3" charset="UTF-8"></script>
+<script src="modules/ai-router.js?v=3" charset="UTF-8"></script>
+<script src="modules/misc.js?v=2" charset="UTF-8"></script>
+<script src="modules/smart-import.js?v=4" charset="UTF-8"></script>
 
 </body>
 </html>

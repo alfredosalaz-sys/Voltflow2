@@ -610,6 +610,8 @@ function importSelectedLeads() {
 
   if (!indices.length) { showToast('⚠️ Selecciona al menos un lead'); return; }
 
+  if (typeof createSafetySnapshot === 'function') createSafetySnapshot('before_smart_import');
+
   let imported = 0;
   let skippedDup = 0;
   const now = new Date().toISOString();
@@ -652,7 +654,7 @@ function importSelectedLeads() {
       tags:     [],
       budget:   0,
       next_contact: '',
-      source:   'propio',
+      source:   'import',
       activity: [{ action: `Lead importado desde "${_importFile || 'base de datos'}"${lead.status && lead.status !== 'Pendiente' ? ` — Etapa: ${lead.status}` : ''}`, date: now }],
     });
     imported++;

@@ -7,28 +7,30 @@ function extractDomain(url) {
   } catch { return null; }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// MOTOR DE EMAIL CON IA — Lee reseñas + Claude API → Email hiperpersonalizado
-// ══════════════════════════════════════════════════════════════════════════════
+// Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+// MOTOR DE EMAIL CON IA Ã¢â‚¬â€ Lee reseÃƒÂ±as + Claude API Ã¢â€ â€™ Email hiperpersonalizado
+// Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
 let aiCurrentLeadId = null;
 
-// ── Abrir modal ───────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Abrir modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function openAiEmailModal(id) {
   aiCurrentLeadId = id;
   const lead = leads.find(l => l.id == id);
   if (!lead) return;
 
-  const claudeKey = localStorage.getItem('gordi_claude_key');
+  const claudeKey = getGeminiKey();
   if (!claudeKey) {
-    alert('⚠️ Necesitas configurar tu API Key de Gemini en Configuración.\n\nVe a: aistudio.google.com/apikey → Get API Key (gratis con tu cuenta Google)');
+    alert('Ã¢Å¡Â Ã¯Â¸Â Necesitas configurar tu API Key de Gemini en ConfiguraciÃƒÂ³n.\n\nVe a: aistudio.google.com/apikey Ã¢â€ â€™ Get API Key (gratis con tu cuenta Google)');
     showView('settings');
     return;
   }
 
   // Reset modal UI
-  document.getElementById('ai-modal-title').innerText = `✨ Email IA para ${lead.company}`;
-  document.getElementById('ai-modal-sub').innerText = 'Analizando reseñas con Gemini IA (gratuito)...';
+  document.getElementById('ai-modal-title').innerText = `Ã¢Å“Â¨ Email IA para ${lead.company}`;
+  document.getElementById('ai-modal-sub').innerHTML = lead.email 
+    ? `Destinatario: <span style="color:var(--primary);cursor:pointer;text-decoration:underline" onclick="copyToClipboard('${lead.email}', 'Email: ${lead.email}')" title="Clic para copiar">${lead.email} Ã¢Â§â€°</span>`
+    : 'Analizando reseÃƒÂ±as con Gemini IA (gratuito)...';
   document.getElementById('ai-loading').style.display = 'block';
   document.getElementById('ai-result').style.display = 'none';
   document.getElementById('ai-error').style.display = 'none';
@@ -37,26 +39,18 @@ function openAiEmailModal(id) {
   setAiStep('write', 'pending');
 
   document.getElementById('ai-email-modal').style.display = 'flex';
-  // Show pain picker first — analyze weak points, then let user choose
+  // Show pain picker first Ã¢â‚¬â€ analyze weak points, then let user choose
   showPainPicker(lead);
 }
 
-// ─── NUEVAS FUNCIONES ───────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ NUEVAS FUNCIONES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
-// ── copySubjectOption ────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ copySubjectOption Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function copySubjectOption(subject) {
-  navigator.clipboard.writeText(subject).then(() => {
-    showToast('📋 Asunto copiado: ' + subject.slice(0, 50) + (subject.length > 50 ? '…' : ''));
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = subject; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 Asunto copiado');
-  });
+  copyToClipboard(subject, 'Asunto copiado');
 }
 
-// ── PAIN PICKER ──────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ PAIN PICKER Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 let _painPickerLead = null;
 let _selectedPainIndex = null;
 let _painPickerOptions = [];
@@ -75,34 +69,34 @@ async function showPainPicker(lead) {
 
   const optionsEl = document.getElementById('ai-pain-options');
   optionsEl.innerHTML = `<div style="text-align:center;padding:1.5rem;font-size:.8rem;color:var(--text-dim)">
-    <div class="spinner" style="margin:0 auto .75rem"></div>Analizando puntos débiles de ${lead.company}…</div>`;
+    <div class="spinner" style="margin:0 auto .75rem"></div>Analizando puntos dÃƒÂ©biles de ${lead.company}Ã¢â‚¬Â¦</div>`;
 
   try {
-    const claudeKey = localStorage.getItem('gordi_claude_key');
+    const claudeKey = getGeminiKey();
     // Build a compact context from existing lead data
-    const signals = (lead.signals || []).slice(0, 6).map(s => '  · ' + s).join('\n');
+    const signals = (lead.signals || []).slice(0, 6).map(s => '  Ã‚Â· ' + s).join('\n');
     const reviews = lead.reviewSummary
       ? lead.reviewSummary.split('\n').slice(0, 5).join('\n')
       : '';
     const segT = (typeof SEGMENT_TONE !== 'undefined' && SEGMENT_TONE[lead.segment]) || {};
 
-    const prompt = `Eres un experto en ventas B2B. Analiza esta empresa y dame EXACTAMENTE 3 posibles ángulos de ataque para un primer email de prospección de Voltium Madrid (empresa de reformas/instalaciones).
+    const prompt = `Eres un experto en ventas B2B. Analiza esta empresa y dame EXACTAMENTE 3 posibles ÃƒÂ¡ngulos de ataque para un primer email de prospecciÃƒÂ³n de Voltium Madrid (empresa de reformas/instalaciones).
 
 EMPRESA: ${lead.company} | Sector: ${lead.segment} | Ciudad: ${lead.address || 'Madrid'}
-Rating Google: ${lead.rating ? lead.rating + '/5 (' + lead.ratingCount + ' reseñas)' : 'sin datos'}
-Descripción: ${lead.description || 'N/A'}
-${signals ? 'Señales detectadas:\n' + signals : ''}
-${reviews ? 'Reseñas reales:\n' + reviews : ''}
-${segT.pain ? 'Dolor típico del sector: ' + segT.pain : ''}
+Rating Google: ${lead.rating ? lead.rating + '/5 (' + lead.ratingCount + ' reseÃƒÂ±as)' : 'sin datos'}
+DescripciÃƒÂ³n: ${lead.description || 'N/A'}
+${signals ? 'SeÃƒÂ±ales detectadas:\n' + signals : ''}
+${reviews ? 'ReseÃƒÂ±as reales:\n' + reviews : ''}
+${segT.pain ? 'Dolor tÃƒÂ­pico del sector: ' + segT.pain : ''}
 
-Para cada ángulo, dame:
-- Un título corto (max 8 palabras) que resuma el enfoque
-- Una frase de por qué este ángulo es potente para esta empresa concreta (max 25 palabras)
-- El tipo de gancho a usar: reseñas / urgencia / oportunidad / problema visible / eficiencia
+Para cada ÃƒÂ¡ngulo, dame:
+- Un tÃƒÂ­tulo corto (max 8 palabras) que resuma el enfoque
+- Una frase de por quÃƒÂ© este ÃƒÂ¡ngulo es potente para esta empresa concreta (max 25 palabras)
+- El tipo de gancho a usar: reseÃƒÂ±as / urgencia / oportunidad / problema visible / eficiencia
 
-Responde SOLO JSON válido (sin markdown):
+Responde SOLO JSON vÃƒÂ¡lido (sin markdown):
 {"options":[
-  {"title":"...", "why":"...", "hook":"reseñas|urgencia|oportunidad|problema|eficiencia", "priority":1},
+  {"title":"...", "why":"...", "hook":"reseÃƒÂ±as|urgencia|oportunidad|problema|eficiencia", "priority":1},
   {"title":"...", "why":"...", "hook":"...", "priority":2},
   {"title":"...", "why":"...", "hook":"...", "priority":3}
 ]}`;
@@ -122,15 +116,15 @@ Responde SOLO JSON válido (sin markdown):
     const parsed = JSON.parse(raw);
     _painPickerOptions = parsed.options || [];
 
-    const hookEmoji = { reseñas:'⭐', urgencia:'🔥', oportunidad:'💎', problema:'⚠️', eficiencia:'⚡' };
+    const hookEmoji = { 'reseÃ±as':'â­', urgencia:'ðŸ”¥', oportunidad:'ðŸ’Ž', problema:'âš ï¸', eficiencia:'âš¡' };
     optionsEl.innerHTML = _painPickerOptions.map((opt, i) => `
       <div onclick="selectPainOption(this, ${i})"
         style="cursor:pointer;padding:.85rem 1rem;border-radius:10px;border:1.5px solid var(--glass-border);
         background:var(--glass);transition:all .15s" class="pain-opt-card">
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
-          <span style="font-size:.85rem">${hookEmoji[opt.hook] || '🎯'}</span>
+          <span style="font-size:.85rem">${hookEmoji[opt.hook] || 'Ã°Å¸Å½Â¯'}</span>
           <span style="font-weight:700;font-size:.85rem;color:var(--text)">${opt.title}</span>
-          ${opt.priority === 1 ? '<span style="font-size:.65rem;background:rgba(99,102,241,.15);color:#a78bfa;padding:.1rem .4rem;border-radius:5px;font-weight:600">⭐ Top pick</span>' : ''}
+          ${opt.priority === 1 ? '<span style="font-size:.65rem;background:rgba(99,102,241,.15);color:#a78bfa;padding:.1rem .4rem;border-radius:5px;font-weight:600">Ã¢Â­Â Top pick</span>' : ''}
         </div>
         <div style="font-size:.75rem;color:var(--text-dim);line-height:1.45">${opt.why}</div>
       </div>`).join('');
@@ -165,13 +159,13 @@ async function confirmPainAndGenerate() {
 }
 
 async function preGenerateSubjects(lead, painCtx) {
-  const claudeKey = localStorage.getItem('gordi_claude_key');
+  const claudeKey = getGeminiKey();
   if (!claudeKey || !painCtx) return;
   try {
     const prompt = `Empresa: ${lead.company} | Sector: ${lead.segment}
-Ángulo elegido: "${painCtx.title}" — ${painCtx.why}
+ÃƒÂngulo elegido: "${painCtx.title}" Ã¢â‚¬â€ ${painCtx.why}
 
-Genera EXACTAMENTE 3 asuntos de email B2B para este ángulo. Cortos, sin spam, directos.
+Genera EXACTAMENTE 3 asuntos de email B2B para este ÃƒÂ¡ngulo. Cortos, sin spam, directos.
 Responde SOLO JSON: {"subjects":["asunto1","asunto2","asunto3"]}`;
 
     const res = await fetch(
@@ -187,7 +181,7 @@ Responde SOLO JSON: {"subjects":["asunto1","asunto2","asunto3"]}`;
     if (!subjects.length) return;
 
     // Show subjects immediately in the result area (partial preview)
-    const subjectLabels = ['💛 Emocional', '📊 Racional', '🎯 Intriga'];
+    const subjectLabels = ['Ã°Å¸â€™â€º Emocional', 'Ã°Å¸â€œÅ  Racional', 'Ã°Å¸Å½Â¯ Intriga'];
     const subjectList = document.getElementById('ai-subjects-list');
     if (subjectList) {
       subjectList.innerHTML = subjects.map((s, i) => `
@@ -197,12 +191,12 @@ Responde SOLO JSON: {"subjects":["asunto1","asunto2","asunto3"]}`;
           transition:border-color .15s,background .15s"
           class="subject-option${i===0?' selected-subject':''}">
           <div style="display:flex;gap:.5rem;align-items:flex-start;flex:1">
-            <span style="font-size:.7rem;color:var(--text-muted);white-space:nowrap;padding-top:1px">${subjectLabels[i]||'✏️'}</span>
+            <span style="font-size:.7rem;color:var(--text-muted);white-space:nowrap;padding-top:1px">${subjectLabels[i]||'Ã¢Å“ÂÃ¯Â¸Â'}</span>
             <span>${s}</span>
           </div>
           <button onclick="event.stopPropagation();copySubjectOption('${s.replace(/'/g,"&#39;")}');" title="Copiar asunto"
             style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--text-dim);padding:.1rem .3rem;border-radius:4px;flex-shrink:0"
-            onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">📋</button>
+            onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">Ã°Å¸â€œâ€¹</button>
         </div>`).join('');
       const firstOut = document.getElementById('ai-subject-out');
       if (firstOut) firstOut.value = subjects[0] || '';
@@ -226,7 +220,7 @@ function hidePainPicker() {
   document.getElementById('ai-error').style.display   = 'none';
 }
 
-// ── CONTACT CALENDAR GENERATION ──────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ CONTACT CALENDAR GENERATION Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 let _contactCalendarLead = null;
 let _contactCalendarData = [];
 
@@ -240,10 +234,10 @@ async function generateContactCalendar(lead) {
 
   panel.style.display = 'block';
   listEl.innerHTML = `<div style="font-size:.75rem;color:var(--text-dim);padding:.5rem;text-align:center">
-    <span class="spinner" style="display:inline-block;margin-right:.3rem"></span>Generando calendario de seguimiento…</div>`;
+    <span class="spinner" style="display:inline-block;margin-right:.3rem"></span>Generando calendario de seguimientoÃ¢â‚¬Â¦</div>`;
 
   try {
-    const claudeKey = localStorage.getItem('gordi_claude_key');
+    const claudeKey = getGeminiKey();
     const segT = (typeof SEGMENT_TONE !== 'undefined' && SEGMENT_TONE[lead.segment]) || {};
 
     const prompt = `Eres un experto en ventas B2B. Genera un calendario de seguimiento para cuando el lead NO contesta el primer email.
@@ -252,18 +246,18 @@ LEAD: ${lead.company} | Sector: ${lead.segment}
 Tono del sector: ${segT.tone || 'profesional y directo'}
 Dolor principal: ${segT.pain || 'mejora de instalaciones'}
 
-Genera 5 touchpoints de seguimiento, distribuidos en los próximos 30 días. Cada uno con un enfoque diferente y canal distinto cuando sea posible.
+Genera 5 touchpoints de seguimiento, distribuidos en los prÃƒÂ³ximos 30 dÃƒÂ­as. Cada uno con un enfoque diferente y canal distinto cuando sea posible.
 
 Reglas:
-- Día 0 = hoy (primer email ya enviado)
-- Cada touchpoint debe tener un ángulo DISTINTO (no repetir el mismo argumento)
+- DÃƒÂ­a 0 = hoy (primer email ya enviado)
+- Cada touchpoint debe tener un ÃƒÂ¡ngulo DISTINTO (no repetir el mismo argumento)
 - Alterna email y WhatsApp cuando sea apropiado
-- El último touchpoint debe ser el "break-up" (cierre elegante)
+- El ÃƒÂºltimo touchpoint debe ser el "break-up" (cierre elegante)
 - Asunto/texto sugerido MUY breve (max 12 palabras)
 
-Responde SOLO JSON válido:
+Responde SOLO JSON vÃƒÂ¡lido:
 {"touchpoints":[
-  {"day":3,"channel":"email","angle":"Aportar dato nuevo relevante","subject":"Frase sugerida del asunto","note":"Por qué este ángulo ahora"},
+  {"day":3,"channel":"email","angle":"Aportar dato nuevo relevante","subject":"Frase sugerida del asunto","note":"Por quÃƒÂ© este ÃƒÂ¡ngulo ahora"},
   {"day":7,"channel":"whatsapp","angle":"...","subject":"...","note":"..."},
   {"day":12,"channel":"email","angle":"...","subject":"...","note":"..."},
   {"day":20,"channel":"email","angle":"...","subject":"...","note":"..."},
@@ -296,7 +290,7 @@ function renderContactCalendar() {
   const listEl = document.getElementById('contact-calendar-list');
   if (!listEl || !_contactCalendarData.length) return;
 
-  const chIcon = { email:'✉️', whatsapp:'💬', linkedin:'🔗', llamada:'📞' };
+  const chIcon = { email:'Ã¢Å“â€°Ã¯Â¸Â', whatsapp:'Ã°Å¸â€™Â¬', linkedin:'Ã°Å¸â€â€”', llamada:'Ã°Å¸â€œÅ¾' };
   const today = new Date();
 
   listEl.innerHTML = _contactCalendarData.map((tp, i) => {
@@ -312,11 +306,11 @@ function renderContactCalendar() {
       </div>
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.15rem">
-          <span>${chIcon[tp.channel] || '📌'}</span>
+          <span>${chIcon[tp.channel] || 'Ã°Å¸â€œÅ’'}</span>
           <span style="font-weight:600;color:var(--text)">${tp.subject}</span>
           ${isBreakup ? '<span style="font-size:.65rem;background:rgba(239,68,68,.12);color:#f87171;padding:.1rem .35rem;border-radius:4px">Break-up</span>' : ''}
         </div>
-        <div style="color:var(--text-dim);font-size:.72rem">${tp.angle} — <em>${tp.note}</em></div>
+        <div style="color:var(--text-dim);font-size:.72rem">${tp.angle} Ã¢â‚¬â€ <em>${tp.note}</em></div>
       </div>
     </div>`;
   }).join('');
@@ -343,13 +337,16 @@ function applyContactCalendar() {
     const d = new Date(); d.setDate(d.getDate() + tp.day);
     return `+${tp.day}d (${d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})}) ${tp.channel.toUpperCase()}: "${tp.subject}"`;
   }).join('\n');
-  addActivityLog(lead.id, `📅 Calendario de seguimiento generado:\n${calStr}`);
+  addActivityLog(lead.id, `Ã°Å¸â€œâ€¦ Calendario de seguimiento generado:\n${calStr}`);
   saveLeads();
-  showToast('✅ Calendario aplicado — próximo contacto en ' + firstTp.day + ' días');
+  if (typeof renderAll === 'function') renderAll();
+  if (typeof renderTracking === 'function') renderTracking();
+  if (typeof updateFollowupBadge === 'function') updateFollowupBadge();
+  showToast('Ã¢Å“â€¦ Calendario aplicado Ã¢â‚¬â€ prÃƒÂ³ximo contacto en ' + firstTp.day + ' dÃƒÂ­as');
   document.getElementById('contact-calendar-panel').style.display = 'none';
 }
 
-// ── WHATSAPP MODAL ────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ WHATSAPP MODAL Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 let _waLead = null;
 
 function openWhatsAppModal(leadId, event) {
@@ -359,7 +356,7 @@ function openWhatsAppModal(leadId, event) {
   _waLead = lead;
 
   const phone = lead.whatsapp || lead.phone;
-  if (!phone) { showToast('⚠️ Este lead no tiene teléfono ni WhatsApp'); return; }
+  if (!phone) { showToast('Ã¢Å¡Â Ã¯Â¸Â Este lead no tiene telÃƒÂ©fono ni WhatsApp'); return; }
 
   // Create/show modal
   let modal = document.getElementById('wa-modal');
@@ -371,18 +368,18 @@ function openWhatsAppModal(leadId, event) {
       <div style="background:var(--bg2);border:1px solid var(--glass-border);border-radius:16px;width:min(580px,96vw);max-height:90vh;overflow-y:auto">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:1px solid var(--glass-border)">
           <div style="display:flex;align-items:center;gap:.6rem">
-            <span style="font-size:1.2rem">💬</span>
+            <span style="font-size:1.2rem">Ã°Å¸â€™Â¬</span>
             <div>
               <div style="font-weight:700;font-size:.9rem" id="wa-modal-title">WhatsApp IA</div>
-              <div style="font-size:.7rem;color:var(--text-dim)" id="wa-modal-sub">Generando mensaje personalizado…</div>
+              <div style="font-size:.7rem;color:var(--text-dim)" id="wa-modal-sub">Generando mensaje personalizadoÃ¢â‚¬Â¦</div>
             </div>
           </div>
-          <button onclick="closeWaModal()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem">✕</button>
+          <button onclick="closeWaModal()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem">Ã¢Å“â€¢</button>
         </div>
         <div id="wa-body" style="padding:1.25rem">
           <div style="text-align:center;padding:2rem">
             <div class="spinner" style="margin:0 auto .75rem"></div>
-            <div style="font-size:.8rem;color:var(--text-dim)">Generando mensaje personalizado con IA…</div>
+            <div style="font-size:.8rem;color:var(--text-dim)">Generando mensaje personalizado con IAÃ¢â‚¬Â¦</div>
           </div>
         </div>
       </div>`;
@@ -390,7 +387,7 @@ function openWhatsAppModal(leadId, event) {
   }
   modal.style.display = 'flex';
   document.getElementById('wa-modal-title').textContent = `WhatsApp para ${lead.company}`;
-  document.getElementById('wa-modal-sub').textContent = `📱 ${phone} — Generando mensaje…`;
+  document.getElementById('wa-modal-sub').textContent = `Ã°Å¸â€œÂ± ${phone} Ã¢â‚¬â€ Generando mensajeÃ¢â‚¬Â¦`;
   generateWhatsAppMessage(lead);
 }
 
@@ -400,7 +397,7 @@ function closeWaModal() {
 }
 
 async function generateWhatsAppMessage(lead) {
-  const claudeKey = localStorage.getItem('gordi_claude_key');
+  const claudeKey = getGeminiKey();
   const phone = lead.whatsapp || lead.phone;
   const phoneClean = phone.replace(/[^0-9+]/g, '');
   const waBody = document.getElementById('wa-body');
@@ -410,25 +407,25 @@ async function generateWhatsAppMessage(lead) {
     const prevEmails = emailHistory.filter(e => e.leadId == lead.id || e.email === lead.email).length;
     const p = getProfile();
 
-    const prompt = `Eres un experto en ventas B2B. Escribe un mensaje de WhatsApp de prospección para ${lead.company}.
+    const prompt = `Eres un experto en ventas B2B. Escribe un mensaje de WhatsApp de prospecciÃƒÂ³n para ${lead.company}.
 
 CONTEXTO:
 - Empresa: ${lead.company} | Sector: ${lead.segment} | Ciudad: ${lead.address || 'Madrid'}
 - Emails previos enviados: ${prevEmails}
 - Rating Google: ${lead.rating ? lead.rating + '/5' : 'sin datos'}
-${(lead.signals || []).slice(0, 3).map(s => '- Señal: ' + s).join('\n')}
+${(lead.signals || []).slice(0, 3).map(s => '- SeÃƒÂ±al: ' + s).join('\n')}
 - Tono del sector: ${segT.tone || 'profesional'}
 - Dolor principal: ${segT.pain || 'mejora de instalaciones'}
 - Remitente: ${p.name} de Voltium Madrid
 
 REGLAS DEL WHATSAPP:
-- Máximo 3 párrafos cortos (60-90 palabras total)
-- Tono cercano pero profesional — es un mensaje directo, no un email
-- Primer párrafo: quién eres + gancho (algo específico de su negocio)
-- Segundo párrafo: valor concreto que puedes aportarles
-- Cierre: CTA simple y no invasivo (¿te llamo 5 min esta semana?)
-- NUNCA empezar con "Hola, me llamo..." — ve al grano
-- Incluye un emoji ocasional (máximo 2-3 en todo el mensaje)
+- MÃƒÂ¡ximo 3 pÃƒÂ¡rrafos cortos (60-90 palabras total)
+- Tono cercano pero profesional Ã¢â‚¬â€ es un mensaje directo, no un email
+- Primer pÃƒÂ¡rrafo: quiÃƒÂ©n eres + gancho (algo especÃƒÂ­fico de su negocio)
+- Segundo pÃƒÂ¡rrafo: valor concreto que puedes aportarles
+- Cierre: CTA simple y no invasivo (Ã‚Â¿te llamo 5 min esta semana?)
+- NUNCA empezar con "Hola, me llamo..." Ã¢â‚¬â€ ve al grano
+- Incluye un emoji ocasional (mÃƒÂ¡ximo 2-3 en todo el mensaje)
 - Termina con tu nombre y empresa
 
 Responde SOLO JSON: {"message":"texto del WA","opener":"frase de apertura resumida en 5 palabras"}`;
@@ -451,7 +448,7 @@ Responde SOLO JSON: {"message":"texto del WA","opener":"frase de apertura resumi
 
     waBody.innerHTML = `
       <div style="margin-bottom:1rem">
-        <label style="font-size:.75rem;color:var(--text-dim);display:block;margin-bottom:.4rem">Mensaje generado — edita si lo necesitas</label>
+        <label style="font-size:.75rem;color:var(--text-dim);display:block;margin-bottom:.4rem">Mensaje generado Ã¢â‚¬â€ edita si lo necesitas</label>
         <textarea id="wa-text-editor" rows="7"
           style="width:100%;background:var(--bg3);border:1px solid var(--glass-border);border-radius:10px;
           padding:.85rem;font-size:.82rem;color:var(--text);resize:vertical;line-height:1.6;font-family:'Inter',sans-serif"
@@ -459,17 +456,17 @@ Responde SOLO JSON: {"message":"texto del WA","opener":"frase de apertura resumi
       </div>
       <div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.2);border-radius:8px;padding:.6rem .85rem;
         font-size:.75rem;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem">
-        📱 Se enviará a: <strong style="color:#25D366">${phone}</strong>
+        Ã°Å¸â€œÂ± Se enviarÃƒÂ¡ a: <strong style="color:#25D366">${phone}</strong>
       </div>
       <div style="display:flex;gap:.6rem;flex-wrap:wrap">
         <a id="wa-send-btn" href="${waUrl}" target="_blank"
           onclick="registerWaSent()"
           style="display:inline-flex;align-items:center;gap:.4rem;background:#25D366;color:#fff;
           padding:.5rem 1.1rem;border-radius:8px;font-weight:600;font-size:.82rem;text-decoration:none;border:none;cursor:pointer">
-          💬 Abrir en WhatsApp
+          Ã°Å¸â€™Â¬ Abrir en WhatsApp
         </a>
-        <button onclick="copyWaMessage()" class="btn-outline" style="font-size:.8rem">📋 Copiar mensaje</button>
-        <button onclick="regenerateWaMessage()" class="btn-outline" style="font-size:.8rem">🔄 Regenerar</button>
+        <button onclick="copyWaMessage()" class="btn-outline" style="font-size:.8rem">Ã°Å¸â€œâ€¹ Copiar mensaje</button>
+        <button onclick="regenerateWaMessage()" class="btn-outline" style="font-size:.8rem">Ã°Å¸â€â€ž Regenerar</button>
       </div>`;
 
   } catch(e) {
@@ -477,13 +474,13 @@ Responde SOLO JSON: {"message":"texto del WA","opener":"frase de apertura resumi
     const phone2 = lead.whatsapp || lead.phone;
     const phoneClean2 = phone2.replace(/[^0-9+]/g, '');
     waBody.innerHTML = `
-      <div style="color:var(--danger);font-size:.8rem;margin-bottom:1rem">⚠️ No se pudo generar el mensaje con IA (comprueba la API key de Gemini).</div>
-      <textarea id="wa-text-editor" rows="5" placeholder="Escribe tu mensaje de WhatsApp aquí..."
+      <div style="color:var(--danger);font-size:.8rem;margin-bottom:1rem">Ã¢Å¡Â Ã¯Â¸Â No se pudo generar el mensaje con IA (comprueba la API key de Gemini).</div>
+      <textarea id="wa-text-editor" rows="5" placeholder="Escribe tu mensaje de WhatsApp aquÃƒÂ­..."
         style="width:100%;background:var(--bg3);border:1px solid var(--glass-border);border-radius:10px;
         padding:.85rem;font-size:.82rem;color:var(--text);resize:vertical;font-family:'Inter',sans-serif"></textarea>
       <div style="margin-top:.75rem;display:flex;gap:.6rem">
         <button onclick="sendWaManual()" style="background:#25D366;color:#fff;border:none;border-radius:8px;padding:.5rem 1rem;font-weight:600;cursor:pointer;font-size:.8rem">
-          💬 Abrir en WhatsApp
+          Ã°Å¸â€™Â¬ Abrir en WhatsApp
         </button>
       </div>`;
   }
@@ -503,7 +500,7 @@ function regenerateWaMessage() {
   if (_waLead) {
     document.getElementById('wa-body').innerHTML = `<div style="text-align:center;padding:2rem">
       <div class="spinner" style="margin:0 auto .75rem"></div>
-      <div style="font-size:.8rem;color:var(--text-dim)">Regenerando…</div></div>`;
+      <div style="font-size:.8rem;color:var(--text-dim)">RegenerandoÃ¢â‚¬Â¦</div></div>`;
     generateWhatsAppMessage(_waLead);
   }
 }
@@ -517,14 +514,13 @@ function copyWaMessage() {
   const phoneClean = phone.replace(/[^0-9+]/g, '');
   const btn = document.getElementById('wa-send-btn');
   if (btn) btn.href = `https://wa.me/${phoneClean.startsWith('+') ? phoneClean.slice(1) : phoneClean}?text=${encodeURIComponent(msg)}`;
-  navigator.clipboard.writeText(msg).then(() => showToast('📋 Mensaje copiado'))
-    .catch(() => showToast('📋 Mensaje copiado'));
+  copyToClipboard(msg, 'Mensaje copiado');
 }
 
 function registerWaSent() {
   const lead = _waLead; if (!lead) return;
   const msg = document.getElementById('wa-text-editor')?.value || '';
-  addActivityLog(lead.id, `💬 WhatsApp enviado a ${lead.whatsapp || lead.phone}`);
+  addActivityLog(lead.id, `Ã°Å¸â€™Â¬ WhatsApp enviado a ${lead.whatsapp || lead.phone}`);
   emailHistory.unshift({
     id: Date.now(), leadId: lead.id, company: lead.company,
     email: lead.whatsapp || lead.phone, segment: lead.segment,
@@ -545,29 +541,29 @@ function closeAiModal() {
   aiCurrentLeadId = null;
 }
 
-// ── Control de pasos visuales ─────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Control de pasos visuales Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function setAiStep(step, state) {
   const el = document.getElementById(`aistep-${step}`);
   if (!el) return;
   el.className = `ai-step ${state}`;
   const labels = {
-    reviews: { pending:'Leyendo reseñas de Google...', active:'📖 Leyendo reseñas de Google...', done:'✅ Reseñas analizadas', error:'❌ No se pudieron leer las reseñas' },
-    scrape:  { pending:'Rastreando web de la empresa...', active:'🌐 Rastreando web de la empresa...', done:'✅ Web analizada', error:'⚠️ Web no accesible' },
-    news:    { pending:'Buscando noticias recientes...', active:'📰 Buscando noticias y novedades...', done:'✅ Contexto actualizado', error:'⚠️ Sin noticias recientes' },
-    analyze: { pending:'Analizando puntos fuertes y débiles...', active:'🔍 Analizando puntos fuertes y débiles...', done:'✅ Análisis completado', error:'❌ Error en el análisis' },
-    write:   { pending:'Redactando email con copywriting...', active:'✍️ Redactando email hiperpersonalizado...', done:'✅ Email generado', error:'❌ Error al generar el email' },
+    reviews: { pending:'Leyendo reseÃƒÂ±as de Google...', active:'Ã°Å¸â€œâ€“ Leyendo reseÃƒÂ±as de Google...', done:'Ã¢Å“â€¦ ReseÃƒÂ±as analizadas', error:'Ã¢ÂÅ’ No se pudieron leer las reseÃƒÂ±as' },
+    scrape:  { pending:'Rastreando web de la empresa...', active:'Ã°Å¸Å’Â Rastreando web de la empresa...', done:'Ã¢Å“â€¦ Web analizada', error:'Ã¢Å¡Â Ã¯Â¸Â Web no accesible' },
+    news:    { pending:'Buscando noticias recientes...', active:'Ã°Å¸â€œÂ° Buscando noticias y novedades...', done:'Ã¢Å“â€¦ Contexto actualizado', error:'Ã¢Å¡Â Ã¯Â¸Â Sin noticias recientes' },
+    analyze: { pending:'Analizando puntos fuertes y dÃƒÂ©biles...', active:'Ã°Å¸â€Â Analizando puntos fuertes y dÃƒÂ©biles...', done:'Ã¢Å“â€¦ AnÃƒÂ¡lisis completado', error:'Ã¢ÂÅ’ Error en el anÃƒÂ¡lisis' },
+    write:   { pending:'Redactando email con copywriting...', active:'Ã¢Å“ÂÃ¯Â¸Â Redactando email hiperpersonalizado...', done:'Ã¢Å“â€¦ Email generado', error:'Ã¢ÂÅ’ Error al generar el email' },
   };
   const lbl = el.querySelector('.ai-step-label');
   if (lbl && labels[step]?.[state]) lbl.innerText = labels[step][state];
 }
 
-// ── Motor principal ────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Motor principal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 async function runAiEmailGeneration(lead, painContext) {
-  const claudeKey = localStorage.getItem('gordi_claude_key');
+  const claudeKey = getGeminiKey();
 
-  // PASO 1: Reseñas de Google Places
+  // PASO 1: ReseÃƒÂ±as de Google Places
   // MEJORA 5: Si el lead ya tiene reviewStats del enriquecimiento reciente (<24h),
-  // reutilizamos esos datos y nos saltamos el fetch — ahorra una llamada Places completa.
+  // reutilizamos esos datos y nos saltamos el fetch Ã¢â‚¬â€ ahorra una llamada Places completa.
   setAiStep('reviews', 'active');
   let reviewsData = { reviews: [], rating: lead.rating || null, ratingCount: lead.ratingCount || 0, placeId: lead.placeId || '' };
   try {
@@ -576,10 +572,10 @@ async function runAiEmailGeneration(lead, painContext) {
       const cacheValid = cacheAge < 24 * 60 * 60 * 1000 && lead.reviewSummary && lead.reviewStats;
 
       if (cacheValid) {
-        // Reconstruir el array de reviews desde reviewSummary y adjuntar _stats del caché
+        // Reconstruir el array de reviews desde reviewSummary y adjuntar _stats del cachÃƒÂ©
         const cachedLines = (lead.reviewSummary || '').split('\n').filter(Boolean);
         const cachedReviews = cachedLines.map(line => {
-          const m = line.match(/^\[(\d)[\u2605★][^\]]*\]\s*(.*)/);
+          const m = line.match(/^\[(\d)[\u2605Ã¢Ëœâ€¦][^\]]*\]\s*(.*)/);
           return m ? { rating: parseInt(m[1]), text: m[2].slice(0, 200), time: '', ownerResponse: null } : null;
         }).filter(Boolean);
         cachedReviews._stats = lead.reviewStats;
@@ -610,7 +606,7 @@ async function runAiEmailGeneration(lead, painContext) {
     if (lead.website) {
       const html = await fetchWithProxy(lead.website, 10000);
       if (html && html.length > 200) {
-        // Extraer textos relevantes: h1, h2, párrafos principales, meta description
+        // Extraer textos relevantes: h1, h2, pÃƒÂ¡rrafos principales, meta description
         const metaDesc = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{20,300})["']/i)?.[1] || '';
         const h1s = [...html.matchAll(/<h1[^>]*>([^<]{5,150})<\/h1>/gi)].map(m => m[1].trim()).slice(0,3);
         const h2s = [...html.matchAll(/<h2[^>]*>([^<]{5,120})<\/h2>/gi)].map(m => m[1].trim()).slice(0,5);
@@ -619,13 +615,13 @@ async function runAiEmailGeneration(lead, painContext) {
           .filter(t => !/cookie|privacidad|copyright|legal/i.test(t))
           .slice(0,4);
 
-        // Detectar señales de actualidad en el texto
+        // Detectar seÃƒÂ±ales de actualidad en el texto
         const fullText = (h1s.join(' ') + ' ' + h2s.join(' ') + ' ' + paras.join(' ')).toLowerCase();
         const freshSignals = [];
         if (/nueva|nuevo|abrimos|apertura|inaugura|estrena/i.test(fullText)) freshSignals.push('apertura/novedad detectada');
         if (/reforma|renovaci|rehabilitac|obras/i.test(fullText)) freshSignals.push('reforma en curso o reciente');
-        if (/ampliaci|expandi|crecemos|nueva sede|nuevo local/i.test(fullText)) freshSignals.push('expansión detectada');
-        if (/sostenib|eficiencia energética|fotovoltaic|solar/i.test(fullText)) freshSignals.push('interés en sostenibilidad');
+        if (/ampliaci|expandi|crecemos|nueva sede|nuevo local/i.test(fullText)) freshSignals.push('expansiÃƒÂ³n detectada');
+        if (/sostenib|eficiencia energÃƒÂ©tica|fotovoltaic|solar/i.test(fullText)) freshSignals.push('interÃƒÂ©s en sostenibilidad');
         if (/certificac|iso|calidad|premio|award/i.test(fullText)) freshSignals.push('foco en calidad/certificaciones');
 
         liveWebData = {
@@ -648,7 +644,7 @@ async function runAiEmailGeneration(lead, painContext) {
     setAiStep('scrape', 'error');
   }
 
-  // PASO 3: Búsqueda de noticias recientes via Gemini con grounding
+  // PASO 3: BÃƒÂºsqueda de noticias recientes via Gemini con grounding
   setAiStep('news', 'active');
   let newsContext = '';
   try {
@@ -660,10 +656,10 @@ async function runAiEmailGeneration(lead, painContext) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text:
-              `Busca noticias recientes (últimos 12 meses) sobre la empresa "${lead.company}" en ${lead.address || 'España'}, sector ${lead.segment}.
-Busca: inauguraciones, premios, reformas, expansiones, cambios de dirección, menciones en prensa, nuevas aperturas o proyectos.
-Si no encuentras nada específico de esta empresa, responde "Sin noticias relevantes encontradas."
-Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
+              `Busca noticias recientes (ÃƒÂºltimos 12 meses) sobre la empresa "${lead.company}" en ${lead.address || 'EspaÃƒÂ±a'}, sector ${lead.segment}.
+Busca: inauguraciones, premios, reformas, expansiones, cambios de direcciÃƒÂ³n, menciones en prensa, nuevas aperturas o proyectos.
+Si no encuentras nada especÃƒÂ­fico de esta empresa, responde "Sin noticias relevantes encontradas."
+Responde en mÃƒÂ¡ximo 3 frases concretas, sin inventar nada.` }] }],
             tools: [{ googleSearch: {} }],
             generationConfig: { temperature: 0.2, maxOutputTokens: 300 }
           })
@@ -694,7 +690,7 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
 
   try {
     // Enrich liveWebData with chosen pain context
-    if (painContext) liveWebData.chosenPainContext = `ENFOQUE ELEGIDO POR EL VENDEDOR — PRIORIZA ESTE ÁNGULO:\n${painContext.title}: ${painContext.why} (Gancho: ${painContext.hook})`;
+    if (painContext) liveWebData.chosenPainContext = `ENFOQUE ELEGIDO POR EL VENDEDOR Ã¢â‚¬â€ PRIORIZA ESTE ÃƒÂNGULO:\n${painContext.title}: ${painContext.why} (Gancho: ${painContext.hook})`;
     const result = await generateEmailWithClaude(lead, reviewsData, claudeKey, liveWebData, newsContext);
     setAiStep('analyze', 'done');
     setAiStep('write', 'done');
@@ -707,7 +703,7 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
 
     // Poblar las 3 opciones de asunto
     const subjects = result.subjects || [result.subject];
-    const subjectLabels = ['💛 Emocional', '📊 Racional', '🎯 Intriga'];
+    const subjectLabels = ['Ã°Å¸â€™â€º Emocional', 'Ã°Å¸â€œÅ  Racional', 'Ã°Å¸Å½Â¯ Intriga'];
     const subjectList = document.getElementById('ai-subjects-list');
     if (subjectList) {
       subjectList.innerHTML = subjects.map((s, i) => `
@@ -717,12 +713,12 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
           transition:border-color .15s,background .15s"
           class="subject-option${i===0?' selected-subject':''}">
           <div style="display:flex;gap:.5rem;align-items:flex-start;flex:1">
-            <span style="font-size:.7rem;color:var(--text-muted);white-space:nowrap;padding-top:1px">${subjectLabels[i]||'✏️ Opción '+(i+1)}</span>
+            <span style="font-size:.7rem;color:var(--text-muted);white-space:nowrap;padding-top:1px">${subjectLabels[i]||'Ã¢Å“ÂÃ¯Â¸Â OpciÃƒÂ³n '+(i+1)}</span>
             <span>${s}</span>
           </div>
           <button onclick="event.stopPropagation();copySubjectOption('${s.replace(/'/g,"&#39;")}')" title="Copiar asunto"
             style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--text-dim);padding:.1rem .3rem;border-radius:4px;flex-shrink:0;transition:color .15s"
-            onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">📋</button>
+            onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-dim)'">Ã°Å¸â€œâ€¹</button>
         </div>`).join('');
       // Auto-select first
       document.getElementById('ai-subject-out').value = subjects[0] || '';
@@ -738,7 +734,7 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
     // Subject change listener for spam check
     const subjEl = document.getElementById('ai-subject-out');
     if (subjEl) subjEl.addEventListener('input', () => checkSpam(subjEl.value));
-    document.getElementById('ai-modal-sub').innerText = '✅ Email listo — revísalo y envíalo cuando quieras';
+    document.getElementById('ai-modal-sub').innerText = 'Ã¢Å“â€¦ Email listo Ã¢â‚¬â€ revÃƒÂ­salo y envÃƒÂ­alo cuando quieras';
 
     // Word count + spam check
     updateEmailWordCount();
@@ -752,7 +748,7 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
       const fEl = document.getElementById('followup-suggestion');
       if (fEl) {
         fEl.style.display = 'flex';
-        document.getElementById('followup-text').innerHTML = `Ya enviaste un email a <strong>${lead.company}</strong> hace <strong>${daysAgo} días</strong> (asunto: "${lastEmail.subject||'sin asunto'}"). Este sería su <strong>${prevEmails.length + 1}º email</strong>.`;
+        document.getElementById('followup-text').innerHTML = `Ya enviaste un email a <strong>${lead.company}</strong> hace <strong>${daysAgo} dÃƒÂ­as</strong> (asunto: "${lastEmail.subject||'sin asunto'}"). Este serÃƒÂ­a su <strong>${prevEmails.length + 1}Ã‚Âº email</strong>.`;
       }
     } else {
       const fEl = document.getElementById('followup-suggestion');
@@ -761,7 +757,7 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
 
     if (result.insight) {
       document.getElementById('ai-reviews-insight').innerHTML =
-        `<strong style="color:var(--primary)">📊 Lo que dicen las reseñas de ${lead.company}:</strong><br>${result.insight}`;
+        `<strong style="color:var(--primary)">Ã°Å¸â€œÅ  Lo que dicen las reseÃƒÂ±as de ${lead.company}:</strong><br>${result.insight}`;
       document.getElementById('ai-reviews-insight').style.display = 'block';
     } else {
       document.getElementById('ai-reviews-insight').style.display = 'none';
@@ -774,17 +770,17 @@ Responde en máximo 3 frases concretas, sin inventar nada.` }] }],
     document.getElementById('ai-error').style.display = 'block';
     document.getElementById('ai-error-msg').innerHTML =
       `<strong>Error al generar el email:</strong><br>${e.message}<br><br>` +
-      `Verifica que tu <a href="#" onclick="showView('settings');closeAiModal()" style="color:var(--primary)">API Key de Gemini</a> está correctamente configurada.<br><small style="color:var(--text-muted)">Obtén una gratis en aistudio.google.com/apikey</small>`;
+      `Verifica que tu <a href="#" onclick="showView('settings');closeAiModal()" style="color:var(--primary)">API Key de Gemini</a> estÃƒÂ¡ correctamente configurada.<br><small style="color:var(--text-muted)">ObtÃƒÂ©n una gratis en aistudio.google.com/apikey</small>`;
     logApiError(`Email IA error: ${e.message}`);
   }
 }
 
-// ── Obtener reseñas de Google Places ──────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Obtener reseÃƒÂ±as de Google Places Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 async function fetchGoogleReviews(placeId) {
   if (!placeId) return [];
   const apiKey = localStorage.getItem('gordi_api_key');
 
-  // ── Normaliza una reseña cruda a formato estándar ─────────────────────────
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Normaliza una reseÃƒÂ±a cruda a formato estÃƒÂ¡ndar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   function normalizeReview(r, source) {
     const text = (
       r.text || r.originalText ||
@@ -807,7 +803,7 @@ async function fetchGoogleReviews(placeId) {
     };
   }
 
-  // ── Deduplica por texto (las dos APIs a veces devuelven las mismas) ─────────
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Deduplica por texto (las dos APIs a veces devuelven las mismas) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   function dedup(reviews) {
     const seen = new Set();
     return reviews.filter(r => {
@@ -819,7 +815,7 @@ async function fetchGoogleReviews(placeId) {
     });
   }
 
-  // ── Ordena: negativas largas primero (máxima señal de dolor) ───────────────
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Ordena: negativas largas primero (mÃƒÂ¡xima seÃƒÂ±al de dolor) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   function sortByPain(reviews) {
     return [...reviews].sort((a, b) => {
       const rDiff = (a.rating || 5) - (b.rating || 5);
@@ -830,7 +826,7 @@ async function fetchGoogleReviews(placeId) {
 
   let allReviews = [];
 
-  // ── VÍA 1: Places API New (biblioteca JS, devuelve ~5 reseñas recientes) ───
+  // Ã¢â€â‚¬Ã¢â€â‚¬ VÃƒÂA 1: Places API New (biblioteca JS, devuelve ~5 reseÃƒÂ±as recientes) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   try {
     const { Place } = await google.maps.importLibrary('places');
     const place = new Place({ id: placeId });
@@ -841,14 +837,14 @@ async function fetchGoogleReviews(placeId) {
     console.warn('Places API New reviews error:', e.message);
   }
 
-  // ── VÍA 2: Place Details legacy (REST, devuelve hasta 20 reseñas distintas) ─
+  // Ã¢â€â‚¬Ã¢â€â‚¬ VÃƒÂA 2: Place Details legacy (REST, devuelve hasta 20 reseÃƒÂ±as distintas) Ã¢â€â‚¬
   // Usa reviews_sort=newest para maximizar cobertura temporal
   if (apiKey) {
     try {
       const legacyUrls = [
-        // Ordenadas por más recientes (detecta problemas actuales)
+        // Ordenadas por mÃƒÂ¡s recientes (detecta problemas actuales)
         `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews,rating,user_ratings_total&reviews_sort=newest&language=es&key=${apiKey}`,
-        // Ordenadas por más relevantes (las que Google considera más representativas)
+        // Ordenadas por mÃƒÂ¡s relevantes (las que Google considera mÃƒÂ¡s representativas)
         `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews,rating,user_ratings_total&reviews_sort=most_relevant&language=es&key=${apiKey}`,
       ];
 
@@ -868,30 +864,30 @@ async function fetchGoogleReviews(placeId) {
     }
   }
 
-  // ── Deduplicar, ordenar, limitar a 25 ────────────────────────────────────
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Deduplicar, ordenar, limitar a 25 Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const finalReviews = sortByPain(dedup(allReviews)).slice(0, 25);
 
-  // ── Clasificación temporal: convierte texto relativo a banda de tiempo ────
-  // "hace 2 semanas" → 'reciente', "hace 8 meses" → 'medio', "hace 3 años" → 'antiguo'
+  // Ã¢â€â‚¬Ã¢â€â‚¬ ClasificaciÃƒÂ³n temporal: convierte texto relativo a banda de tiempo Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // "hace 2 semanas" Ã¢â€ â€™ 'reciente', "hace 8 meses" Ã¢â€ â€™ 'medio', "hace 3 aÃƒÂ±os" Ã¢â€ â€™ 'antiguo'
   function classifyTime(timeStr) {
     if (!timeStr) return 'desconocido';
     const t = timeStr.toLowerCase();
-    if (/hac[e|í]\s+\d+\s+(?:día|hora|semana|mes)s?/.test(t)) {
+    if (/hac[e|ÃƒÂ­]\s+\d+\s+(?:dÃƒÂ­a|hora|semana|mes)s?/.test(t)) {
       const num = parseInt(t.match(/\d+/)?.[0] || '0');
-      if (/hora|día/.test(t)) return 'reciente';
+      if (/hora|dÃƒÂ­a/.test(t)) return 'reciente';
       if (/semana/.test(t)) return num <= 3 ? 'reciente' : 'medio';
       if (/mes/.test(t)) return num <= 6 ? 'reciente' : num <= 18 ? 'medio' : 'antiguo';
     }
-    if (/hac[e|í]\s+\d+\s+a[ñn]o/.test(t)) return 'antiguo';
-    if (/este año|este mes|esta semana/.test(t)) return 'reciente';
-    if (/el año pasado|el a[ñn]o pasado/.test(t)) return 'medio';
+    if (/hac[e|ÃƒÂ­]\s+\d+\s+a[ÃƒÂ±n]o/.test(t)) return 'antiguo';
+    if (/este aÃƒÂ±o|este mes|esta semana/.test(t)) return 'reciente';
+    if (/el aÃƒÂ±o pasado|el a[ÃƒÂ±n]o pasado/.test(t)) return 'medio';
     return 'desconocido';
   }
 
-  // Añadir banda temporal a cada reseña
+  // AÃƒÂ±adir banda temporal a cada reseÃƒÂ±a
   finalReviews.forEach(r => { r.timeBand = classifyTime(r.time); });
 
-  // ── Análisis estadístico de patrones (solo tiene sentido con 6+ reseñas) ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ AnÃƒÂ¡lisis estadÃƒÂ­stico de patrones (solo tiene sentido con 6+ reseÃƒÂ±as) Ã¢â€â‚¬Ã¢â€â‚¬
   if (finalReviews.length >= 6) {
     const negReviews = finalReviews.filter(r => r.rating <= 3);
     const totalNeg   = finalReviews.filter(r => r.rating <= 2).length;
@@ -899,25 +895,25 @@ async function fetchGoogleReviews(placeId) {
     const totalPos   = finalReviews.filter(r => r.rating >= 4).length;
     const withOwnerReply = finalReviews.filter(r => r.ownerResponse).length;
 
-    // ── MEJORA 1: Clústeres de dolor separados por ventana temporal ──────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ MEJORA 1: ClÃƒÂºsteres de dolor separados por ventana temporal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const PAIN_CLUSTERS = {
-      'instalaciones eléctricas': /instalaci[oó]n|cableado|enchufes|luz|iluminaci[oó]n|electricidad|cuadro el[eé]ctrico/i,
-      'temperatura/climatización': /fr[ií]o|calor|temperatura|aire acondicionado|calefacci[oó]n|t[eé]rmico/i,
+      'instalaciones elÃƒÂ©ctricas': /instalaci[oÃƒÂ³]n|cableado|enchufes|luz|iluminaci[oÃƒÂ³]n|electricidad|cuadro el[eÃƒÂ©]ctrico/i,
+      'temperatura/climatizaciÃƒÂ³n': /fr[iÃƒÂ­]o|calor|temperatura|aire acondicionado|calefacci[oÃƒÂ³]n|t[eÃƒÂ©]rmico/i,
       'deterioro visible':         /viejo|antiguo|deteriorado|descuidado|sucio|roto|desperfecto|anticuado|desgastado/i,
-      'obras/reformas mencionadas': /obra|reforma|renovaci[oó]n|remodelado|construcci[oó]n/i,
-      'ruido/acústica':            /ruido|ac[uú]stica|aisla|paredes finas|se escucha todo/i,
-      'humedad/goteras':           /humedad|gotera|grieta|hongos|moho|h[uú]medo/i,
-      'baños deteriorados':        /ba[ñn]o|aseo|ducha|váter|inodoro|grifo/i,
-      'habitaciones/espacios':     /habitaci[oó]n peque|espacio reducido|muy peque|estrecho/i,
+      'obras/reformas mencionadas': /obra|reforma|renovaci[oÃƒÂ³]n|remodelado|construcci[oÃƒÂ³]n/i,
+      'ruido/acÃƒÂºstica':            /ruido|ac[uÃƒÂº]stica|aisla|paredes finas|se escucha todo/i,
+      'humedad/goteras':           /humedad|gotera|grieta|hongos|moho|h[uÃƒÂº]medo/i,
+      'baÃƒÂ±os deteriorados':        /ba[ÃƒÂ±n]o|aseo|ducha|vÃƒÂ¡ter|inodoro|grifo/i,
+      'habitaciones/espacios':     /habitaci[oÃƒÂ³]n peque|espacio reducido|muy peque|estrecho/i,
     };
 
-    const painByTime = {}; // { 'ruido/acústica': { reciente: 4, medio: 1, antiguo: 2, best_snippet: '...' } }
+    const painByTime = {}; // { 'ruido/acÃƒÂºstica': { reciente: 4, medio: 1, antiguo: 2, best_snippet: '...' } }
     for (const [label, regex] of Object.entries(PAIN_CLUSTERS)) {
       const matches = negReviews.filter(r => regex.test(r.text));
       if (!matches.length) continue;
       const byBand = { reciente: 0, medio: 0, antiguo: 0, desconocido: 0 };
       matches.forEach(r => byBand[r.timeBand || 'desconocido']++);
-      // Tomar el snippet de la coincidencia más reciente y negativa
+      // Tomar el snippet de la coincidencia mÃƒÂ¡s reciente y negativa
       const bestMatch = matches.sort((a,b) => {
         const bandOrder = { reciente:0, medio:1, desconocido:2, antiguo:3 };
         return (bandOrder[a.timeBand]||2) - (bandOrder[b.timeBand]||2) || (a.rating||5) - (b.rating||5);
@@ -933,7 +929,7 @@ async function fetchGoogleReviews(placeId) {
       };
     }
 
-    // Generar topPains con información temporal: activos (recientes) primero
+    // Generar topPains con informaciÃƒÂ³n temporal: activos (recientes) primero
     const topPains = Object.entries(painByTime)
       .sort((a, b) => {
         // Priorizar por menciones recientes, luego por total
@@ -943,11 +939,11 @@ async function fetchGoogleReviews(placeId) {
       .slice(0, 4)
       .map(([label, data]) => {
         const temporalNote = data.reciente >= 2
-          ? `⚡ ACTIVO — ${data.reciente} menciones recientes (<6 meses)`
+          ? `Ã¢Å¡Â¡ ACTIVO Ã¢â‚¬â€ ${data.reciente} menciones recientes (<6 meses)`
           : data.reciente === 1
-          ? `⚡ 1 mención reciente + ${data.medio + data.antiguo} anteriores`
+          ? `Ã¢Å¡Â¡ 1 menciÃƒÂ³n reciente + ${data.medio + data.antiguo} anteriores`
           : data.antiguo >= 2
-          ? `⏳ HISTÓRICO — ${data.antiguo} menciones antiguas (>18 meses), puede estar resuelto`
+          ? `Ã¢ÂÂ³ HISTÃƒâ€œRICO Ã¢â‚¬â€ ${data.antiguo} menciones antiguas (>18 meses), puede estar resuelto`
           : `${data.total} menciones (temporalidad no determinada)`;
         return {
           label,
@@ -962,7 +958,7 @@ async function fetchGoogleReviews(placeId) {
         };
       });
 
-    // ── MEJORA 2: Trending de rating (recientes vs antiguos) ─────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ MEJORA 2: Trending de rating (recientes vs antiguos) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const recentRatings  = finalReviews.filter(r => r.timeBand === 'reciente').map(r => r.rating);
     const oldRatings     = finalReviews.filter(r => r.timeBand === 'antiguo').map(r => r.rating);
     let ratingTrend = null;
@@ -973,7 +969,7 @@ async function fetchGoogleReviews(placeId) {
       ratingTrend = { avgRecent: +avgRecent.toFixed(1), avgOld: +avgOld.toFixed(1), delta };
     }
 
-    // ── Análisis de respuestas del propietario ────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ AnÃƒÂ¡lisis de respuestas del propietario Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const ownerTexts = finalReviews.filter(r => r.ownerResponse).map(r => r.ownerResponse.toLowerCase());
     const ownerAcknowledges = ownerTexts.filter(t =>
       /obra|reform|renov|arregl|mejora|trabajo|instala|pendiente|pronto|ya hemos|estamos/i.test(t)
@@ -986,9 +982,9 @@ async function fetchGoogleReviews(placeId) {
     const posText = finalReviews.filter(r => r.rating >= 4).map(r => r.text).join(' ').toLowerCase();
     const POSITIVE_CLUSTERS = {
       'limpieza': /limpi|aseo|impecable|pulcro/i,
-      'ubicación': /ubicaci[oó]n|bien situado|c[eé]ntrico|cerca|localiz/i,
-      'personal/atención': /personal|atenci[oó]n|amable|simpático|servicio|trato/i,
-      'precio/calidad': /precio|calidad.precio|relación calidad|econ[oó]mic/i,
+      'ubicaciÃƒÂ³n': /ubicaci[oÃƒÂ³]n|bien situado|c[eÃƒÂ©]ntrico|cerca|localiz/i,
+      'personal/atenciÃƒÂ³n': /personal|atenci[oÃƒÂ³]n|amable|simpÃƒÂ¡tico|servicio|trato/i,
+      'precio/calidad': /precio|calidad.precio|relaciÃƒÂ³n calidad|econ[oÃƒÂ³]mic/i,
       'tranquilidad': /tranquil|silencio|descanso|paz/i,
     };
     const posValues = Object.entries(POSITIVE_CLUSTERS)
@@ -1005,9 +1001,9 @@ async function fetchGoogleReviews(placeId) {
       ownerDenies,
       ownerEngagement: withOwnerReply > 0
         ? `Propietario responde (${withOwnerReply} respuestas detectadas)`
-        : 'Propietario no responde a reseñas',
+        : 'Propietario no responde a reseÃƒÂ±as',
       topPains,       // array enriquecido con temporalidad
-      posValues,      // qué valoran en las positivas
+      posValues,      // quÃƒÂ© valoran en las positivas
       ratingTrend,    // { avgRecent, avgOld, delta } o null
       fetchedAt: Date.now(),
     };
@@ -1016,232 +1012,232 @@ async function fetchGoogleReviews(placeId) {
   return finalReviews;
 }
 
-// ── Llamada a Gemini API (100% gratuito) ─────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Llamada a Gemini API (100% gratuito) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 async function generateEmailWithClaude(lead, reviewsData, claudeKey, liveWebData = {}, newsContext = '') {
   const p = getProfile();
   const firma = buildFirmaText();
   const saludo = buildSaludo(lead.name, lead.company);
 
-  // ── MEJORA 3: Diagnóstico estructurado pre-analizado ────────────────────────
-  // En vez de volcar reseñas crudas, le pasamos el análisis ya hecho + 1-2 ejemplos
-  // por problema. Menos tokens, más señal, mejor email.
+  // Ã¢â€â‚¬Ã¢â€â‚¬ MEJORA 3: DiagnÃƒÂ³stico estructurado pre-analizado Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // En vez de volcar reseÃƒÂ±as crudas, le pasamos el anÃƒÂ¡lisis ya hecho + 1-2 ejemplos
+  // por problema. Menos tokens, mÃƒÂ¡s seÃƒÂ±al, mejor email.
   let reviewsContext = '';
   if (reviewsData.reviews && reviewsData.reviews.length > 0) {
     const reviews = reviewsData.reviews;
     const stats   = reviews._stats || null;
 
     if (stats && stats.topPains && stats.topPains.length > 0) {
-      // ── Trending de rating ────────────────────────────────────────────────
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Trending de rating Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
       let trendBlock = '';
       if (stats.ratingTrend) {
         const { avgRecent, avgOld, delta } = stats.ratingTrend;
         if (delta <= -0.3)
-          trendBlock = `\n📉 RATING EN CAÍDA: ${avgOld}★ hace >1 año → ${avgRecent}★ últimos meses (Δ${delta}) — URGENCIA ALTA`;
+          trendBlock = `\nÃ°Å¸â€œâ€° RATING EN CAÃƒÂDA: ${avgOld}Ã¢Ëœâ€¦ hace >1 aÃƒÂ±o Ã¢â€ â€™ ${avgRecent}Ã¢Ëœâ€¦ ÃƒÂºltimos meses (ÃŽâ€${delta}) Ã¢â‚¬â€ URGENCIA ALTA`;
         else if (delta >= 0.3)
-          trendBlock = `\n📈 RATING MEJORANDO: ${avgOld}★ → ${avgRecent}★ — puede estar recuperándose solo, abordaje sutil`;
+          trendBlock = `\nÃ°Å¸â€œË† RATING MEJORANDO: ${avgOld}Ã¢Ëœâ€¦ Ã¢â€ â€™ ${avgRecent}Ã¢Ëœâ€¦ Ã¢â‚¬â€ puede estar recuperÃƒÂ¡ndose solo, abordaje sutil`;
         else
-          trendBlock = `\n→ Rating estable (sin tendencia clara)`;
+          trendBlock = `\nÃ¢â€ â€™ Rating estable (sin tendencia clara)`;
       }
 
-      // ── Propietario ───────────────────────────────────────────────────────
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Propietario Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
       let ownerBlock = '';
       if (stats.ownerAcknowledges >= 2)
-        ownerBlock = `\n⚠️ PROPIETARIO RECONOCE PROBLEMAS EN ${stats.ownerAcknowledges} RESPUESTAS — máxima señal de apertura`;
+        ownerBlock = `\nÃ¢Å¡Â Ã¯Â¸Â PROPIETARIO RECONOCE PROBLEMAS EN ${stats.ownerAcknowledges} RESPUESTAS Ã¢â‚¬â€ mÃƒÂ¡xima seÃƒÂ±al de apertura`;
       else if (stats.ownerDenies >= 2)
-        ownerBlock = `\n· Propietario niega problemas en ${stats.ownerDenies} respuestas — abordaje sutil`;
+        ownerBlock = `\nÃ‚Â· Propietario niega problemas en ${stats.ownerDenies} respuestas Ã¢â‚¬â€ abordaje sutil`;
       else if (stats.withOwnerReply === 0)
-        ownerBlock = `\n· Propietario no responde reseñas — no es consciente del impacto`;
+        ownerBlock = `\nÃ‚Â· Propietario no responde reseÃƒÂ±as Ã¢â‚¬â€ no es consciente del impacto`;
 
-      // ── Problemas por temporalidad ────────────────────────────────────────
+      // Ã¢â€â‚¬Ã¢â€â‚¬ Problemas por temporalidad Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
       const activeProblems   = stats.topPains.filter(p => p.isActive);
       const historicProblems = stats.topPains.filter(p => p.isHistorical && !p.isActive);
 
       const problemsBlock = [
         activeProblems.length
-          ? `🎯 PROBLEMAS ACTIVOS — USAR COMO ARGUMENTO CENTRAL:\n` +
+          ? `Ã°Å¸Å½Â¯ PROBLEMAS ACTIVOS Ã¢â‚¬â€ USAR COMO ARGUMENTO CENTRAL:\n` +
             activeProblems.map(p =>
-              `  → ${p.label}: ${p.temporal}\n     Ejemplo real [${p.rating}★${p.time ? ', '+p.time : ''}]: "${p.snippet}..."`
+              `  Ã¢â€ â€™ ${p.label}: ${p.temporal}\n     Ejemplo real [${p.rating}Ã¢Ëœâ€¦${p.time ? ', '+p.time : ''}]: "${p.snippet}..."`
             ).join('\n')
           : '',
         historicProblems.length
-          ? `⏳ PROBLEMAS HISTÓRICOS — NO USAR como argumento (pueden estar resueltos):\n` +
-            historicProblems.map(p => `  → ${p.label}: ${p.temporal}`).join('\n')
+          ? `Ã¢ÂÂ³ PROBLEMAS HISTÃƒâ€œRICOS Ã¢â‚¬â€ NO USAR como argumento (pueden estar resueltos):\n` +
+            historicProblems.map(p => `  Ã¢â€ â€™ ${p.label}: ${p.temporal}`).join('\n')
           : '',
         stats.posValues && stats.posValues.length
-          ? `✅ LO QUE VALORAN (no contradecir): ${stats.posValues.join(', ')}`
+          ? `Ã¢Å“â€¦ LO QUE VALORAN (no contradecir): ${stats.posValues.join(', ')}`
           : '',
       ].filter(Boolean).join('\n\n');
 
-      reviewsContext = `DIAGNÓSTICO DE RESEÑAS — PRE-ANALIZADO (no reanalizar, usar directamente):
-Muestra: ${stats.total} reseñas · ${stats.neg} negativas · ${stats.mid} neutras · ${stats.pos} positivas
+      reviewsContext = `DIAGNÃƒâ€œSTICO DE RESEÃƒâ€˜AS Ã¢â‚¬â€ PRE-ANALIZADO (no reanalizar, usar directamente):
+Muestra: ${stats.total} reseÃƒÂ±as Ã‚Â· ${stats.neg} negativas Ã‚Â· ${stats.mid} neutras Ã‚Â· ${stats.pos} positivas
 ${stats.ownerEngagement}${ownerBlock}${trendBlock}
 
 ${problemsBlock}`;
 
     } else {
-      // Fallback compacto para < 6 reseñas
+      // Fallback compacto para < 6 reseÃƒÂ±as
       const neg = reviews.filter(r => r.rating <= 2).slice(0, 4);
       const pos = reviews.filter(r => r.rating >= 4).slice(0, 3);
       const allText = reviews.map(r => r.text).join(' ').toLowerCase();
-      const painKeywords = ['ruido','calor','frío','humedad','goteras','instalación','reforma','deteriorad','antiguo','viejo'];
+      const painKeywords = ['ruido','calor','frÃƒÂ­o','humedad','goteras','instalaciÃƒÂ³n','reforma','deteriorad','antiguo','viejo'];
       const painMentions = painKeywords.filter(k => allText.includes(k)).join(', ');
 
-      reviewsContext = `RESEÑAS DE GOOGLE (${reviews.length} disponibles, nota ${reviewsData.rating || 'N/A'}/5):
-${painMentions ? `⚠️ Palabras clave: ${painMentions}\n` : ''}NEGATIVAS: ${neg.map(r => `[${r.rating}★${r.time?' '+r.time:''}] "${r.text.slice(0,120)}"${r.ownerResponse?'\n  → PROPIETARIO: "'+r.ownerResponse.slice(0,100)+'"':''}`).join('\n') || 'Ninguna'}
-POSITIVAS (qué valoran): ${pos.map(r => `[${r.rating}★] "${r.text.slice(0,80)}"`).join('\n') || 'Ninguna'}`;
+      reviewsContext = `RESEÃƒâ€˜AS DE GOOGLE (${reviews.length} disponibles, nota ${reviewsData.rating || 'N/A'}/5):
+${painMentions ? `Ã¢Å¡Â Ã¯Â¸Â Palabras clave: ${painMentions}\n` : ''}NEGATIVAS: ${neg.map(r => `[${r.rating}Ã¢Ëœâ€¦${r.time?' '+r.time:''}] "${r.text.slice(0,120)}"${r.ownerResponse?'\n  Ã¢â€ â€™ PROPIETARIO: "'+r.ownerResponse.slice(0,100)+'"':''}`).join('\n') || 'Ninguna'}
+POSITIVAS (quÃƒÂ© valoran): ${pos.map(r => `[${r.rating}Ã¢Ëœâ€¦] "${r.text.slice(0,80)}"`).join('\n') || 'Ninguna'}`;
     }
   } else {
-    reviewsContext = 'Sin reseñas disponibles. Personaliza basándote en el sector y descripción del negocio.';
+    reviewsContext = 'Sin reseÃƒÂ±as disponibles. Personaliza basÃƒÂ¡ndote en el sector y descripciÃƒÂ³n del negocio.';
   }
 
     const segmentTone = SEGMENT_TONE[lead.segment] || SEGMENT_TONE['Default'];
 
-  const prompt = `Eres uno de los mejores copywriters B2B de España, especializado en ventas para empresas de reformas y construcción. Tu misión: escribir el email de prospección más personalizado y persuasivo posible para Voltium Madrid.
+  const prompt = `Eres uno de los mejores copywriters B2B de EspaÃƒÂ±a, especializado en ventas para empresas de reformas y construcciÃƒÂ³n. Tu misiÃƒÂ³n: escribir el email de prospecciÃƒÂ³n mÃƒÂ¡s personalizado y persuasivo posible para Voltium Madrid.
 
-═══════════════════════════════════════
-VOLTIUM MADRID — CONTEXTO COMPLETO
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+VOLTIUM MADRID Ã¢â‚¬â€ CONTEXTO COMPLETO
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 Empresa: Voltium Madrid (voltiummadrid.es)
 Remitente: ${p.name} | ${p.email}
-Servicios: Reforma integral llave en mano · Aislamientos acústicos y térmicos · Impermeabilizaciones · Instalaciones fotovoltaicas · Eficiencia energética · Redistribución de espacios · Mantenimiento integral de naves industriales (revisiones periódicas, correctivo y preventivo — cubriendo estructura, instalaciones eléctricas, cubierta, impermeabilización y sistemas contra incendios)
+Servicios: Reforma integral llave en mano Ã‚Â· Aislamientos acÃƒÂºsticos y tÃƒÂ©rmicos Ã‚Â· Impermeabilizaciones Ã‚Â· Instalaciones fotovoltaicas Ã‚Â· Eficiencia energÃƒÂ©tica Ã‚Â· RedistribuciÃƒÂ³n de espacios Ã‚Â· Mantenimiento integral de naves industriales (revisiones periÃƒÂ³dicas, correctivo y preventivo Ã¢â‚¬â€ cubriendo estructura, instalaciones elÃƒÂ©ctricas, cubierta, impermeabilizaciÃƒÂ³n y sistemas contra incendios)
 Diferenciales REALES:
-  - Un único responsable técnico durante toda la obra (no subcontratan)
-  - Presupuesto cerrado desde el primer día, sin sorpresas
-  - Documentación digital del proyecto accesible en tiempo real
-  - Planificación previa detallada antes de empezar
-Filosofía: "La reforma como proceso previsible, controlado y bien ejecutado"
-Galería: https://www.voltiummadrid.es/galer%c3%Ada
+  - Un ÃƒÂºnico responsable tÃƒÂ©cnico durante toda la obra (no subcontratan)
+  - Presupuesto cerrado desde el primer dÃƒÂ­a, sin sorpresas
+  - DocumentaciÃƒÂ³n digital del proyecto accesible en tiempo real
+  - PlanificaciÃƒÂ³n previa detallada antes de empezar
+FilosofÃƒÂ­a: "La reforma como proceso previsible, controlado y bien ejecutado"
+GalerÃƒÂ­a: https://www.voltiummadrid.es/galer%c3%Ada
 
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 EMPRESA A CONTACTAR
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 Nombre: ${lead.company}
 Sector: ${lead.segment}
-Dirección: ${lead.address || 'Madrid'}
+DirecciÃƒÂ³n: ${lead.address || 'Madrid'}
 Web: ${lead.website || 'No disponible'}
-Nota Google: ${reviewsData.rating ? reviewsData.rating + '/5 (' + (reviewsData.ratingCount || 0) + ' reseñas)' : 'Sin datos'}
-Descripción: ${lead.description || 'No disponible'}
+Nota Google: ${reviewsData.rating ? reviewsData.rating + '/5 (' + (reviewsData.ratingCount || 0) + ' reseÃƒÂ±as)' : 'Sin datos'}
+DescripciÃƒÂ³n: ${lead.description || 'No disponible'}
 ${lead.decision_maker ? 'Decisor identificado: ' + lead.decision_maker : ''}
-${lead.incorporationYear ? 'Empresa fundada en: ' + lead.incorporationYear + ' (' + (new Date().getFullYear() - lead.incorporationYear) + ' años)' : ''}
-${lead.domainYear ? 'Dominio registrado en: ' + lead.domainYear + ' (' + lead.domainAge + ' años)' : ''}
+${lead.incorporationYear ? 'Empresa fundada en: ' + lead.incorporationYear + ' (' + (new Date().getFullYear() - lead.incorporationYear) + ' aÃƒÂ±os)' : ''}
+${lead.domainYear ? 'Dominio registrado en: ' + lead.domainYear + ' (' + lead.domainAge + ' aÃƒÂ±os)' : ''}
 ${lead.legalStatus ? 'Estado legal: ' + lead.legalStatus : ''}
 ${lead.companyType ? 'Tipo de empresa: ' + lead.companyType : ''}
-${lead.signals && lead.signals.length ? 'SEÑALES DETECTADAS EN ENRIQUECIMIENTO:\n' + lead.signals.map(s => '  · ' + s).join('\n') : ''}
-${lead.competitorBetter ? 'PRESIÓN COMPETITIVA: Su competidor directo "' + lead.competitorBetter.name + '" tiene ' + lead.competitorBetter.diff + ' estrellas más (' + lead.competitorBetter.rating + '★ vs ' + lead.rating + '★). Usar este dato para crear urgencia.' : ''}
-${lead.reviewSummary ? 'RESEÑAS REALES SCRAPEADAS (úsalas para personalizar):\n' + lead.reviewSummary : ''}
-${lead.techStack && lead.techStack.length ? 'Stack tecnológico detectado: ' + lead.techStack.join(', ') : ''}
-${lead.webLoadMs && lead.webLoadMs > 2000 ? 'Web lenta (' + (lead.webLoadMs/1000).toFixed(1) + 's) — posible abandono tecnológico' : ''}
+${lead.signals && lead.signals.length ? 'SEÃƒâ€˜ALES DETECTADAS EN ENRIQUECIMIENTO:\n' + lead.signals.map(s => '  Ã‚Â· ' + s).join('\n') : ''}
+${lead.competitorBetter ? 'PRESIÃƒâ€œN COMPETITIVA: Su competidor directo "' + lead.competitorBetter.name + '" tiene ' + lead.competitorBetter.diff + ' estrellas mÃƒÂ¡s (' + lead.competitorBetter.rating + 'Ã¢Ëœâ€¦ vs ' + lead.rating + 'Ã¢Ëœâ€¦). Usar este dato para crear urgencia.' : ''}
+${lead.reviewSummary ? 'RESEÃƒâ€˜AS REALES SCRAPEADAS (ÃƒÂºsalas para personalizar):\n' + lead.reviewSummary : ''}
+${lead.techStack && lead.techStack.length ? 'Stack tecnolÃƒÂ³gico detectado: ' + lead.techStack.join(', ') : ''}
+${lead.webLoadMs && lead.webLoadMs > 2000 ? 'Web lenta (' + (lead.webLoadMs/1000).toFixed(1) + 's) Ã¢â‚¬â€ posible abandono tecnolÃƒÂ³gico' : ''}
 ${lead.optimalContact ? 'MEJOR MOMENTO DE CONTACTO: ' + lead.optimalContact.slot + ' (' + lead.optimalContact.reason + ')' : ''}
-${lead.fachadaAnalysis ? 'ANÁLISIS VISUAL FACHADA (Street View): ' + lead.fachadaAnalysis : ''}
+${lead.fachadaAnalysis ? 'ANÃƒÂLISIS VISUAL FACHADA (Street View): ' + lead.fachadaAnalysis : ''}
 ${liveWebData.recentContent ? '\nCONTENIDO ACTUAL DE SU WEB (rastreado ahora mismo):\n' + liveWebData.recentContent : ''}
-${liveWebData.freshSignals && liveWebData.freshSignals.length ? '\nSEÑALES DETECTADAS EN LA WEB HOY: ' + liveWebData.freshSignals.join(', ') : ''}
-${liveWebData.chosenPainContext ? '\n\n🎯 ' + liveWebData.chosenPainContext : ''}
+${liveWebData.freshSignals && liveWebData.freshSignals.length ? '\nSEÃƒâ€˜ALES DETECTADAS EN LA WEB HOY: ' + liveWebData.freshSignals.join(', ') : ''}
+${liveWebData.chosenPainContext ? '\n\nÃ°Å¸Å½Â¯ ' + liveWebData.chosenPainContext : ''}
 ${newsContext ? '\nNOTICIAS RECIENTES ENCONTRADAS SOBRE ESTA EMPRESA:\n' + newsContext : ''}
 
 ${reviewsContext}
 
-═══════════════════════════════════════
-PROCESO DE ESCRITURA — SIGUE ESTE ORDEN
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+PROCESO DE ESCRITURA Ã¢â‚¬â€ SIGUE ESTE ORDEN
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
-PASO 1 — ANALIZA TODA LA INFORMACIÓN DISPONIBLE:
-A) RESEÑAS: ¿Qué problema aparece repetido? ¿Lo reconoce el propietario en sus respuestas?
-B) WEB ACTUAL: ¿Qué comunican como sus prioridades ahora mismo? ¿Hay señales de cambio, expansión, renovación?
-C) NOTICIAS: ¿Hay algo reciente (inauguración, premio, obra, cambio) que puedas mencionar de forma natural?
-D) SEÑALES DE ENRIQUECIMIENTO: ¿La empresa es nueva (dominio reciente)? ¿Lleva muchos años? ¿Qué dice de su momento actual?
-E) DECISOR: Si se identificó un decisor, personaliza el saludo y el tono para ese perfil de cargo
+PASO 1 Ã¢â‚¬â€ ANALIZA TODA LA INFORMACIÃƒâ€œN DISPONIBLE:
+A) RESEÃƒâ€˜AS: Ã‚Â¿QuÃƒÂ© problema aparece repetido? Ã‚Â¿Lo reconoce el propietario en sus respuestas?
+B) WEB ACTUAL: Ã‚Â¿QuÃƒÂ© comunican como sus prioridades ahora mismo? Ã‚Â¿Hay seÃƒÂ±ales de cambio, expansiÃƒÂ³n, renovaciÃƒÂ³n?
+C) NOTICIAS: Ã‚Â¿Hay algo reciente (inauguraciÃƒÂ³n, premio, obra, cambio) que puedas mencionar de forma natural?
+D) SEÃƒâ€˜ALES DE ENRIQUECIMIENTO: Ã‚Â¿La empresa es nueva (dominio reciente)? Ã‚Â¿Lleva muchos aÃƒÂ±os? Ã‚Â¿QuÃƒÂ© dice de su momento actual?
+E) DECISOR: Si se identificÃƒÂ³ un decisor, personaliza el saludo y el tono para ese perfil de cargo
 
-PASO 2 — ELIGE EL GANCHO (por este orden de prioridad):
-1. Noticia reciente concreta → el gancho más potente y diferenciador, nadie más lo usa
-2. Crítica recurrente en reseñas que Voltium resuelve → muy efectivo, demuestra que hiciste los deberes
-3. Señal de la web actual (expansión, renovación, nueva apertura) → demuestra que conoces su momento
-4. Si la empresa es nueva (< 3 años) → enfoca en construir bien desde el principio
-5. Si lleva muchos años → enfoca en modernizar sin perder la identidad
-6. Dolor universal del sector → solo si no hay nada más específico
+PASO 2 Ã¢â‚¬â€ ELIGE EL GANCHO (por este orden de prioridad):
+1. Noticia reciente concreta Ã¢â€ â€™ el gancho mÃƒÂ¡s potente y diferenciador, nadie mÃƒÂ¡s lo usa
+2. CrÃƒÂ­tica recurrente en reseÃƒÂ±as que Voltium resuelve Ã¢â€ â€™ muy efectivo, demuestra que hiciste los deberes
+3. SeÃƒÂ±al de la web actual (expansiÃƒÂ³n, renovaciÃƒÂ³n, nueva apertura) Ã¢â€ â€™ demuestra que conoces su momento
+4. Si la empresa es nueva (< 3 aÃƒÂ±os) Ã¢â€ â€™ enfoca en construir bien desde el principio
+5. Si lleva muchos aÃƒÂ±os Ã¢â€ â€™ enfoca en modernizar sin perder la identidad
+6. Dolor universal del sector Ã¢â€ â€™ solo si no hay nada mÃƒÂ¡s especÃƒÂ­fico
 
-PASO 3 — ESTRUCTURA DEL EMAIL (PAS evolucionado):
-  PÁRRAFO 1 — RECONOCIMIENTO ESPECÍFICO: Menciona algo concreto y real que diferencia a esta empresa (no genérico). Demuestra que la conoces.
-  PÁRRAFO 2 — EL PROBLEMA: Nombra la queja recurrente con empatía. Si el propietario ya la reconoció en sus respuestas, mejor todavía — úsalo.
-  PÁRRAFO 3 — LA AGITACIÓN: Conecta ese problema con consecuencias reales (nota media, precio por noche, clientes perdidos, factura energética...). Hazlo sentir el coste de no actuar.
-  PÁRRAFO 4 — LA SOLUCIÓN VOLTIUM: Explica brevemente cómo Voltium resuelve EXACTAMENTE ese problema. Menciona el servicio concreto (aislamiento acústico, reforma por fases, fotovoltaica...). Incluye el diferencial más relevante para este caso.
-  PÁRRAFO 5 — PRUEBA / CREDIBILIDAD: Una frase con la galería de proyectos.
-  PÁRRAFO 6 — CTA: Llamada de 15 minutos, sin compromiso. Directo y específico.
+PASO 3 Ã¢â‚¬â€ ESTRUCTURA DEL EMAIL (PAS evolucionado):
+  PÃƒÂRRAFO 1 Ã¢â‚¬â€ RECONOCIMIENTO ESPECÃƒÂFICO: Menciona algo concreto y real que diferencia a esta empresa (no genÃƒÂ©rico). Demuestra que la conoces.
+  PÃƒÂRRAFO 2 Ã¢â‚¬â€ EL PROBLEMA: Nombra la queja recurrente con empatÃƒÂ­a. Si el propietario ya la reconociÃƒÂ³ en sus respuestas, mejor todavÃƒÂ­a Ã¢â‚¬â€ ÃƒÂºsalo.
+  PÃƒÂRRAFO 3 Ã¢â‚¬â€ LA AGITACIÃƒâ€œN: Conecta ese problema con consecuencias reales (nota media, precio por noche, clientes perdidos, factura energÃƒÂ©tica...). Hazlo sentir el coste de no actuar.
+  PÃƒÂRRAFO 4 Ã¢â‚¬â€ LA SOLUCIÃƒâ€œN VOLTIUM: Explica brevemente cÃƒÂ³mo Voltium resuelve EXACTAMENTE ese problema. Menciona el servicio concreto (aislamiento acÃƒÂºstico, reforma por fases, fotovoltaica...). Incluye el diferencial mÃƒÂ¡s relevante para este caso.
+  PÃƒÂRRAFO 5 Ã¢â‚¬â€ PRUEBA / CREDIBILIDAD: Una frase con la galerÃƒÂ­a de proyectos.
+  PÃƒÂRRAFO 6 Ã¢â‚¬â€ CTA: Llamada de 15 minutos, sin compromiso. Directo y especÃƒÂ­fico.
 
-DOLORES UNIVERSALES POR SECTOR (usar si no hay reseñas):
-  Hoteles → nota media en Booking/TripAdvisor, precio por noche, aislamiento acústico
-  Retail → primeros 8 segundos del cliente, ticket medio, tiempo de permanencia
-  Oficinas → productividad perdida, imagen corporativa, coste energético
-  Industrial → cumplimiento normativo, eficiencia de producción, coste eléctrico, paradas de emergencia por falta de mantenimiento preventivo de la nave (cubierta, instalaciones eléctricas, sistemas contra incendios)
-  Educativo → calendario lectivo imposible de interrumpir, confort de alumnos
-  Deportivo → bajas de socios por instalaciones deterioradas, retención
-  Cultural → plazos inamovibles, identidad del espacio, programación continua
-  Comercial → cada día cerrado es dinero perdido, experiencia del cliente
+DOLORES UNIVERSALES POR SECTOR (usar si no hay reseÃƒÂ±as):
+  Hoteles Ã¢â€ â€™ nota media en Booking/TripAdvisor, precio por noche, aislamiento acÃƒÂºstico
+  Retail Ã¢â€ â€™ primeros 8 segundos del cliente, ticket medio, tiempo de permanencia
+  Oficinas Ã¢â€ â€™ productividad perdida, imagen corporativa, coste energÃƒÂ©tico
+  Industrial Ã¢â€ â€™ cumplimiento normativo, eficiencia de producciÃƒÂ³n, coste elÃƒÂ©ctrico, paradas de emergencia por falta de mantenimiento preventivo de la nave (cubierta, instalaciones elÃƒÂ©ctricas, sistemas contra incendios)
+  Educativo Ã¢â€ â€™ calendario lectivo imposible de interrumpir, confort de alumnos
+  Deportivo Ã¢â€ â€™ bajas de socios por instalaciones deterioradas, retenciÃƒÂ³n
+  Cultural Ã¢â€ â€™ plazos inamovibles, identidad del espacio, programaciÃƒÂ³n continua
+  Comercial Ã¢â€ â€™ cada dÃƒÂ­a cerrado es dinero perdido, experiencia del cliente
 
-═══════════════════════════════════════
-PERFIL DEL SECTOR — ADAPTA TODO A ESTO
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+PERFIL DEL SECTOR Ã¢â‚¬â€ ADAPTA TODO A ESTO
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 Tono para este sector: ${segmentTone.tone}
 Principal dolor de este sector: ${segmentTone.pain}
-Ángulo de venta más efectivo: ${segmentTone.angle}
+ÃƒÂngulo de venta mÃƒÂ¡s efectivo: ${segmentTone.angle}
 PROHIBIDO en este sector: ${segmentTone.forbidden}
 
-REGLAS DE ESCRITURA — NIVEL DIOS
-═══════════════════════════════════════
-✅ Asuntos (genera 3 MUY distintos entre sí): uno emocional, uno racional/dato, uno de curiosidad/intriga
-✅ Primera frase: debe enganchar en 3 segundos. Que demuestre que conoces su negocio.
-✅ Tono: adapta al perfil del sector definido arriba. No uses el mismo tono para un hotel y una nave industrial.
-✅ Especificidad: cuanto más concreto, más creíble. "aislamiento acústico de tuberías" > "reformas"
-✅ Longitud: máximo 220 palabras en el cuerpo. Cada frase debe ganar su sitio.
-✅ Párrafos cortos: máximo 3-4 líneas cada uno. Fácil de leer en móvil.
-✅ El email DEBE empezar EXACTAMENTE con: "\${saludo},"
-✅ El email DEBE terminar EXACTAMENTE con: "{{FIRMA}}"
+REGLAS DE ESCRITURA Ã¢â‚¬â€ NIVEL DIOS
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+Ã¢Å“â€¦ Asuntos (genera 3 MUY distintos entre sÃƒÂ­): uno emocional, uno racional/dato, uno de curiosidad/intriga
+Ã¢Å“â€¦ Primera frase: debe enganchar en 3 segundos. Que demuestre que conoces su negocio.
+Ã¢Å“â€¦ Tono: adapta al perfil del sector definido arriba. No uses el mismo tono para un hotel y una nave industrial.
+Ã¢Å“â€¦ Especificidad: cuanto mÃƒÂ¡s concreto, mÃƒÂ¡s creÃƒÂ­ble. "aislamiento acÃƒÂºstico de tuberÃƒÂ­as" > "reformas"
+Ã¢Å“â€¦ Longitud: mÃƒÂ¡ximo 220 palabras en el cuerpo. Cada frase debe ganar su sitio.
+Ã¢Å“â€¦ PÃƒÂ¡rrafos cortos: mÃƒÂ¡ximo 3-4 lÃƒÂ­neas cada uno. FÃƒÂ¡cil de leer en mÃƒÂ³vil.
+Ã¢Å“â€¦ El email DEBE empezar EXACTAMENTE con: "\${saludo},"
+Ã¢Å“â€¦ El email DEBE terminar EXACTAMENTE con: "{{FIRMA}}"
 
-❌ NUNCA: "espero que este email te encuentre bien"
-❌ NUNCA: frases genéricas que podrían enviarse a cualquier empresa
-❌ NUNCA: inventar datos, nombres de clientes o cifras concretas
-❌ NUNCA: mencionar a la competencia
-❌ NUNCA: sonar desesperado o presionar
-❌ NUNCA: ignorar el perfil del sector — el tono y el ángulo deben ser los indicados arriba
+Ã¢ÂÅ’ NUNCA: "espero que este email te encuentre bien"
+Ã¢ÂÅ’ NUNCA: frases genÃƒÂ©ricas que podrÃƒÂ­an enviarse a cualquier empresa
+Ã¢ÂÅ’ NUNCA: inventar datos, nombres de clientes o cifras concretas
+Ã¢ÂÅ’ NUNCA: mencionar a la competencia
+Ã¢ÂÅ’ NUNCA: sonar desesperado o presionar
+Ã¢ÂÅ’ NUNCA: ignorar el perfil del sector Ã¢â‚¬â€ el tono y el ÃƒÂ¡ngulo deben ser los indicados arriba
 
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 EJEMPLO DE CALIDAD OBJETIVO
-═══════════════════════════════════════
-(Para un hotel con críticas de ruido en reseñas)
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+(Para un hotel con crÃƒÂ­ticas de ruido en reseÃƒÂ±as)
 
-Asunto: El Sueño del Quijote: el único punto que sus huéspedes repiten
+Asunto: El SueÃƒÂ±o del Quijote: el ÃƒÂºnico punto que sus huÃƒÂ©spedes repiten
 
-"Sus huéspedes lo dicen sin dudar: el patio, la decoración, el trato. Hay algo genuino en ese alojamiento que no se construye con dinero.
+"Sus huÃƒÂ©spedes lo dicen sin dudar: el patio, la decoraciÃƒÂ³n, el trato. Hay algo genuino en ese alojamiento que no se construye con dinero.
 
-Y sin embargo, hay una queja que aparece una y otra vez: el ruido. Las tuberías. Los pasillos. Incluso el interruptor del baño se escucha de noche.
+Y sin embargo, hay una queja que aparece una y otra vez: el ruido. Las tuberÃƒÂ­as. Los pasillos. Incluso el interruptor del baÃƒÂ±o se escucha de noche.
 
-Ustedes ya lo saben. El problema no es la voluntad, es el aislamiento acústico de la construcción.
+Ustedes ya lo saben. El problema no es la voluntad, es el aislamiento acÃƒÂºstico de la construcciÃƒÂ³n.
 
-Es exactamente lo que hacemos en Voltium Madrid. Trabajamos habitación por habitación, en los períodos de menor ocupación, con presupuesto cerrado y sin cerrar el hotel.
+Es exactamente lo que hacemos en Voltium Madrid. Trabajamos habitaciÃƒÂ³n por habitaciÃƒÂ³n, en los perÃƒÂ­odos de menor ocupaciÃƒÂ³n, con presupuesto cerrado y sin cerrar el hotel.
 
-Una mejora acústica bien ejecutada no solo elimina la queja más recurrente — transforma directamente la nota media en Booking y la tarifa que pueden cobrar por noche."
+Una mejora acÃƒÂºstica bien ejecutada no solo elimina la queja mÃƒÂ¡s recurrente Ã¢â‚¬â€ transforma directamente la nota media en Booking y la tarifa que pueden cobrar por noche."
 
-(Ese nivel de especificidad y conexión directa entre reseñas y solución es el objetivo)
+(Ese nivel de especificidad y conexiÃƒÂ³n directa entre reseÃƒÂ±as y soluciÃƒÂ³n es el objetivo)
 
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 
-═══════════════════════════════════════
-FORMATO HTML DEL EMAIL — MUY IMPORTANTE
-═══════════════════════════════════════
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+FORMATO HTML DEL EMAIL Ã¢â‚¬â€ MUY IMPORTANTE
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
 El campo "body" debe estar en HTML, no en texto plano.
 
-REGLAS DE FORMATO (aplícalas con criterio, no en exceso):
-- Usa <strong>texto</strong> para 2-4 conceptos clave por email: el problema principal, el diferencial más relevante de Voltium, y el CTA
+REGLAS DE FORMATO (aplÃƒÂ­calas con criterio, no en exceso):
+- Usa <strong>texto</strong> para 2-4 conceptos clave por email: el problema principal, el diferencial mÃƒÂ¡s relevante de Voltium, y el CTA
 - Usa <u>texto</u> para subrayar 1-2 datos o frases que el lector NO debe pasar por alto
-- Usa <em>texto</em> con moderación, solo si añade énfasis natural
-- Separa párrafos con <br><br>
-- NO formatear más del 15% del texto — el formato pierde impacto si se abusa
-- El objetivo es que el ojo del lector vaya exactamente donde tú quieres
+- Usa <em>texto</em> con moderaciÃƒÂ³n, solo si aÃƒÂ±ade ÃƒÂ©nfasis natural
+- Separa pÃƒÂ¡rrafos con <br><br>
+- NO formatear mÃƒÂ¡s del 15% del texto Ã¢â‚¬â€ el formato pierde impacto si se abusa
+- El objetivo es que el ojo del lector vaya exactamente donde tÃƒÂº quieres
 
 EJEMPLO DE FORMATO BIEN APLICADO:
-"Sus clientes lo repiten: el trato, la decoración, el ambiente. Hay algo genuino en El Sueño del Quijote que no se construye con dinero.<br><br>Y sin embargo, hay <strong>una queja que aparece una y otra vez</strong>: el ruido. Las tuberías. Los pasillos de noche.<br><br>El problema no es la voluntad — es el <u>aislamiento acústico de la construcción</u>. Y es exactamente lo que hacemos en Voltium Madrid.<br><br>Trabajamos habitación por habitación, <strong>sin cerrar el hotel</strong>, con presupuesto cerrado desde el primer día."
+"Sus clientes lo repiten: el trato, la decoraciÃƒÂ³n, el ambiente. Hay algo genuino en El SueÃƒÂ±o del Quijote que no se construye con dinero.<br><br>Y sin embargo, hay <strong>una queja que aparece una y otra vez</strong>: el ruido. Las tuberÃƒÂ­as. Los pasillos de noche.<br><br>El problema no es la voluntad Ã¢â‚¬â€ es el <u>aislamiento acÃƒÂºstico de la construcciÃƒÂ³n</u>. Y es exactamente lo que hacemos en Voltium Madrid.<br><br>Trabajamos habitaciÃƒÂ³n por habitaciÃƒÂ³n, <strong>sin cerrar el hotel</strong>, con presupuesto cerrado desde el primer dÃƒÂ­a."
 
-Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
-{"subjects":["asunto opción 1 — emocional","asunto opción 2 — dato/racional","asunto opción 3 — curiosidad/intriga"],"body":"HTML del email empezando con '${saludo},'  y terminando con '{{FIRMA}}'","insight":"2-3 frases sobre QUÉ FUENTE usaste como gancho principal (reseñas/web/noticias/señales) y cómo el tono del sector influyó en el email"}`;
+Responde ÃƒÅ¡NICAMENTE con JSON vÃƒÂ¡lido, sin markdown, sin texto adicional:
+{"subjects":["asunto opciÃƒÂ³n 1 Ã¢â‚¬â€ emocional","asunto opciÃƒÂ³n 2 Ã¢â‚¬â€ dato/racional","asunto opciÃƒÂ³n 3 Ã¢â‚¬â€ curiosidad/intriga"],"body":"HTML del email empezando con '${saludo},'  y terminando con '{{FIRMA}}'","insight":"2-3 frases sobre QUÃƒâ€° FUENTE usaste como gancho principal (reseÃƒÂ±as/web/noticias/seÃƒÂ±ales) y cÃƒÂ³mo el tono del sector influyÃƒÂ³ en el email"}`;
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${claudeKey}`,
@@ -1261,8 +1257,8 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     const msg = err.error?.message || `Error ${response.status}`;
-    if (response.status === 400) throw new Error('API Key de Gemini inválida. Verifica que la copiaste correctamente.');
-    if (response.status === 429) throw new Error('Límite de peticiones alcanzado. Espera un momento e inténtalo de nuevo.');
+    if (response.status === 400) throw new Error('API Key de Gemini invÃƒÂ¡lida. Verifica que la copiaste correctamente.');
+    if (response.status === 429) throw new Error('LÃƒÂ­mite de peticiones alcanzado. Espera un momento e intÃƒÂ©ntalo de nuevo.');
     throw new Error(msg);
   }
 
@@ -1283,7 +1279,7 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
   }
 
   console.log('[VOLTFLOW DEBUG] rawText:', rawText.substring(0, 300));
-  if (!rawText) throw new Error('Gemini no devolvió texto. Respuesta: ' + JSON.stringify(data).substring(0,200));
+  if (!rawText) throw new Error('Gemini no devolviÃƒÂ³ texto. Respuesta: ' + JSON.stringify(data).substring(0,200));
 
   // Comprobar si fue truncado por MAX_TOKENS
   const finishReason = data.candidates?.[0]?.finishReason || '';
@@ -1291,18 +1287,18 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
     console.warn('[VOLTFLOW] Respuesta truncada por MAX_TOKENS, intentando recuperar...');
   }
 
-  // Parsear JSON — limpiar fences y recuperar JSON parcial
+  // Parsear JSON Ã¢â‚¬â€ limpiar fences y recuperar JSON parcial
   let parsed;
   // Paso 1: limpiar markdown fences
   let clean = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
-  // Paso 2: si está truncado, intentar cerrar el JSON
+  // Paso 2: si estÃƒÂ¡ truncado, intentar cerrar el JSON
   if (finishReason === 'MAX_TOKENS') {
     // Contar llaves para intentar cerrar el objeto
     let opens = (clean.match(/\{/g) || []).length;
     let closes = (clean.match(/\}/g) || []).length;
     // Quitar coma o texto suelto al final antes de cerrar
-    // IMPORTANTE: no usar replace genérico que puede borrar el body
+    // IMPORTANTE: no usar replace genÃƒÂ©rico que puede borrar el body
     clean = clean.replace(/,\s*$/, '');
     // Solo cerrar string si estamos claramente dentro de un valor incompleto
     // (no termina con comillas, no termina con })
@@ -1317,11 +1313,11 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
   } catch {
     // Extraer el primer objeto JSON completo que haya
     const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Gemini no devolvió JSON válido. Inténtalo de nuevo.');
+    if (!jsonMatch) throw new Error('Gemini no devolviÃƒÂ³ JSON vÃƒÂ¡lido. IntÃƒÂ©ntalo de nuevo.');
     try {
       parsed = JSON.parse(jsonMatch[0]);
     } catch(e2) {
-      throw new Error('Error al parsear respuesta. Inténtalo de nuevo.');
+      throw new Error('Error al parsear respuesta. IntÃƒÂ©ntalo de nuevo.');
     }
   }
 
@@ -1330,7 +1326,7 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
     parsed.subject = parsed.subjects[0];
   }
 
-  // Si body vacío, intentar extraerlo directamente del rawText como fallback
+  // Si body vacÃƒÂ­o, intentar extraerlo directamente del rawText como fallback
   if (!parsed.body) {
     const bodyMatch = rawText.match(/"body"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"insight"|"\s*\})/);
     if (bodyMatch) {
@@ -1339,7 +1335,7 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
   }
 
   if ((!parsed.subject && !parsed.subjects) || !parsed.body)
-    throw new Error('Respuesta incompleta. Inténtalo de nuevo.');
+    throw new Error('Respuesta incompleta. IntÃƒÂ©ntalo de nuevo.');
 
   // Aplicar firma real
   parsed.body = parsed.body.replace('{{FIRMA}}', firma);
@@ -1347,8 +1343,8 @@ Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
   return parsed;
 }
 
-// ── Enviar el email generado ───────────────────────────────────────────────────
-// ── Herramientas de formato del editor ────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Enviar el email generado Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// Ã¢â€â‚¬Ã¢â€â‚¬ Herramientas de formato del editor Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function formatText(cmd) {
   const editor = document.getElementById('ai-body-editor');
   if (!editor) return;
@@ -1405,17 +1401,17 @@ async function copyHtmlEmail() {
   const fullHtml = `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.7;color:#222">${innerHtml}</div>`;
 
   try {
-    // Clipboard API moderna — copia como HTML rico
+    // Clipboard API moderna Ã¢â‚¬â€ copia como HTML rico
     const blob = new Blob([fullHtml], { type: 'text/html' });
     const textBlob = new Blob([editor.innerText], { type: 'text/plain' });
     await navigator.clipboard.write([
       new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob })
     ]);
 
-    // Feedback visual en el botón
+    // Feedback visual en el botÃƒÂ³n
     const btn = document.getElementById('btn-copy-html');
     const orig = btn.innerText;
-    btn.innerText = '✅ ¡Copiado! Pega en Gmail/Outlook';
+    btn.innerText = 'Ã¢Å“â€¦ Ã‚Â¡Copiado! Pega en Gmail/Outlook';
     btn.style.background = 'rgba(16,217,124,0.2)';
     btn.style.borderColor = 'rgba(16,217,124,0.5)';
     setTimeout(() => { btn.innerText = orig; btn.style.background = ''; btn.style.borderColor = ''; }, 2500);
@@ -1436,7 +1432,7 @@ async function copyHtmlEmail() {
     // Fallback: copiar texto plano
     try {
       await navigator.clipboard.writeText(editor.innerText);
-      showToast('📋 Copiado como texto (sin formato) — tu navegador no soporta copia HTML');
+      showToast('Email copiado como texto sin formato');
     } catch(e2) {
       alert('No se pudo copiar. Selecciona el texto del email manualmente y copia con Ctrl+C.');
     }
@@ -1471,7 +1467,7 @@ function sendAiEmail() {
 
   window.location.href = `mailto:${lead.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-  emailHistory.unshift({ id: Date.now(), leadId: lead.id, company: lead.company, email: lead.email, segment: lead.segment, date: new Date().toISOString(), status: 'Enviado (IA)', subject, notes: 'Generado con IA + análisis de reseñas' });
+  emailHistory.unshift({ id: Date.now(), leadId: lead.id, company: lead.company, email: lead.email, segment: lead.segment, date: new Date().toISOString(), status: 'Enviado (IA)', subject, notes: 'Generado con IA + anÃƒÂ¡lisis de reseÃƒÂ±as' });
   localStorage.setItem('gordi_email_history', JSON.stringify(emailHistory));
   // MEJORA 1: Registrar time-to-first-contact
   if (!lead.first_contact_date) {
@@ -1481,11 +1477,11 @@ function sendAiEmail() {
   const oldStatus = lead.status;
   const _doSend = () => {
     lead.status_date = new Date().toISOString();
-    addActivityLog(lead.id, `✉️ Email IA enviado: "${subject}"`);
+    addActivityLog(lead.id, `Ã¢Å“â€°Ã¯Â¸Â Email IA enviado: "${subject}"`);
     saveLeads(); renderAll(); renderTracking();
     updateStreakData();
     closeAiModal();
-    showToast('✉️ Email abierto en tu gestor de correo');
+    showToast('Ã¢Å“â€°Ã¯Â¸Â Email abierto en tu gestor de correo');
   };
   if (oldStatus !== 'Visita') {
     confirmStatusChange(lead, 'Visita', () => { lead.status = 'Visita'; _doSend(); });
@@ -1494,7 +1490,7 @@ function sendAiEmail() {
   }
 }
 
-// ── Regenerar ─────────────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Regenerar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function regenerateAiEmail() {
   const lead = leads.find(l => l.id == aiCurrentLeadId);
   if (!lead) return;
@@ -1511,4 +1507,5 @@ function regenerateAiEmail() {
 
 function retryAiEmail() { regenerateAiEmail(); }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
+
